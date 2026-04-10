@@ -1,6 +1,13 @@
-package com.aston.blog.archive;
+package com.aston.blog.vo.archive;
 
+import com.aston.blog.vo.post.PostSummaryVO;
+import lombok.Data;
 
-//归档月
+import java.util.List;
+
+@Data
 public class ArchiveMonthVO {
+    private Integer month;
+    private Integer count;
+    private List<PostSummaryVO> posts;
 }

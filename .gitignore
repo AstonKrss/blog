@@ -31,3 +31,17 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Spring Boot 配置文件 ###
+application-dev.yml
+application-prod.yml
+application-local.yml
+application.yml
+
+### Env 文件 ###
+.env
+.env.local
+.env.*.local
+
+frontend/node_modules/
+node_modules/

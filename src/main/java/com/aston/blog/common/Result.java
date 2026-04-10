@@ -1,4 +1,27 @@
 package com.aston.blog.common;
 
-public class Result {
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Result<T> {
+    private Integer code;
+    private String message;
+    private T data;
+    private Long timestamp;
+
+    public static <T> Result<T> success(T data){
+        return new Result<>(0, "success", data, System.currentTimeMillis());
+    }
+    public static <T> Result<T> error(Integer code,String message){
+        return new Result<>(code, message, null, System.currentTimeMillis());
+    }
+    public static <T> Result<T> error(String message){
+        return new Result<>(null,message, null, System.currentTimeMillis());
+    }
+
 }
