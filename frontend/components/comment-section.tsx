@@ -7,7 +7,8 @@ interface Comment {
   id: string;
   content: string;
   authorName: string;
-  createdAt: string;
+  authorUrl: string | null;
+  createdAt: string | null;
   replies?: Comment[];
 }
 
@@ -21,8 +22,20 @@ export function CommentSection({ postId }: { postId: string }) {
     fetch(`/api/public/comments/${postId}`)
       .then((r) => r.json())
       .then((data) => {
-        const list = data.data?.comments || [];
-        setComments(Array.isArray(list) ? list : []);
+        console.log('Received comments data:', data, 'Is array:', Array.isArray(data));
+        let list: Comment[] = [];
+        if (Array.isArray(data)) {
+          list = data;
+        } else if (data && Array.isArray(data.comments)) {
+          list = data.comments;
+        } else if (data && data.data && Array.isArray(data.data)) {
+          list = data.data;
+        }
+        console.log('Setting comments to:', list);
+        setComments(list);
+      })
+      .catch(err => {
+        console.error('Fetch comments error:', err);
       });
   };
 
@@ -39,7 +52,7 @@ export function CommentSection({ postId }: { postId: string }) {
       const token = localStorage.getItem("token");
       const res = await fetch(`/api/public/comments/${postId}`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
@@ -68,7 +81,7 @@ export function CommentSection({ postId }: { postId: string }) {
         {!isLoggedIn && (
           <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              登录后评论可显示你的头像和信息，<a href="/login" className="underline font-medium">点击登录</a>
+              登录后才能评论，<a href="/login" className="underline font-medium">点击登录</a>
             </p>
           </div>
         )}
@@ -76,16 +89,16 @@ export function CommentSection({ postId }: { postId: string }) {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder={isLoggedIn ? "写下你的想法..." : "登录后发表评论"}
+            placeholder={isLoggedIn ? "写下你的想法..." : "请登录后发表评论"}
             rows={4}
             required
-            disabled={loading}
+            disabled={loading || !isLoggedIn}
             className="w-full rounded-xl border bg-gray-50 dark:bg-[#2c2c2e] px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#007aff]/20 transition-all"
           />
         </div>
         <button
           type="submit"
-          disabled={loading || !isLoggedIn}
+          disabled={loading || !isLoggedIn || !content.trim()}
           className="flex items-center gap-2 rounded-xl bg-[#007aff] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#0066d6] transition-colors disabled:opacity-50 disabled:bg-gray-400 shadow-sm"
         >
           <Send className="h-4 w-4" />
@@ -96,16 +109,18 @@ export function CommentSection({ postId }: { postId: string }) {
       <div className="space-y-4">
         {comments.map((c) => (
           <div key={c.id} className="rounded-xl border bg-gray-50 dark:bg-[#2c2c2e] p-5 transition-colors">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-[#007aff]/10 flex items-center justify-center text-sm font-medium text-[#007aff]">
-                  {c.authorName[0].toUpperCase()}
-                </div>
-                <span className="font-medium text-sm">{c.authorName}</span>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {new Date(c.createdAt).toLocaleDateString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-              </span>
+             <div className="mb-3 flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                 <div className="h-8 w-8 rounded-full bg-[#007aff]/10 flex items-center justify-center text-sm font-medium text-[#007aff]">
+                   {(c.authorName && c.authorName[0]) ? c.authorName[0].toUpperCase() : '?'}
+                 </div>
+                 <span className="font-medium text-sm">{c.authorName || '匿名'}</span>
+               </div>
+               {c.createdAt && (
+               <span className="text-xs text-muted-foreground">
+                 {new Date(c.createdAt).toLocaleDateString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+               </span>
+               )}
             </div>
             <p className="text-sm leading-relaxed">{c.content}</p>
           </div>

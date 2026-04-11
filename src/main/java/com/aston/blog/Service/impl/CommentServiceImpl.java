@@ -4,10 +4,13 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.aston.blog.entity.Comment;
+import com.aston.blog.entity.Post;
 import com.aston.blog.entity.User;
 import com.aston.blog.repository.CommentRepository;
+import com.aston.blog.repository.PostRepository;
 import com.aston.blog.repository.UserRepository;
 import com.aston.blog.vo.comment.CommentVO;
 import com.aston.blog.Service.CommentService;
@@ -15,12 +18,14 @@ import com.aston.blog.Service.CommentService;
 @Service
 public class CommentServiceImpl implements CommentService {
     final CommentRepository commentRepository;
+    final PostRepository postRepository;
     
     @Autowired
     private UserRepository userRepository;
 
-    public CommentServiceImpl(CommentRepository commentRepository) {
+    public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository) {
         this.commentRepository = commentRepository;
+        this.postRepository = postRepository;
     }
 
     @Override
@@ -32,6 +37,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public CommentVO createComment(String postId, String userId, String authorName, String authorEmail, String authorUrl, String content) {
         Comment comment = new Comment();
         comment.setPostId(postId);
@@ -56,6 +62,14 @@ public class CommentServiceImpl implements CommentService {
         comment.setStatus("APPROVED");
         
         comment = commentRepository.save(comment);
+        
+        // 更新文章评论计数
+        Post post = postRepository.findById(postId).orElse(null);
+        if (post != null) {
+            post.setCommentCount(post.getCommentCount() + 1);
+            postRepository.save(post);
+        }
+        
         return toVO(comment);
     }
     

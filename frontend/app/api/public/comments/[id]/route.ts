@@ -10,3 +10,23 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json(data.data);
   } catch { return NextResponse.json({ error: "获取评论失败" }, { status: 500 }); }
 }
+
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const res = await fetch(`${API_BASE}/api/public/comments/${id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(request.headers.get("Authorization") 
+          ? { Authorization: request.headers.get("Authorization") as string } 
+          : {}),
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (data.code !== 0) return NextResponse.json({ error: data.message }, { status: 500 });
+    return NextResponse.json(data.data);
+  } catch { return NextResponse.json({ error: "发布评论失败" }, { status: 500 }); }
+}
