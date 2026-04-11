@@ -18,8 +18,19 @@ async function getStats() {
   try {
     const res = await fetch(`${API_BASE}/api/public/stats`, { next: { revalidate: 60 } });
     const data = await res.json();
-    return data.code === 0 ? data.data : { totalPosts: 0, totalTags: 0, totalComments: 0 };
-  } catch { return { totalPosts: 0, totalTags: 0, totalComments: 0 }; }
+    console.log("Backend stats response:", data);
+    if (data.code === 0) {
+      console.log("Returning stats data:", data.data);
+      console.log("totalComments =", data.data.totalComments);
+      console.log("totalViews =", data.data.totalViews);
+      return data.data;
+    } else {
+      return { totalPosts: 0, totalTags: 0, totalComments: 0, totalViews: 0 };
+    }
+  } catch { 
+    console.error("getStats failed");
+    return { totalPosts: 0, totalTags: 0, totalComments: 0, totalViews: 0 };
+  }
 }
 
 async function getSettings() {

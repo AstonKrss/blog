@@ -37,13 +37,14 @@ export default function DashboardPage() {
         console.log("Dashboard - Response status:", res.status);
         const data = await res.json();
         console.log("Dashboard - Response data:", data);
-        if (data.code === 0 && data.data) {
-          const posts = data.data.posts || [];
-          const totalViews = posts.reduce((sum: number, p: any) => sum + (p.viewCount || 0), 0);
-          setStats({ posts: posts.length, views: totalViews, comments: 0 });
-        } else {
-          console.log("Failed to fetch posts:", data.message);
-        }
+         if (data.code === 0 && data.data) {
+           const posts = data.data.posts || [];
+           const totalViews = posts.reduce((sum: number, p: any) => sum + (p.viewCount || 0), 0);
+           const totalComments = posts.reduce((sum: number, p: any) => sum + (p.commentCount || 0), 0);
+           setStats({ posts: posts.length, views: totalViews, comments: totalComments });
+         } else {
+           console.log("Failed to fetch posts:", data.message);
+         }
       } catch (e) {
         console.error("Error fetching stats:", e);
       } finally {

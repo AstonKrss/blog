@@ -246,7 +246,9 @@ public class PostServiceImpl implements PostService {
         stats.setTotalPosts(postRepository.countByStatus("PUBLISHED"));
         stats.setTotalTags((long) tagRepository.count());
         stats.setTotalComments(commentRepository.count());
-        stats.setTotalViews(postRepository.sumViewCount());
+        
+        Long totalViews = postRepository.sumViewCount();
+        stats.setTotalViews(totalViews != null ? totalViews : 0L);
         return stats;
     }
 
