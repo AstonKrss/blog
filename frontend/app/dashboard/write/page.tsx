@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Save, Eye, Plus, Tag, Image as ImageIcon, Loader2, PenTool } from "lucide-react";
 
-export default function WritePostPage() {
+function WritePostContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const postId = searchParams.get("id");
+  
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [excerpt, setExcerpt] = useState("");
@@ -17,10 +20,40 @@ export default function WritePostPage() {
   const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+
+  useEffect(() => {
+    if (postId) {
+      setIsEdit(true);
+      fetchPostData();
+    }
+  }, [postId]);
+
+  const fetchPostData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/posts/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const post = data.data?.post || data.data;
+        if (post) {
+          setTitle(post.title || "");
+          setSlug(post.slug || "");
+          setExcerpt(post.excerpt || "");
+          setContent(post.content || "");
+          setCoverImage(post.coverImage || "");
+          const postTags = post.tags || [];
+          setTags(postTags.map((t: any) => t.tag?.name || t.name || t));
+        }
+      }
+    } catch (e) { console.error(e); }
+  };
 
   const handleTitleChange = (value: string) => {
     setTitle(value);
-    if (!slug) setSlug(value.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, "-").replace(/^-|-$/g, ""));
+    if (!slug || !isEdit) setSlug(value.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, "-").replace(/^-|-$/g, ""));
   };
 
   const addTag = () => {
@@ -37,8 +70,10 @@ export default function WritePostPage() {
     setLoading(true);
     try {
       const token = document.cookie.split("; ").find((row) => row.startsWith("auth_token="))?.split("=")[1];
-      const res = await fetch("/api/posts", {
-        method: "POST",
+      const url = isEdit ? `/api/posts/${postId}` : "/api/posts";
+      const method = isEdit ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ title, slug, excerpt, content, coverImage, tags, status }),
       });
@@ -63,8 +98,8 @@ export default function WritePostPage() {
                 <PenTool className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">写文章</h1>
-                <p className="text-sm text-muted-foreground">创作你的下一篇技术文章</p>
+                <h1 className="text-2xl font-bold">{isEdit ? "编辑文章" : "写文章"}</h1>
+                <p className="text-sm text-muted-foreground">{isEdit ? "修改你的文章" : "创作你的下一篇技术文章"}</p>
               </div>
             </div>
             <div className="flex gap-3">
@@ -78,7 +113,7 @@ export default function WritePostPage() {
               </button>
               <button onClick={() => handleSubmit("PUBLISHED")} disabled={loading || !title || !content}
                 className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Plus className="h-4 w-4" />发布</>}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Plus className="h-4 w-4" />{isEdit ? "保存" : "发布"}</>}
               </button>
             </div>
           </div>
@@ -156,5 +191,13 @@ export default function WritePostPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function WritePostPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <WritePostContent />
+    </Suspense>
   );
 }

@@ -12,6 +12,12 @@ import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, String> {
 
+    @Query("SELECT p FROM Post p LEFT JOIN FETCH p.tags WHERE p.id = :id")
+    Optional<Post> findByIdWithTags(@Param("id") String id);
+
+    @Query("SELECT p FROM Post p LEFT JOIN FETCH p.author LEFT JOIN FETCH p.tags WHERE p.id = :id")
+    Optional<Post> findByIdFull(@Param("id") String id);
+
     Page<Post> findByStatus(String status, Pageable pageable);
 
     @Query("SELECT p FROM Post p JOIN p.tags t WHERE p.status = :status AND t.slug = :tag")
@@ -21,11 +27,17 @@ public interface PostRepository extends JpaRepository<Post, String> {
 
     Page<Post> findByAuthorId(String authorId, Pageable pageable);
 
-    @Query("SELECT p FROM Post p WHERE p.author.username = :username")
-    Page<Post> findByAuthorUsername(@Param("username") String username, Pageable pageable);
+    @Query("SELECT p FROM Post p WHERE p.author.id = :authorId")
+    Page<Post> findByAuthorIdQuery(@Param("authorId") String authorId, Pageable pageable);
 
-    @Query("SELECT p FROM Post p WHERE p.author.username = :username AND p.status = :status")
-    Page<Post> findByAuthorUsernameAndStatus(@Param("username") String username, @Param("status") String status, Pageable pageable);
+    @Query("SELECT p FROM Post p WHERE p.author.id = :authorId AND p.status = :status")
+    Page<Post> findByAuthorIdAndStatusQuery(@Param("authorId") String authorId, @Param("status") String status, Pageable pageable);
+
+    @Query("SELECT p FROM Post p LEFT JOIN FETCH p.author LEFT JOIN FETCH p.tags WHERE p.status = 'PUBLISHED'")
+    Page<Post> findPublishedWithAuthorAndTags(Pageable pageable);
+
+    @Query("SELECT p FROM Post p LEFT JOIN FETCH p.author LEFT JOIN FETCH p.tags WHERE p.status = 'PUBLISHED' AND p.slug = :slug")
+    Optional<Post> findBySlugFull(@Param("slug") String slug);
 
     Optional<Post> findBySlug(String slug);
 

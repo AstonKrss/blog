@@ -18,6 +18,8 @@ import com.aston.blog.vo.post.PostDetailVO;
 import com.aston.blog.vo.post.PostListVO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -39,14 +41,17 @@ public class PostController {
     public Result<PostListVO> getMyPosts(@RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit, @RequestParam(required = false) String status,
             HttpServletRequest request) {
-        String username = getUserIdFromRequest(request);
-        if (username == null) return Result.error(401, "未登录");
-        return Result.success(postService.getMyPosts(username, page, limit, status));
+        String authorId = getUserIdFromRequest(request);
+        if (authorId == null) return Result.error(401, "未登录");
+        return Result.success(postService.getMyPosts(authorId, page, limit, status));
     }
 
     @GetMapping("/{id}")
     public Result<PostDetailVO> getPost(@PathVariable String id) {
-        return Result.success(postService.getPostById(id));
+        PostDetailVO post = postService.getPostById(id);
+        Map<String, Object> data = new HashMap<>();
+        data.put("post", post);
+        return Result.success(post);
     }
 
     @PutMapping("/{id}")
@@ -61,7 +66,15 @@ public class PostController {
     }
 
     private String getUserIdFromRequest(HttpServletRequest request) {
-        var auth = request.getUserPrincipal();
-        return auth != null ? auth.getName() : null;
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getPrincipal() != null) {
+                Object principal = auth.getPrincipal();
+                if (principal instanceof String) {
+                    return (String) principal;
+                }
+            }
+        } catch (Exception e) {}
+        return null;
     }
 }

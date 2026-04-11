@@ -5,6 +5,7 @@ import com.aston.blog.dto.CreatePostDTO;
 import com.aston.blog.dto.UpdatePostDto;
 import com.aston.blog.entity.Post;
 import com.aston.blog.entity.Tag;
+import com.aston.blog.repository.CommentRepository;
 import com.aston.blog.repository.PostRepository;
 import com.aston.blog.repository.TagRepository;
 import com.aston.blog.vo.archive.ArchiveMonthVO;
@@ -30,10 +31,12 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final TagRepository tagRepository;
+    private final CommentRepository commentRepository;
 
-    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository) {
+    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, CommentRepository commentRepository) {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
+        this.commentRepository = commentRepository;
     }
 
     @Override
@@ -44,7 +47,7 @@ public class PostServiceImpl implements PostService {
         if (tag != null && !tag.isEmpty()) {
             postPage = postRepository.findByStatusAndTags("PUBLISHED", tag, pageable);
         } else {
-            postPage = postRepository.findByStatus("PUBLISHED", pageable);
+            postPage = postRepository.findPublishedWithAuthorAndTags(pageable);
         }
 
         List<PostSummaryVO> posts = postPage.getContent().stream()
@@ -65,14 +68,14 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public PostListVO getMyPosts(String username, int page, int limit, String status) {
+    public PostListVO getMyPosts(String authorId, int page, int limit, String status) {
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<Post> postPage;
 
         if (status != null && !status.isEmpty()) {
-            postPage = postRepository.findByAuthorUsernameAndStatus(username, status, pageable);
+            postPage = postRepository.findByAuthorIdAndStatusQuery(authorId, status, pageable);
         } else {
-            postPage = postRepository.findByAuthorUsername(username, pageable);
+            postPage = postRepository.findByAuthorIdQuery(authorId, pageable);
         }
 
         List<PostSummaryVO> posts = postPage.getContent().stream()
@@ -134,20 +137,23 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostDetailVO getPostById(String id) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new RuntimeException("文章不存在"));
+        Post post = postRepository.findByIdWithTags(id).orElse(null);
+        if (post == null) {
+            throw new RuntimeException("文章不存在");
+        }
         return convertToPostDetailVO(post);
     }
 
     @Override
     @Transactional(readOnly = true)
     public PostDetailVO getPostBySlug(String slug) {
-        return postRepository.findBySlug(slug).map(this::convertToPostDetailVO).orElse(null);
+        return postRepository.findBySlugFull(slug).map(this::convertToPostDetailVO).orElse(null);
     }
 
     @Override
     @Transactional
     public PostDetailVO updatePost(String id, UpdatePostDto dto) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new RuntimeException("文章不存在"));
+        Post post = postRepository.findByIdWithTags(id).orElse(null);
 
         if (!post.getSlug().equals(dto.getSlug()) && postRepository.existsBySlug(dto.getSlug())) {
             throw new RuntimeException("Slug已存在: " + dto.getSlug());
@@ -234,6 +240,7 @@ public class PostServiceImpl implements PostService {
         StatsVO stats = new StatsVO();
         stats.setTotalPosts(postRepository.countByStatus("PUBLISHED"));
         stats.setTotalTags((long) tagRepository.count());
+        stats.setTotalComments(commentRepository.count());
         return stats;
     }
 

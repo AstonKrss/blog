@@ -1,11 +1,10 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/login/page": "app/login/page.js",
-  "/blog/page": "app/blog/page.js",
-  "/blog/[slug]/page": "app/blog/[slug]/page.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/dashboard/posts/page": "app/dashboard/posts/page.js",
-  "/dashboard/settings/page": "app/dashboard/settings/page.js",
   "/page": "app/page.js",
-  "/about/page": "app/about/page.js"
+  "/dashboard/write/page": "app/dashboard/write/page.js",
+  "/blog/[slug]/page": "app/blog/[slug]/page.js",
+  "/blog/page": "app/blog/page.js",
+  "/login/page": "app/login/page.js"
 }

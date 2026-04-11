@@ -89,8 +89,9 @@ public class SecurityConfig {
                     
                     if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                         if (jwtUtil.validateToken(token, username)) {
+                            // 将userId存在principal中，便于后续获取
                             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                username, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+                                userId, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
                             SecurityContextHolder.getContext().setAuthentication(authToken);
                         }
                     }

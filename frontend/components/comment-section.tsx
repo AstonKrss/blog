@@ -13,30 +13,41 @@ interface Comment {
 
 export function CommentSection({ postId }: { postId: string }) {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  useEffect(() => {
+  const fetchComments = () => {
     fetch(`/api/public/comments/${postId}`)
       .then((r) => r.json())
-      .then((data) => setComments(data.comments || []));
+      .then((data) => {
+        const list = data.data?.comments || [];
+        setComments(Array.isArray(list) ? list : []);
+      });
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+    fetchComments();
   }, [postId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`/api/posts/${postId}/comments`, {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/public/comments/${postId}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ authorName: name, authorEmail: email, content }),
+        headers: { 
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ content }),
       });
       if (res.ok) {
         setContent("");
-        const data = await fetch(`/api/public/comments/${postId}`).then((r) => r.json());
-        setComments(data.comments || []);
+        fetchComments();
       }
     } finally {
       setLoading(false);
@@ -54,47 +65,31 @@ export function CommentSection({ postId }: { postId: string }) {
       </div>
 
       <form onSubmit={handleSubmit} className="mb-8 space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="mb-1.5 block text-sm font-medium">昵称</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="你的昵称"
-              required
-              className="w-full rounded-xl border bg-gray-50 dark:bg-[#2c2c2e] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#007aff]/20 transition-all"
-            />
+        {!isLoggedIn && (
+          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              登录后评论可显示你的头像和信息，<a href="/login" className="underline font-medium">点击登录</a>
+            </p>
           </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-medium">邮箱</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              required
-              className="w-full rounded-xl border bg-gray-50 dark:bg-[#2c2c2e] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#007aff]/20 transition-all"
-            />
-          </div>
-        </div>
+        )}
         <div>
-          <label className="mb-1.5 block text-sm font-medium">评论内容</label>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="写下你的想法..."
+            placeholder={isLoggedIn ? "写下你的想法..." : "登录后发表评论"}
             rows={4}
             required
+            disabled={loading}
             className="w-full rounded-xl border bg-gray-50 dark:bg-[#2c2c2e] px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#007aff]/20 transition-all"
           />
         </div>
         <button
           type="submit"
-          disabled={loading}
-          className="flex items-center gap-2 rounded-xl bg-[#007aff] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#0066d6] transition-colors disabled:opacity-50 shadow-sm"
+          disabled={loading || !isLoggedIn}
+          className="flex items-center gap-2 rounded-xl bg-[#007aff] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#0066d6] transition-colors disabled:opacity-50 disabled:bg-gray-400 shadow-sm"
         >
           <Send className="h-4 w-4" />
-          {loading ? "提交中..." : "发表评论"}
+          {loading ? "提交中..." : isLoggedIn ? "发表评论" : "请先登录"}
         </button>
       </form>
 

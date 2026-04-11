@@ -22,9 +22,33 @@ async function getStats() {
   } catch { return { totalPosts: 0, totalTags: 0, totalComments: 0 }; }
 }
 
+async function getSettings() {
+  try {
+    const res = await fetch(`${API_BASE}/api/settings`, { next: { revalidate: 60 } });
+    const data = await res.json();
+    if (data.code === 0 && data.data?.settings) {
+      const map: Record<string, string> = {};
+      for (const s of data.data.settings) {
+        map[s.settingKey] = s.settingValue;
+      }
+      return map;
+    }
+    return {};
+  } catch { return {}; }
+}
+
+function getSettingValue(settings: Record<string, string>, key: string, defaultValue: string): string {
+  return settings[key] || defaultValue;
+}
+
 export default async function HomePage() {
   const posts = await getPosts();
   const stats = await getStats();
+  const settings = await getSettings();
+  
+  const siteTitle = getSettingValue(settings, "site_title", "Aston's Blog");
+  const siteDescription = getSettingValue(settings, "site_description", "DevSecOps 实践者 · 佛山大学");
+  const siteSubtitle = getSettingValue(settings, "site_subtitle", "分享前端开发、后端架构、网络安全和 DevOps 的实践经验");
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -44,7 +68,7 @@ export default async function HomePage() {
               {/* Badge */}
               <div className="mb-8 inline-flex items-center gap-2 rounded-full border bg-card/80 px-4 py-2 text-sm shadow-sm backdrop-blur-sm animate-fade-in">
                 <Sparkles className="h-4 w-4 text-indigo-500" />
-                <span className="text-muted-foreground">DevSecOps 实践者 · 佛山大学</span>
+                <span className="text-muted-foreground">{siteDescription}</span>
               </div>
 
               {/* Main heading */}
@@ -58,7 +82,7 @@ export default async function HomePage() {
 
               {/* Subtitle */}
               <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl animate-fade-in" style={{ animationDelay: "0.2s" }}>
-                分享前端开发、后端架构、网络安全和 DevOps 的实践经验
+{siteSubtitle}
               </p>
 
               {/* CTA Buttons */}
