@@ -47,4 +47,7 @@ public interface PostRepository extends JpaRepository<Post, String> {
     Page<Post> findLatestPublished(Pageable pageable);
 
     long countByStatus(String status);
+
+    @Query("SELECT COALESCE(SUM(p.viewCount), 0) FROM Post p WHERE p.status = 'PUBLISHED'")
+    Long sumViewCount();
 }

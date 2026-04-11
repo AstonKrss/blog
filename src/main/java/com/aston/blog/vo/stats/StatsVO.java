@@ -7,4 +7,5 @@ public class StatsVO {
     private Long totalPosts;
     private Long totalTags;
     private Long totalComments;
+    private Long totalViews;
 }

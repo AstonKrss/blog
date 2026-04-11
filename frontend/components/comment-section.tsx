@@ -22,7 +22,6 @@ export function CommentSection({ postId }: { postId: string }) {
     fetch(`/api/public/comments/${postId}`)
       .then((r) => r.json())
       .then((data) => {
-        console.log('Received comments data:', data, 'Is array:', Array.isArray(data));
         let list: Comment[] = [];
         if (Array.isArray(data)) {
           list = data;
@@ -31,11 +30,7 @@ export function CommentSection({ postId }: { postId: string }) {
         } else if (data && data.data && Array.isArray(data.data)) {
           list = data.data;
         }
-        console.log('Setting comments to:', list);
         setComments(list);
-      })
-      .catch(err => {
-        console.error('Fetch comments error:', err);
       });
   };
 

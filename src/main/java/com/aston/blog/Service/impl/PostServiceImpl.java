@@ -145,9 +145,14 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public PostDetailVO getPostBySlug(String slug) {
-        return postRepository.findBySlugFull(slug).map(this::convertToPostDetailVO).orElse(null);
+        return postRepository.findBySlugFull(slug).map(post -> {
+            // 增加浏览量
+            post.setViewCount(post.getViewCount() + 1);
+            postRepository.save(post);
+            return convertToPostDetailVO(post);
+        }).orElse(null);
     }
 
     @Override
@@ -241,6 +246,7 @@ public class PostServiceImpl implements PostService {
         stats.setTotalPosts(postRepository.countByStatus("PUBLISHED"));
         stats.setTotalTags((long) tagRepository.count());
         stats.setTotalComments(commentRepository.count());
+        stats.setTotalViews(postRepository.sumViewCount());
         return stats;
     }
 

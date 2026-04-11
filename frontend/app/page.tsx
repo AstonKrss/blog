@@ -1,7 +1,7 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { PostCard } from "@/components/post-card";
-import { Shield, Code, BookOpen, Github, ExternalLink, ArrowRight, Zap, FileText, Terminal, Cpu, Globe, Sparkles } from "lucide-react";
+import { Shield, Code, BookOpen, Github, ExternalLink, ArrowRight, Zap, FileText, Terminal, Cpu, Globe, Sparkles, Eye, MessageSquare } from "lucide-react";
 import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -16,7 +16,7 @@ async function getPosts() {
 
 async function getStats() {
   try {
-    const res = await fetch(`${API_BASE}/api/public/stats`, { next: { revalidate: 3600 } });
+    const res = await fetch(`${API_BASE}/api/public/stats`, { next: { revalidate: 60 } });
     const data = await res.json();
     return data.code === 0 ? data.data : { totalPosts: 0, totalTags: 0, totalComments: 0 };
   } catch { return { totalPosts: 0, totalTags: 0, totalComments: 0 }; }
@@ -143,13 +143,13 @@ export default async function HomePage() {
         {/* Stats Section */}
         <section>
           <div className="container mx-auto px-4 py-16">
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              {[
-                { label: "文章", value: stats.totalPosts || 0, icon: FileText, color: "from-indigo-500 to-blue-500" },
-                { label: "标签", value: stats.totalTags || 0, icon: Code, color: "from-purple-500 to-pink-500" },
-                { label: "评论", value: stats.totalComments || 0, icon: Shield, color: "from-cyan-500 to-teal-500" },
-                { label: "探索", value: "∞", icon: Zap, color: "from-orange-500 to-red-500" },
-              ].map((stat, i) => {
+             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+               {[
+                 { label: "文章", value: stats.totalPosts || 0, icon: FileText, color: "from-indigo-500 to-blue-500" },
+                 { label: "标签", value: stats.totalTags || 0, icon: Code, color: "from-purple-500 to-pink-500" },
+                 { label: "评论", value: stats.totalComments || 0, icon: MessageSquare, color: "from-cyan-500 to-teal-500" },
+                 { label: "阅读", value: stats.totalViews || 0, icon: Eye, color: "from-orange-500 to-red-500" },
+               ].map((stat, i) => {
                 const Icon = stat.icon;
                 return (
                   <div
