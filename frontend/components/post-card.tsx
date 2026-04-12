@@ -58,10 +58,10 @@ export function PostCard({ post }: PostCardProps) {
           <div className="mt-4 flex flex-wrap gap-2">
             {post.tags.slice(0, 3).map((pt: any) => (
               <span
-                key={pt.tag.slug}
+                key={pt.tag?.slug || pt.slug || Math.random()}
                 className="rounded-full bg-[#007aff]/10 px-2.5 py-0.5 text-xs text-[#007aff]"
               >
-                {pt.tag.name}
+                {pt.tag?.name || pt.name || ''}
               </span>
             ))}
           </div>

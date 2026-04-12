@@ -47,7 +47,17 @@ public class AuthController {
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             return Result.error(401, "未认证");
         }
-        User user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        String principal = auth.getPrincipal().toString();
+        User user;
+        try {
+            user = userRepository.findByUsername(principal).orElse(null);
+            if (user == null) {
+                // 如果不是username，可能是userId，尝试用ID查询
+                user = userRepository.findById(principal).orElseThrow(() -> new RuntimeException("用户不存在"));
+            }
+        } catch (Exception e) {
+            return Result.error(401, "用户不存在");
+        }
         var userVO = new com.aston.blog.vo.auth.UserVO();
         userVO.setId(user.getId());
         userVO.setUsername(user.getUsername());

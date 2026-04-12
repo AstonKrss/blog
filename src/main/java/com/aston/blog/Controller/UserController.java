@@ -42,7 +42,17 @@ public class UserController {
     }
 
     private String getUserIdFromRequest(HttpServletRequest request) {
-        var auth = request.getUserPrincipal();
-        return auth != null ? auth.getName() : null;
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getPrincipal() != null) {
+                Object principal = auth.getPrincipal();
+                if (principal instanceof String) {
+                    return (String) principal;
+                }
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return null;
     }
 }

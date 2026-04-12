@@ -28,9 +28,9 @@ const commands: Record<string, { output: string; isHtml?: boolean }> = {
  🔧 后端: Spring Boot, Java, MySQL
  🛡️ 安全: CTF, Web安全, 渗透测试
  🐳 DevOps: Docker, Linux, Git` },
-  contact: { output: `📧 邮箱: admin@example.com
- 🐙 GitHub: github.com/aston
- 💬 微信: aston_dev` },
+  contact: { output: `📧 邮箱: astonkrss@gmail.com
+  🐙 GitHub: github.com/aston
+  💬 微信: aston_dev` },
   social: { output: `🐙 GitHub: https://github.com/
  📺 Bilibili: https://www.bilibili.com/
  💬 知乎: https://www.zhihu.com/` },

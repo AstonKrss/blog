@@ -3,19 +3,31 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { User, Save, Loader2, Sparkles } from "lucide-react";
+import { User, Save, Loader2, Sparkles, Lock, Eye, EyeOff } from "lucide-react";
+
+const API_BASE = "http://localhost:8080";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    const token = document.cookie.split("; ").find((row) => row.startsWith("auth_token="))?.split("=")[1];
-    fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((data) => {
         if (data.code === 0 && data.data?.user) {
@@ -33,18 +45,57 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = document.cookie.split("; ").find((row) => row.startsWith("auth_token="))?.split("=")[1];
-      await fetch("/api/users/profile", {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/api/users/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ displayName, bio, avatarUrl }),
       });
-    } catch (e) { console.error(e); }
+      const data = await res.json();
+      if (data.code === 0) {
+        alert("保存成功！");
+      } else {
+        alert(data.message || "保存失败");
+      }
+    } catch (e) { console.error(e); alert("保存失败"); }
     finally { setSaving(false); }
   };
 
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      alert("两次输入的密码不一致");
+      return;
+    }
+    if (newPassword.length < 6) {
+      alert("密码长度至少6位");
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/api/users/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (data.code === 0) {
+        alert("密码修改成功！");
+        setShowPasswordModal(false);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        alert(data.message || "修改失败");
+      }
+    } catch (e) { console.error(e); alert("修改失败"); }
+    finally { setChangingPassword(false); }
+  };
+
   if (loading) return <div className="min-h-screen flex flex-col"><Header /><main className="flex-1 flex items-center justify-center"><p>加载中...</p></main><Footer /></div>;
-  if (!user) return null;
+  if (!user) return <div className="min-h-screen flex flex-col"><Header /><main className="flex-1 flex items-center justify-center"><p>请先登录</p></main><Footer /></div>;
+
+  const avatarLetter = displayName ? displayName[0].toUpperCase() : (user.username ? user.username[0].toUpperCase() : "?");
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -68,8 +119,19 @@ export default function ProfilePage() {
           <div className="rounded-2xl border bg-card/80 backdrop-blur-sm p-6 shadow-sm glow-card">
             <div className="flex items-center gap-6 mb-8 pb-8 border-b">
               <div className="relative">
-                <div className="h-20 w-20 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-2xl font-bold text-white shadow-xl">
-                  {displayName ? displayName[0].toUpperCase() : user.username[0].toUpperCase()}
+                {avatarUrl ? (
+                  <img 
+                    src={avatarUrl} 
+                    alt="头像" 
+                    className="h-20 w-20 rounded-full object-cover shadow-xl"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
+                <div className={`h-20 w-20 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-2xl font-bold text-white shadow-xl ${avatarUrl ? 'hidden' : ''}`}>
+                  {avatarLetter}
                 </div>
                 <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-green-500 border-4 border-card flex items-center justify-center">
                   <Sparkles className="h-3 w-3 text-white" />
@@ -96,6 +158,13 @@ export default function ProfilePage() {
                 <input type="text" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)}
                   className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   placeholder="https://example.com/avatar.jpg" />
+                {avatarUrl && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <img src={avatarUrl} alt="预览" className="h-10 w-10 rounded-full object-cover" 
+                      onError={(e) => {(e.target as HTMLImageElement).style.display = 'none'}} />
+                    <span className="text-xs text-muted-foreground">预览</span>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium">个人简介</label>
@@ -103,10 +172,14 @@ export default function ProfilePage() {
                   className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   placeholder="介绍一下自己..." />
               </div>
-              <div className="pt-4">
+              <div className="pt-4 flex items-center gap-4">
                 <button onClick={handleSave} disabled={saving}
                   className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" />保存修改</>}
+                </button>
+                <button onClick={() => setShowPasswordModal(true)}
+                  className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-5 py-2.5 text-sm font-medium text-orange-600 hover:bg-orange-100 transition-all">
+                  <Lock className="h-4 w-4" />修改密码
                 </button>
               </div>
             </div>
@@ -114,6 +187,48 @@ export default function ProfilePage() {
         </div>
       </main>
       <Footer />
+
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowPasswordModal(false)}>
+          <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">修改密码</h3>
+              <button onClick={() => setShowPasswordModal(false)} className="rounded-full p-2 hover:bg-muted">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium">当前密码</label>
+                <div className="relative">
+                  <input type={showPassword ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    placeholder="输入当前密码" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium">新密码</label>
+                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  placeholder="输入新密码（至少6位）" />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium">确认新密码</label>
+                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  placeholder="再次输入新密码" />
+              </div>
+              <button onClick={handleChangePassword} disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-50">
+                {changingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : "确认修改"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

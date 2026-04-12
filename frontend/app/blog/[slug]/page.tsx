@@ -66,11 +66,11 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
                   <Tag className="h-4 w-4" />
                   {post.tags.map((pt: any) => (
                     <Link
-                      key={pt.tag.slug}
-                      href={`/blog?tag=${pt.tag.slug}`}
+                      key={pt.tag?.slug || pt.slug || Math.random()}
+                      href={`/blog?tag=${pt.tag?.slug || pt.slug}`}
                       className="rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs text-indigo-500 hover:bg-indigo-500/20 transition-colors"
                     >
-                      {pt.tag.name}
+                      {pt.tag?.name || pt.name}
                     </Link>
                   ))}
                 </div>

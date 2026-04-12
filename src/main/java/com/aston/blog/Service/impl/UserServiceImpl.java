@@ -64,7 +64,7 @@ public class UserServiceImpl implements UserService {
         vo.setAvatarUrl(user.getAvatarUrl());
         vo.setBio(user.getBio());
         vo.setRole(user.getRole());
-        vo.setCreatedAt(user.getCreatedAt());
+        vo.setCreatedAt(user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
         return vo;
     }
 }
