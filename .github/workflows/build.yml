@@ -17,8 +17,9 @@ jobs:
       - name: 🟦 设置 Node.js 环境
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'          # 加速后续构建
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
 
       - name:  构建 Next.js 前端
         working-directory: ./frontend
