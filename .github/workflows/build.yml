@@ -1,0 +1,35 @@
+name: 自动构建
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:     # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      # ==================== 前端构建 ====================
+      - name: 🟦 设置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'          # 加速后续构建
+
+      - name:  构建 Next.js 前端
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run build
+
+      # ==================== 后端构建 ====================
+      - name: 打包 Spring Boot 后端
+        run: ./mvnw clean package -DskipTests
+
+      # ==================== 构建成功提示 ====================
+      - name: 完成
+        run: echo "前端和后端都构建成功！"
