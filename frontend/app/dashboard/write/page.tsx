@@ -260,12 +260,12 @@ function WritePostContent() {
       return;
     }
     if (e.key === 'Enter') {
-      e.preventDefault();
-      if (suggestions[selectedIndex]) {
+      if (showSuggestions && suggestions[selectedIndex]) {
+        e.preventDefault();
         replaceCurrentWord(suggestions[selectedIndex]);
         setShowSuggestions(false);
+        return;
       }
-      return;
     }
     if (e.key === 'Escape') {
       setShowSuggestions(false);
@@ -571,8 +571,9 @@ function WritePostContent() {
                       onChange={handleContentChange}
                       onKeyDown={handleKeyDown}
                       onPaste={handlePaste}
+                      wrap="soft"
                       placeholder="开始编写你的文章，支持 Markdown 语法，Ctrl+V 可直接粘贴图片..."
-                      className="w-full min-h-[calc(100vh-280px)] bg-transparent border-0 focus:outline-none resize-none text-slate-800 dark:text-slate-200 text-base leading-8 font-mono"
+                      className="w-full min-h-[calc(100vh-280px)] bg-transparent border-0 focus:outline-none resize-none text-slate-800 dark:text-slate-200 text-base leading-8 font-mono break-all whitespace-pre-wrap"
                       style={{ caretColor: '#6366f1' }}
                     />
                     
