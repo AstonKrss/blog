@@ -45,3 +45,10 @@ application.yml
 
 frontend/node_modules/
 node_modules/
+
+.next
+uploads/
+null
+frontend/.env
+frontend/null
+*.bak
