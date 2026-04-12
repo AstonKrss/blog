@@ -5,14 +5,14 @@ services:
     container_name: blog-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_ROOT_PASSWORD: "Chuyangqi123@@"
       MYSQL_DATABASE: myblog
       MYSQL_USER: bloguser
-      MYSQL_PASSWORD: blog123
+      MYSQL_PASSWORD: "Aston123@@blog"
     ports:
       - "3306:3306"
     volumes:
-      - ./myblog.sql:/docker-entrypoint-initdb.d/myblog.sql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
       - mysql_data:/var/lib/mysql
     networks:
       - blog-network
@@ -29,7 +29,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
       SPRING_DATASOURCE_USERNAME: bloguser
-      SPRING_DATASOURCE_PASSWORD: blog123
+      SPRING_DATASOURCE_PASSWORD: "Aston123@@blog"
     depends_on:
       - mysql
     networks:
@@ -43,9 +43,9 @@ services:
     container_name: blog-frontend
     restart: always
     ports:
-      - "80:3000"
+      - "3000:3000"
     environment:
-      API_BASE: http://localhost:8080
+      API_BASE: http://backend:8080
     depends_on:
       - backend
     networks:
