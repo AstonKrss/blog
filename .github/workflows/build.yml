@@ -46,7 +46,7 @@ jobs:
         with:
           host: ${{ secrets.ALIYUN_HOST }}
           username: ${{ secrets.ALIYUN_USER }}
-          key: ${{ secrets.ALIYUN_SSH_KEY }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}  # 改用密码
           port: 22
           script_stop: true  # 遇到错误立即停止
           debug: true  # 添加调试模式
