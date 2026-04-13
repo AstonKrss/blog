@@ -62,7 +62,11 @@ jobs:
           script: |
 
             echo "SSH 连接成功！"
-            cd /root/workspace/blog/
+            cd /root/workspace/
+
+            git clone https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git blog
+
+            cd blog
 
             git pull origin main
 
