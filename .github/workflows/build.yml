@@ -48,6 +48,7 @@ jobs:
           username: ${{ secrets.ALIYUN_USER }}
           key: ${{ secrets.ALIYUN_SSH_KEY }}
           port: 22
+          script_stop: true  # 遇到错误立即停止
           script: |
             cd /root/workspace/blog/
 
@@ -55,5 +56,5 @@ jobs:
 
             docker-compose down
             docker-compose up -d --build
-            
+
             # 启动新的后端服务
