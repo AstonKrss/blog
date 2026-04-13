@@ -49,7 +49,10 @@ jobs:
           key: ${{ secrets.ALIYUN_SSH_KEY }}
           port: 22
           script_stop: true  # 遇到错误立即停止
+          debug: true  # 添加调试模式
           script: |
+
+            echo "SSH 连接成功！"
             cd /root/workspace/blog/
 
             git pull origin main
@@ -58,3 +61,5 @@ jobs:
             docker-compose up -d --build
 
             # 启动新的后端服务
+
+            
