@@ -62,7 +62,9 @@ jobs:
           script: |
 
             echo "SSH 连接成功！"
-            cd /root/workspace/
+            cd /root/workspace
+
+            rm -rf blog
 
             git clone https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git blog
 
