@@ -40,6 +40,12 @@ jobs:
       - name: 完成
         run: echo "前端和后端都构建成功！"
         
+      - name: 调试 Secrets
+        run: |
+          echo "Host: ${{ secrets.ALIYUN_HOST }}"
+          echo "User: ${{ secrets.ALIYUN_USER }}"
+          echo "Password length: ${{ secrets.ALIYUN_PASSWORD }}"
+      
       # ==================== SSH 部署到阿里云 ====================
       - name: 部署到阿里云服务器
         uses: appleboy/ssh-action@v0.1.5
