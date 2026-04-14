@@ -21,6 +21,8 @@ jobs:
 
       - name:  构建 Next.js 前端
         working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://47.242.21.40:8080
         run: |
           npm ci
           npm run build

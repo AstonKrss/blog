@@ -35,7 +35,7 @@ services:
       SPRING_DATASOURCE_USERNAME: bloguser
       SPRING_DATASOURCE_PASSWORD: "Aston123@@blog"
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+      # SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
     depends_on:
       mysql:
         condition: service_healthy
@@ -48,13 +48,13 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://your-server-ip:8080
+        NEXT_PUBLIC_API_URL: http://47.242.21.40:8080
     container_name: blog-frontend
     restart: always
     ports:
       - "80:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://your-server-ip:8080
+      NEXT_PUBLIC_API_URL: http://47.242.21.40:8080
     depends_on:
       - backend
     networks:
