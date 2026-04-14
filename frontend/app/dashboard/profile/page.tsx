@@ -5,7 +5,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { User, Save, Loader2, Sparkles, Lock, Eye, EyeOff } from "lucide-react";
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
