@@ -66,7 +66,7 @@ jobs:
             echo "SSH 连接成功！"
             cd /root/workspace
 
-            if [! -d "blog" ]; then
+            if [ ! -d "blog" ]; then
               echo "目录不存在，正在克隆仓库..."
               git clone https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git blog
             else
