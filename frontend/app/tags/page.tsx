@@ -3,16 +3,22 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Tag as TagIcon, Sparkles } from "lucide-react";
+import { Tag as TagIcon } from "lucide-react";
 import Link from "next/link";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export default function TagsPage() {
   const [tags, setTags] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch("/api/public/tags")
+    fetch(`${API_BASE}/api/public/tags`)
       .then((r) => r.json())
-      .then((data) => setTags(data.tags || []));
+      .then((data) => {
+        if (data.code === 0) {
+          setTags(data.data || []);
+        }
+      });
   }, []);
 
   const gradients = [
