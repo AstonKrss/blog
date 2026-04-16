@@ -10,6 +10,8 @@ import com.aston.blog.vo.stats.StatsVO;
 
 import java.util.List;
 
+import com.aston.blog.vo.post.SearchResultVO;
+
 public interface PostService {
     PostListVO getPublicPosts(int page, int limit, String tag);
 
@@ -30,4 +32,6 @@ public interface PostService {
     StatsVO getStats();
 
     void incrementViewCount(String postId);
+
+    SearchResultVO search(String query, int page, int limit);
 }

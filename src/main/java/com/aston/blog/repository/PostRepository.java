@@ -31,7 +31,8 @@ public interface PostRepository extends JpaRepository<Post, String> {
     Page<Post> findByAuthorIdQuery(@Param("authorId") String authorId, Pageable pageable);
 
     @Query("SELECT p FROM Post p WHERE p.author.id = :authorId AND p.status = :status")
-    Page<Post> findByAuthorIdAndStatusQuery(@Param("authorId") String authorId, @Param("status") String status, Pageable pageable);
+    Page<Post> findByAuthorIdAndStatusQuery(@Param("authorId") String authorId, @Param("status") String status,
+            Pageable pageable);
 
     @Query("SELECT p FROM Post p LEFT JOIN FETCH p.author LEFT JOIN FETCH p.tags WHERE p.status = 'PUBLISHED'")
     Page<Post> findPublishedWithAuthorAndTags(Pageable pageable);
@@ -50,4 +51,7 @@ public interface PostRepository extends JpaRepository<Post, String> {
 
     @Query("SELECT COALESCE(SUM(p.viewCount), 0) FROM Post p WHERE p.status = 'PUBLISHED'")
     Long sumViewCount();
+
+    @Query("SELECT p FROM Post p LEFT JOIN FETCH p.author LEFT JOIN FETCH p.tags WHERE p.status = :status AND (p.title LIKE CONCAT('%', :keyword, '%') OR p.content LIKE CONCAT('%', :keyword, '%'))")
+    Page<Post> search(@Param("status") String status, @Param("keyword") String keyword, Pageable pageable);
 }

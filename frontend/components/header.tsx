@@ -15,13 +15,13 @@ export function Header() {
   const navLinks = [
     { href: "/", label: "首页" },
     { href: "/blog", label: "博客" },
+    { href: "/search", label: "搜索" },
     { href: "/archive", label: "归档" },
     { href: "/tags", label: "标签" },
+    { href: "/guestbook", label: "留言" },
+    { href: "/friends", label: "友链" },
+    { href: "/projects", label: "项目" },
     { href: "/tools", label: "工具箱" },
-    { href: "/timeline", label: "成长" },
-    { href: "/terminal", label: "终端" },
-    { href: "/travel", label: "旅行" },
-    { href: "/resources", label: "资源" },
     { href: "/about", label: "关于" },
   ];
 
@@ -46,7 +46,20 @@ export function Header() {
           ))}
           <ThemeToggle />
           {user ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <Link href="/dashboard/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                {user.avatarUrl ? (
+                  <img 
+                    src={user.avatarUrl} 
+                    alt={user.displayName || user.username}
+                    className="h-8 w-8 rounded-full object-cover ring-2 ring-primary/20"
+                  />
+                ) : (
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
+                    {(user.displayName || user.username)?.[0]?.toUpperCase() || "?"}
+                  </div>
+                )}
+              </Link>
               <Link
                 href="/dashboard"
                 className="flex items-center gap-1 text-sm font-medium hover:text-primary"

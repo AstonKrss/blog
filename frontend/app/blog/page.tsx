@@ -58,13 +58,30 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
         <div className="relative container mx-auto px-4 py-12">
           {/* Page Header */}
           <div className="mb-10">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg">
-                <BookOpen className="h-5 w-5 text-white" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg">
+                  <BookOpen className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold">博客</h1>
+                  <p className="text-muted-foreground text-sm">分享技术实践与思考</p>
+                </div>
               </div>
-              <h1 className="text-3xl font-bold">博客</h1>
+              
+              {/* 搜索框 */}
+              <form action="/search" method="GET" className="hidden sm:block">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    name="q"
+                    placeholder="搜索文章..."
+                    className="w-64 pl-10 pr-4 py-2 rounded-xl border bg-card/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                  />
+                </div>
+              </form>
             </div>
-            <p className="text-muted-foreground ml-[52px]">分享技术实践与思考</p>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-8">

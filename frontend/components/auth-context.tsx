@@ -32,6 +32,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const fetchUser = useCallback(async () => {
+    if (typeof window === 'undefined') {
+      setLoading(false);
+      return;
+    }
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -43,7 +47,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      setUser(data.user || null);
+      if (data.code === 0 && data.data?.user) {
+        setUser(data.data.user);
+      } else {
+        localStorage.removeItem("token");
+        setUser(null);
+      }
     } catch {
       setUser(null);
     } finally {

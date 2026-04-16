@@ -5,15 +5,33 @@ import { useEffect, useState } from "react";
 
 export function MarkdownRenderer({ content }: { content: string }) {
   const [html, setHtml] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    marked.setOptions({ 
-      breaks: true, 
-      gfm: true,
-      pedantic: false,
-    });
-    setHtml(marked.parse(content) as string);
+    try {
+      setError(null);
+      marked.setOptions({ 
+        breaks: true, 
+        gfm: true,
+        pedantic: false,
+      });
+      const result = marked.parse(content || "");
+      setHtml(typeof result === 'string' ? result : '');
+    } catch (err) {
+      console.error('Markdown parse error:', err);
+      setError('内容解析失败');
+      setHtml('');
+    }
   }, [content]);
+
+  if (error) {
+    return (
+      <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <p className="text-red-600 dark:text-red-400">{error}</p>
+        <pre className="mt-2 text-xs text-red-500 whitespace-pre-wrap">{content}</pre>
+      </div>
+    );
+  }
 
   return (
     <div

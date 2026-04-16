@@ -238,46 +238,44 @@ function WritePostContent() {
       return;
     }
 
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedIndex(i => (i + 1) % suggestions.length);
-      return;
-    }
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedIndex(i => (i - 1 + suggestions.length) % suggestions.length);
-      return;
-    }
-    if (e.key === 'Tab') {
-      if (showSuggestions && suggestions[selectedIndex]) {
+    if (showSuggestions && suggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex(i => (i + 1) % suggestions.length);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex(i => (i - 1 + suggestions.length) % suggestions.length);
+        return;
+      }
+      if (e.key === 'Tab') {
         e.preventDefault();
         replaceCurrentWord(suggestions[selectedIndex]);
         setShowSuggestions(false);
         return;
       }
-      e.preventDefault();
-      insertText('  ');
-      return;
-    }
-    if (e.key === 'Enter') {
-      if (showSuggestions && suggestions[selectedIndex]) {
+      if (e.key === 'Enter') {
         e.preventDefault();
         replaceCurrentWord(suggestions[selectedIndex]);
         setShowSuggestions(false);
         return;
       }
-    }
-    if (e.key === 'Escape') {
-      setShowSuggestions(false);
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowSuggestions(false);
+        return;
+      }
     }
   };
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setContent(e.target.value);
+    const newContent = e.target.value;
+    setContent(newContent);
     
     const el = e.target;
     const cursorPos = el.selectionStart;
-    const textBeforeCursor = content.substring(0, cursorPos);
+    const textBeforeCursor = newContent.substring(0, cursorPos);
     const lastWordMatch = textBeforeCursor.match(/[\w$]+$/);
     
     if (lastWordMatch && lastWordMatch[0].length >= 1 && isInCodeBlock()) {

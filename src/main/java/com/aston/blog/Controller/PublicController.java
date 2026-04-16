@@ -27,7 +27,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.aston.blog.dto.CreateCommentDTO;
 
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.Map;
+
+import com.aston.blog.vo.post.SearchResultVO;
 
 @RestController
 @RequestMapping("/api/public")
@@ -78,12 +81,13 @@ public class PublicController {
     }
 
     @PostMapping("/comments/{postId}")
-    public Result<CommentVO> postComments(@PathVariable String postId, @RequestBody(required = false) Map<String, String> body, HttpServletRequest request) {
+    public Result<CommentVO> postComments(@PathVariable String postId,
+            @RequestBody(required = false) Map<String, String> body, HttpServletRequest request) {
         String authorName = null;
         String authorEmail = null;
         String authorUrl = null;
         String content = null;
-        
+
         // 如果有body，说明是匿名评论
         if (body != null) {
             authorName = body.get("authorName");
@@ -91,7 +95,7 @@ public class PublicController {
             authorUrl = body.get("authorUrl");
             content = body.get("content");
         }
-        
+
         // 从 SecurityContext 获取登录用户 ID
         String userId = null;
         try {
@@ -102,10 +106,18 @@ public class PublicController {
                     userId = (String) principal; // userId 存在 principal 中
                 }
             }
-        } catch (Exception e) {}
-        
+        } catch (Exception e) {
+        }
+
         CommentVO vo = commentService.createComment(postId, userId, authorName, authorEmail, authorUrl, content);
         return Result.success(vo);
+    }
+
+    @GetMapping("/search")
+    public Result<SearchResultVO> search(@RequestParam String q, @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
+        SearchResultVO result = postService.search(q, page, limit);
+        return Result.success(result);
     }
 
 }

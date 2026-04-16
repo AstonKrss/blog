@@ -3,6 +3,7 @@ import { Footer } from "@/components/footer";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { CommentSection } from "@/components/comment-section";
 import { ReadingProgress } from "@/components/reading-progress";
+import { LikeButton } from "@/components/like-button";
 import { Calendar, Eye, ArrowLeft, Tag, Clock } from "lucide-react";
 import Link from "next/link";
 
@@ -81,10 +82,25 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
         {/* Article Content */}
         <article className="mx-auto max-w-4xl px-4 py-12">
-          <div className="rounded-2xl border bg-card/80 backdrop-blur-sm p-8 md:p-12 shadow-sm glow-card">
-            <MarkdownRenderer content={post.content} />
+          <div className="relative flex gap-8">
+            {/* 左侧点赞按钮 - 知乎风格 */}
+            <div className="hidden lg:block sticky top-48 self-start">
+              <LikeButton postId={post.id} />
+            </div>
+            
+            {/* 文章内容 */}
+            <div className="flex-1 rounded-2xl border bg-card/80 backdrop-blur-sm p-8 md:p-12 shadow-sm glow-card">
+              <MarkdownRenderer content={post.content} />
+            </div>
           </div>
         </article>
+
+        {/* 移动端点赞按钮 */}
+        <div className="lg:hidden mx-auto max-w-4xl px-4 pb-4">
+          <div className="flex justify-center">
+            <LikeButton postId={post.id} />
+          </div>
+        </div>
 
         {/* Comments */}
         <div className="mx-auto max-w-4xl px-4 pb-12">

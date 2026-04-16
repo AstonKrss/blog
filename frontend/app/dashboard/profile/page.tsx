@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { User, Save, Loader2, Sparkles, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Save, Loader2, Sparkles, Lock, Eye, EyeOff, Upload, Camera } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -59,6 +59,40 @@ export default function ProfilePage() {
       }
     } catch (e) { console.error(e); alert("保存失败"); }
     finally { setSaving(false); }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("请选择图片文件");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("图片大小不能超过5MB");
+      return;
+    }
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch(`${API_BASE}/api/upload/image`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.code === 0 && data.data) {
+        setAvatarUrl(data.data);
+        alert("头像上传成功！记得点击保存");
+      } else {
+        alert(data.message || "上传失败");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("上传失败");
+    }
+    e.target.value = "";
   };
 
   const handleChangePassword = async () => {
@@ -154,17 +188,38 @@ export default function ProfilePage() {
                   placeholder="你的显示名称" />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium">头像 URL</label>
-                <input type="text" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)}
-                  className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                  placeholder="https://example.com/avatar.jpg" />
-                {avatarUrl && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <img src={avatarUrl} alt="预览" className="h-10 w-10 rounded-full object-cover" 
-                      onError={(e) => {(e.target as HTMLImageElement).style.display = 'none'}} />
-                    <span className="text-xs text-muted-foreground">预览</span>
+                <label className="mb-1.5 block text-sm font-medium">头像</label>
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <label className="cursor-pointer">
+                      <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                      <div className="relative group">
+                        {avatarUrl ? (
+                          <img 
+                            src={avatarUrl} 
+                            alt="头像" 
+                            className="h-20 w-20 rounded-full object-cover shadow-xl"
+                          />
+                        ) : (
+                          <div className="h-20 w-20 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-2xl font-bold text-white shadow-xl">
+                            {avatarLetter}
+                          </div>
+                        )}
+                        <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Camera className="h-6 w-6 text-white" />
+                        </div>
+                      </div>
+                    </label>
                   </div>
-                )}
+                  <div className="flex-1">
+                    <label className="inline-flex items-center gap-2 cursor-pointer rounded-xl border border-dashed border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors">
+                      <Upload className="h-4 w-4" />
+                      <span>点击上传头像</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                    </label>
+                    <p className="mt-1 text-xs text-muted-foreground">支持 jpg, png, gif, webp，最大 5MB</p>
+                  </div>
+                </div>
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium">个人简介</label>

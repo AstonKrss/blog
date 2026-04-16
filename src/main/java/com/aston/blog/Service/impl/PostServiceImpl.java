@@ -16,6 +16,7 @@ import com.aston.blog.vo.post.PostListVO;
 import com.aston.blog.vo.post.PostSummaryVO;
 import com.aston.blog.vo.stats.StatsVO;
 import com.aston.blog.vo.tag.TagVO;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.aston.blog.vo.post.SearchResultVO;
+
 @Service
 public class PostServiceImpl implements PostService {
 
@@ -33,7 +36,8 @@ public class PostServiceImpl implements PostService {
     private final TagRepository tagRepository;
     private final CommentRepository commentRepository;
 
-    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository, CommentRepository commentRepository) {
+    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository,
+            CommentRepository commentRepository) {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
         this.commentRepository = commentRepository;
@@ -246,7 +250,7 @@ public class PostServiceImpl implements PostService {
         stats.setTotalPosts(postRepository.countByStatus("PUBLISHED"));
         stats.setTotalTags((long) tagRepository.count());
         stats.setTotalComments(commentRepository.count());
-        
+
         Long totalViews = postRepository.sumViewCount();
         stats.setTotalViews(totalViews != null ? totalViews : 0L);
         return stats;
@@ -323,4 +327,19 @@ public class PostServiceImpl implements PostService {
             postRepository.save(post);
         }
     }
+
+    @Override
+    public SearchResultVO search(String query, int page, int limit) {
+        Pageable pageable = PageRequest.of(page - 1, limit);
+        Page<Post> postPage = postRepository.search("PUBLISHED", query, pageable);
+        List<PostSummaryVO> posts = postPage.getContent().stream()
+                .map(this::convertToPostSummaryVO)
+                .collect(Collectors.toList());
+
+        SearchResultVO result = new SearchResultVO();
+        result.setPosts(posts);
+        result.setTotal(postPage.getTotalElements());
+        return result;
+    }
+
 }

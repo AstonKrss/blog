@@ -52,12 +52,12 @@ jobs:
       - name: 部署到阿里云服务器
         uses: appleboy/ssh-action@v0.1.5
         with:
-          # host: ${{ secrets.ALIYUN_HOST }}
-          # username: ${{ secrets.ALIYUN_USER }}
-          # password: ${{ secrets.ALIYUN_PASSWORD }}  # 改用密码
-          host: "47.242.21.40"  # 直接写 IP
-          username: "root"
-          password: "Chuyangqi123@@"  # 直接写密码
+          host: ${{ secrets.ALIYUN_HOST }}
+          username: ${{ secrets.ALIYUN_USER }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}  # 改用密码
+          # host: "47.242.21.40"  # 直接写 IP
+          # username: "root"
+          # password: "Chuyangqi123@@"  # 直接写密码
           port: 22
           script_stop: true  # 遇到错误立即停止
           debug: true  # 添加调试模式
@@ -66,17 +66,29 @@ jobs:
             echo "SSH 连接成功！"
             cd /root/workspace
 
-            rm -rf blog
+            if [! -d "blog" ]; then
+              echo "目录不存在，正在克隆仓库..."
+              git clone https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git blog
+            else
+              echo "目录已存在，正在更新代码..."
+              cd blog
+              git pull origin main
+              cd ..
+            fi
 
-            git clone https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git blog
+            #创前端生产环境
+            # 创建前端环境变量文件（如果不存在）
+            if [ ! -f "frontend/.env.production" ]; then
+              echo "创建 frontend/.env.production..."
+              echo "NEXT_PUBLIC_API_URL=http://47.242.21.40:8080" > frontend/.env.production
+            fi
 
-            cd blog
-
-            git pull origin main
-
-            docker-compose down
+            # 重新构建并启动
             docker-compose up -d --build
-
-            # 启动新的后端服务
-
+            
+            # 清理无用镜像
+            docker image prune -f
+            
+            echo "部署完成！"
+            docker ps
             
