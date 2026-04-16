@@ -70,25 +70,11 @@ jobs:
             git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
             git pull origin main
             
-            # 构建前端（服务器上）
-            echo "构建前端..."
-            cd frontend
-            npm ci
-            NEXT_PUBLIC_API_URL=http://47.242.21.40:8080 npm run build
-            cd ..
-            
-            # 构建后端（服务器上）
-            echo "构建后端..."
-            mvn clean package -DskipTests
-            
-            # 创建环境变量文件
             echo "NEXT_PUBLIC_API_URL=http://47.242.21.40:8080" > frontend/.env.production
-            
-            # 重新构建并启动 Docker 容器
+
             docker-compose down
             docker-compose up -d --build
             
-            # 清理
             docker image prune -f
             
             echo "部署完成！"
