@@ -62,6 +62,7 @@ jobs:
           script_stop: true  # 遇到错误立即停止
           debug: true  # 添加调试模式
           script: |
+            set -x  # 开启命令回显
 
             echo "SSH 连接成功！"
             cd /root/workspace
