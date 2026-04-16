@@ -67,6 +67,7 @@ jobs:
             cd /root/workspace/blog
             
             # 拉取最新代码
+            git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
             git pull origin main
             
             # 构建前端（服务器上）
