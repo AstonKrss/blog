@@ -62,34 +62,32 @@ jobs:
           script_stop: true  # 遇到错误立即停止
           debug: true  # 添加调试模式
           script: |
-            set -x  # 开启命令回显
-
-            echo "SSH 连接成功！"
-            cd /root/workspace
-
-            if [ ! -d "blog" ]; then
-              echo "目录不存在，正在克隆仓库..."
-              git clone https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git blog
-            else
-              echo "目录已存在，正在更新代码..."
-              cd blog
-              git pull origin main
-              cd ..
-            fi
-
-            #创前端生产环境
-            # 创建前端环境变量文件（如果不存在）
-            if [ ! -f "frontend/.env.production" ]; then
-              echo "创建 frontend/.env.production..."
-              echo "NEXT_PUBLIC_API_URL=http://47.242.21.40:8080" > frontend/.env.production
-            fi
-
-            # 重新构建并启动
+            set -e  # 遇到错误退出
+            
+            cd /root/workspace/blog
+            
+            # 拉取最新代码
+            git pull origin main
+            
+            # 构建前端（服务器上）
+            echo "构建前端..."
+            cd frontend
+            npm ci
+            NEXT_PUBLIC_API_URL=http://47.242.21.40:8080 npm run build
+            cd ..
+            
+            # 构建后端（服务器上）
+            echo "构建后端..."
+            mvn clean package -DskipTests
+            
+            # 创建环境变量文件
+            echo "NEXT_PUBLIC_API_URL=http://47.242.21.40:8080" > frontend/.env.production
+            
+            # 重新构建并启动 Docker 容器
+            docker-compose down
             docker-compose up -d --build
             
-            # 清理无用镜像
+            # 清理
             docker image prune -f
             
             echo "部署完成！"
-            docker ps
-            
