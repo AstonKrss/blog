@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/header";
 import { Loader2, Code, Plus, Edit, Trash2, ExternalLink, Star, X, Upload } from "lucide-react";
+import { useAuth } from "@/components/auth-context";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export default function ProjectsManagePage() {
+  const { user, loading: authLoading } = useAuth();
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -17,8 +19,10 @@ export default function ProjectsManagePage() {
   });
 
   useEffect(() => {
-    loadProjects();
-  }, []);
+    if (!authLoading && user) {
+      loadProjects();
+    }
+  }, [user, authLoading]);
 
   const loadProjects = () => {
     const token = localStorage.getItem("token");
@@ -27,8 +31,9 @@ export default function ProjectsManagePage() {
     })
       .then(r => r.json())
       .then(data => {
+        console.log("Projects response:", data);
         if (data.code === 0) {
-          setProjects(data.data?.projects || []);
+          setProjects(data.data || []);
         }
         setLoading(false);
       })

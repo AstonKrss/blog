@@ -1,6 +1,5 @@
 package com.aston.blog.entity;
 
-
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;

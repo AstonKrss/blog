@@ -6,7 +6,7 @@ import { Footer } from "@/components/footer";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FileText, Settings, User, Plus, PenTool, BarChart3, Sparkles, MessageSquare, Eye } from "lucide-react";
+import { FileText, Settings, User, Plus, PenTool, BarChart3, Sparkles, MessageSquare, Eye, Link2, Code } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -60,8 +60,10 @@ export default function DashboardPage() {
   const quickActions = [
     { href: "/dashboard/write", icon: PenTool, label: "写文章", desc: "创作新的技术文章", gradient: "from-indigo-500 to-blue-500" },
     { href: "/dashboard/posts", icon: FileText, label: "文章管理", desc: "管理所有已发布的文章", gradient: "from-purple-500 to-pink-500" },
+    { href: "/dashboard/projects", icon: Code, label: "项目管理", desc: "管理作品集项目", gradient: "from-emerald-500 to-teal-500" },
+    { href: "/dashboard/friends", icon: Link2, label: "友链管理", desc: "审核友链申请", gradient: "from-cyan-500 to-teal-500" },
     { href: "/dashboard/profile", icon: User, label: "个人资料", desc: "编辑个人信息和头像", gradient: "from-orange-500 to-amber-500" },
-    { href: "/dashboard/settings", icon: Settings, label: "站点设置", desc: "管理博客基本配置", gradient: "from-emerald-500 to-teal-500" },
+    { href: "/dashboard/settings", icon: Settings, label: "站点设置", desc: "管理博客基本配置", gradient: "from-slate-500 to-zinc-500" },
   ];
 
   return (

@@ -11,7 +11,7 @@ export default function AboutPage() {
   ];
 
   const links = [
-    { name: "GitHub", url: "https://github.com/", icon: Github, gradient: "from-gray-700 to-gray-900 dark:from-gray-500 dark:to-gray-700" },
+    { name: "GitHub", url: "https://github.com/AstonKrss", icon: Github, gradient: "from-gray-700 to-gray-900 dark:from-gray-500 dark:to-gray-700" },
     { name: "邮箱", url: "mailto:astonkrss@gmail.com", icon: Mail, gradient: "from-indigo-500 to-purple-500" },
   ];
 
