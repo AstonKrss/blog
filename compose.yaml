@@ -30,6 +30,8 @@ services:
     restart: always
     ports:
       - "8080:8080"
+    volumes:
+      - .:/uploads:/va/blog/uploads
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: bloguser

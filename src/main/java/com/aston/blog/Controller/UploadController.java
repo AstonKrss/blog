@@ -21,7 +21,7 @@ import java.util.UUID;
 @RequestMapping("/api")
 public class UploadController {
 
-    private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/uploads/";
+    private static final String UPLOAD_DIR = "/var/blog/uploads/";
 
     // 允许的图片扩展名白名单
     private static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(Arrays.asList(

@@ -33,7 +33,8 @@ public class PostController {
     @PostMapping
     public Result<PostDetailVO> createPost(@Valid @RequestBody CreatePostDTO dto, HttpServletRequest request) {
         String authorId = getUserIdFromRequest(request);
-        if (authorId == null) return Result.error(401, "未登录");
+        if (authorId == null)
+            return Result.error(401, "未登录");
         return Result.success(postService.createPost(dto, authorId));
     }
 
@@ -42,7 +43,8 @@ public class PostController {
             @RequestParam(defaultValue = "10") int limit, @RequestParam(required = false) String status,
             HttpServletRequest request) {
         String authorId = getUserIdFromRequest(request);
-        if (authorId == null) return Result.error(401, "未登录");
+        if (authorId == null)
+            return Result.error(401, "未登录");
         return Result.success(postService.getMyPosts(authorId, page, limit, status));
     }
 
@@ -74,7 +76,8 @@ public class PostController {
                     return (String) principal;
                 }
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
         return null;
     }
 }
