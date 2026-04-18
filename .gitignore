@@ -47,7 +47,8 @@ frontend/node_modules/
 node_modules/
 
 .next
-uploads/
+uploads/*
+!uploads/photos/
 null
 frontend/.env
 frontend/null

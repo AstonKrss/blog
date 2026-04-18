@@ -22,6 +22,7 @@ export function Header() {
     { href: "/friends", label: "友链" },
     { href: "/projects", label: "项目" },
     { href: "/tools", label: "工具箱" },
+    { href: "/tree/", label: "圣诞树" },
     { href: "/about", label: "关于" },
   ];
 

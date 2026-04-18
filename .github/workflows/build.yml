@@ -54,10 +54,8 @@ jobs:
         with:
           host: ${{ secrets.ALIYUN_HOST }}
           username: ${{ secrets.ALIYUN_USER }}
-          password: ${{ secrets.ALIYUN_PASSWORD }}
-          # host: "47.242.21.40"  # 直接写 IP
-          # username: "root"
-          # password: "Chuyangqi123@@"  # 直接写密码
+          # password: ${{ secrets.ALIYUN_PASSWORD }}
+          key: ${{ secrets.ALIYUN_SSH_KEY }}
           port: 22
           script_stop: true  # 遇到错误立即停止
           debug: true  # 添加调试模式
