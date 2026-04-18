@@ -39,7 +39,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       <ReadingProgress />
       <main className="flex-1">
         {/* Article Header */}
-        <div className="relative overflow-hidden border-b bg-card/80 backdrop-blur-sm">
+        <div className="relative overflow-hidden border-b bg-card/80 dark:bg-card/90 backdrop-blur-sm">
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div className="animate-float absolute -top-16 -right-16 h-64 w-64 rounded-full bg-indigo-400/5 blur-2xl" />
           </div>
@@ -48,7 +48,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
               <ArrowLeft className="h-4 w-4" />
               返回博客列表
             </Link>
-            <h1 className="mb-6 text-3xl font-bold md:text-4xl lg:text-5xl leading-tight">{post.title}</h1>
+            <h1 className="mb-6 text-3xl font-bold md:text-4xl lg:text-5xl leading-tight dark:text-white">{post.title}</h1>
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <Calendar className="h-4 w-4" />
@@ -89,7 +89,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             </div>
             
             {/* 文章内容 */}
-            <div className="flex-1 rounded-2xl border bg-card/80 backdrop-blur-sm p-8 md:p-12 shadow-sm glow-card">
+            <div className="flex-1 rounded-2xl border bg-card/80 dark:bg-card/95 backdrop-blur-sm p-8 md:p-12 shadow-sm glow-card">
               <MarkdownRenderer content={post.content} />
             </div>
           </div>

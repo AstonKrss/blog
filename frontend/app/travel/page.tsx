@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2, MapPin, X } from "lucide-react";
+import { useAuth } from "@/components/auth-context";
+import citiesData from "./cities.json";
 
 declare global {
   interface Window {
@@ -11,238 +13,151 @@ declare global {
   }
 }
 
+interface Footprint {
+  id: string;
+  userId?: string;
+  province: string;
+  city?: string;
+  description?: string;
+  createdAt?: string;
+}
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
 export default function TravelMapPage() {
-  const chartRef = useRef<HTMLDivElement>(null);
+  const [chartElement, setChartElement] = useState<HTMLDivElement | null>(null);
+  const chartInstanceRef = useRef<any>(null);
+  const isMountedRef = useRef(true);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const chartInstanceRef = useRef<any>(null);
+  const [footprints, setFootprints] = useState<Footprint[]>([]);
+  const { user, loading: authLoading } = useAuth();
+
+  const [showCityModal, setShowCityModal] = useState(false);
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [cities, setCities] = useState<string[]>([]);
+  const [description, setDescription] = useState("");
+
+  const loadFootprintsPromise = () => {
+    return new Promise<void>((resolve) => {
+      fetch(`${API_BASE}/api/public/footprints`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.code === 0 && data.data) {
+            setFootprints(data.data.map((f: any) => ({
+              id: f.id,
+              province: f.province,
+              city: f.city || null,
+              description: f.description,
+            })));
+          }
+        })
+        .catch(err => console.error("Failed to load footprints:", err))
+        .finally(() => resolve());
+    });
+  };
+
+  const handleAddFootprint = async (province: string, city?: string) => {
+    if (!user) return;
+    const token = localStorage.getItem("token");
+    try {
+      await fetch(`${API_BASE}/api/footprints`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ province, city: city || null, description }),
+      });
+      setShowCityModal(false);
+      setSelectedProvince("");
+      setDescription("");
+      loadFootprintsPromise();
+    } catch (err) {
+      console.error("Failed to add footprint:", err);
+    }
+  };
+
+  const handleDeleteFootprint = async (id: string) => {
+    if (!confirm("确定删除这个足迹？")) return;
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`${API_BASE}/api/footprints/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setFootprints(footprints.filter(f => f.id !== id));
+      }
+    } catch (err) {
+      console.error("Failed to delete:", err);
+    }
+  };
+
+  const getVisitedProvinces = () => {
+    const visited = new Set<string>();
+    footprints.forEach(f => visited.add(f.province));
+    return visited;
+  };
+
+  const initChart = async () => {
+    if (!chartElement || !isMountedRef.current) return;
+
+    try {
+      if (!window.echarts) {
+        await loadScript("https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js");
+      }
+      if (!isMountedRef.current) return;
+
+      await loadFootprintsPromise();
+      if (!isMountedRef.current) return;
+
+      const response = await fetch("https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json");
+      if (!response.ok) throw new Error("Failed to load map");
+      const chinaMapData = await response.json();
+      if (!isMountedRef.current) return;
+
+      window.echarts.registerMap("china", chinaMapData);
+      const chart = window.echarts.init(chartElement);
+      chartInstanceRef.current = chart;
+      if (!isMountedRef.current) { chart.dispose(); return; }
+
+      const visitedProvinces = getVisitedProvinces();
+      const provinceData = chinaMapData.features.map((f: any) => ({
+        name: f.properties.name,
+        value: visitedProvinces.has(f.properties.name) ? 1 : 0,
+      }));
+
+      chart.setOption({
+        title: { text: user ? "我的旅行足迹" : "博主足迹", left: "center", top: 20, textStyle: { fontSize: 24 } },
+        tooltip: { trigger: "item", formatter: (params: any) => {
+          const isVisited = visitedProvinces.has(params.name);
+          return `<b>${params.name}</b><br/>${isVisited ? "✓ 已访问" : "未访问"}`;
+        }},
+        visualMap: { show: false, min: 0, max: 1, inRange: { color: ["#f1f5f9", "#3b82f6"] } },
+        geo: { map: "china", zoom: 1.15, roam: true, emphasis: { itemStyle: { areaColor: "#fbbf24" } }, itemStyle: { normal: { areaColor: "#f1f5f9", borderColor: "#cbd5e1" } } },
+        series: [{ name: "省份", type: "map", mapType: "china", geoIndex: 0, data: provinceData }],
+      });
+
+      chart.on("click", (params: any) => {
+        if (params.seriesType === "map" && user) {
+          const provinceCities = citiesData[params.name as keyof typeof citiesData] || [];
+          setCities(provinceCities);
+          setSelectedProvince(params.name);
+          setShowCityModal(true);
+        }
+      });
+
+      window.addEventListener("resize", () => chart.resize());
+      setLoading(false);
+    } catch (err) {
+      console.error("初始化地图失败:", err);
+      if (isMountedRef.current) { setError("地图加载失败"); setLoading(false); }
+    }
+  };
 
   useEffect(() => {
-    let isMounted = true;
-
-    const initChart = async () => {
-      if (!chartRef.current || !isMounted) return;
-
-      try {
-        // 加载 ECharts
-        if (!window.echarts) {
-          await loadScript("https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js");
-        }
-
-        if (!isMounted) return;
-
-        // 加载中国地图 GeoJSON - 使用更稳定的CDN源
-        const mapUrls = [
-          "https://cdn.jsdelivr.net/npm/echarts/map/json/china.json",
-          "https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json",
-          "https://raw.githubusercontent.com/lydiahuang/ChinaMapJSON/main/china.json"
-        ];
-        
-        let chinaMapData = null;
-        for (const url of mapUrls) {
-          try {
-            const response = await fetch(url);
-            if (response.ok) {
-              chinaMapData = await response.json();
-              break;
-            }
-          } catch (e) {
-            console.log("尝试下一个地图源");
-          }
-        }
-        
-        // 如果外部源都失败，使用内嵌的简化地图数据
-        if (!chinaMapData) {
-          chinaMapData = getInlineChinaMap();
-        }
-        
-        if (!isMounted) return;
-
-        // 注册地图
-        window.echarts.registerMap("china", chinaMapData);
-
-        // 初始化图表
-        const chart = window.echarts.init(chartRef.current);
-        chartInstanceRef.current = chart;
-
-        if (!isMounted) {
-          chart.dispose();
-          return;
-        }
-
-        // 加载足迹数据
-        const footprintResponse = await fetch("/travel/footprint.json");
-        const pointData = await footprintResponse.json();
-
-        // 统计各省访问次数
-        const getProvinceCounts = (data: any[]) => {
-          const counts: Record<string, number> = {};
-          data.forEach((item: any) => {
-            if (item.province) {
-              counts[item.province] = (counts[item.province] || 0) + 1;
-            }
-          });
-          return counts;
-        };
-
-        const getProvinceData = (counts: Record<string, number>) => {
-          // 获取地图数据中的所有省份
-          const provinces = new Set<string>();
-          if (chinaMapData.features) {
-            chinaMapData.features.forEach((f: any) => {
-              if (f.properties && f.properties.name) {
-                provinces.add(f.properties.name);
-              }
-            });
-          }
-          
-          return Array.from(provinces).map(name => ({ 
-            name, 
-            value: counts[name] || 0 
-          }));
-        };
-
-        const provinceCounts = getProvinceCounts(pointData);
-        const provinceData = getProvinceData(provinceCounts);
-        const maxCount = Math.max(...Object.values(provinceCounts), 1);
-
-        const option = {
-          title: {
-            text: "我的旅行足迹",
-            subtext: "走过的城市",
-            left: "center",
-            top: 20,
-            textStyle: { fontSize: 24, color: "#1e293b" },
-            subtextStyle: { fontSize: 14, color: "#64748b" }
-          },
-          tooltip: {
-            trigger: "item",
-            borderColor: "#171a24",
-            borderWidth: 1,
-            backgroundColor: "rgba(255,255,255,0.95)",
-            extraCssText: "border-radius: 8px; padding: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);",
-            formatter: function(params: any) {
-              if (params.seriesType === "effectScatter") {
-                return `<div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">${params.name}</div>` +
-                  (params.data?.description ? `<div style="color: #64748b; font-size: 13px;">${params.data.description}</div>` : "");
-              } else if (params.seriesType === "map") {
-                const count = provinceCounts[params.name] || 0;
-                return `<div style="font-size: 16px; font-weight: 600;">${params.name}</div>` +
-                  (count > 0 ? `<div style="color: #3b82f6; font-size: 14px;">走过 ${count} 座城市</div>` : '<div style="color: #94a3b8; font-size: 13px;">还未踏足</div>');
-              }
-              return "";
-            }
-          },
-          visualMap: {
-            show: true,
-            seriesIndex: 1,
-            min: 0,
-            max: maxCount,
-            inRange: {
-              color: ["#f1f5f9", "#bfdbfe", "#60a5fa", "#3b82f6", "#2563eb", "#1d4ed8"]
-            },
-            outOfRange: { color: "#f1f5f9" },
-            left: "5%",
-            bottom: "5%",
-            itemWidth: 20,
-            itemHeight: 100,
-            calculable: true,
-            text: ["访问量高", "访问量低"],
-            textStyle: { color: "#64748b" }
-          },
-          geo: {
-            map: "china",
-            zoom: 1.15,
-            scaleLimit: { min: 0.8, max: 8 },
-            roam: true,
-            emphasis: {
-              label: { show: false },
-              itemStyle: { areaColor: "#fbbf24" }
-            },
-            itemStyle: {
-              normal: {
-                areaColor: "#f1f5f9",
-                borderColor: "#cbd5e1",
-                borderWidth: 1
-              },
-              emphasis: {
-                areaColor: "#fef3c7"
-              }
-            }
-          },
-          series: [
-            {
-              name: "足迹",
-              type: "effectScatter",
-              coordinateSystem: "geo",
-              data: pointData,
-              symbolSize: 12,
-              showEffectOn: "render",
-              rippleEffect: { brushType: "stroke", scale: 3 },
-              itemStyle: {
-                normal: {
-                  color: "#3b82f6",
-                  shadowBlur: 10,
-                  shadowColor: "rgba(59, 130, 246, 0.5)"
-                }
-              },
-              emphasis: {
-                itemStyle: {
-                  color: "#1d4ed8",
-                  shadowBlur: 20,
-                  shadowColor: "rgba(29, 78, 216, 0.6)"
-                }
-              }
-            },
-            {
-              name: "省份访问次数",
-              type: "map",
-              mapType: "china",
-              data: provinceData,
-              geoIndex: 0,
-              showLegendSymbol: false
-            }
-          ]
-        };
-
-        chart.setOption(option);
-
-        // 响应式
-        const handleResize = () => chart.resize();
-        window.addEventListener("resize", handleResize);
-
-        // 点击事件
-        chart.on("click", function(params: any) {
-          if (params.seriesType === "effectScatter" && params.data?.description) {
-            console.log("点击城市:", params.name, params.data.description);
-          }
-        });
-
-        // 双击复位
-        chart.getZr().on("dblclick", () => {
-          chart.setOption({ geo: { zoom: 1.15, center: null } });
-        });
-
-        setLoading(false);
-
-      } catch (err) {
-        console.error("初始化地图失败:", err);
-        if (isMounted) {
-          setError("地图加载失败");
-          setLoading(false);
-        }
-      }
-    };
-
-    initChart();
-
-    return () => {
-      isMounted = false;
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.dispose();
-      }
-    };
-  }, []);
+    const timer = setTimeout(() => initChart(), 500);
+    return () => { isMountedRef.current = false; clearTimeout(timer); if (chartInstanceRef.current) chartInstanceRef.current.dispose(); };
+  }, [chartElement]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -253,7 +168,6 @@ export default function TravelMapPage() {
             <div className="animate-float absolute -top-32 right-1/4 h-96 w-96 rounded-full bg-blue-500/5 blur-3xl" />
             <div className="animate-float absolute -bottom-32 left-1/4 h-96 w-96 rounded-full bg-cyan-500/5 blur-3xl" style={{ animationDelay: "2s" }} />
           </div>
-
           <div className="relative mx-auto max-w-7xl px-4 py-12">
             <div className="mb-8 text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg">
@@ -264,106 +178,76 @@ export default function TravelMapPage() {
               <h1 className="mb-3 text-4xl font-bold">
                 <span className="bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 bg-clip-text text-transparent">旅行地图</span>
               </h1>
-              <p className="text-muted-foreground">记录走过的每一座城市</p>
+              <p className="text-muted-foreground">{user ? "左键点击省份选择城市" : "博主去过的城市"}</p>
             </div>
 
-            {loading && (
+            {loading || authLoading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                 <span className="ml-3 text-muted-foreground">地图加载中...</span>
               </div>
-            )}
-
-            {error && (
+            ) : error ? (
               <div className="flex items-center justify-center py-20">
-                <div className="text-center">
-                  <p className="text-red-500">{error}</p>
-                  <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg">
-                    刷新页面
-                  </button>
-                </div>
+                <p className="text-red-500">{error}</p>
               </div>
+            ) : (
+              <>
+                <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl" style={{ height: "600px" }}>
+                  <div ref={setChartElement} className="w-full h-full" />
+                </div>
+                <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {footprints.map((fp) => (
+                    <div key={fp.id} className="group relative rounded-xl border bg-white p-4 shadow-sm">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                          <MapPin className="h-5 w-5 text-blue-500" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{fp.province}</h3>
+                          {fp.city && <p className="text-sm text-muted-foreground">{fp.city}</p>}
+                          {fp.description && <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{fp.description}</p>}
+                        </div>
+                        {user && <button onClick={() => handleDeleteFootprint(fp.id)} className="opacity-0 group-hover:opacity-100 p-1 text-red-500"><Trash2 className="h-4 w-4" /></button>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
-
-            {!loading && !error && (
-              <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl" style={{ height: "600px" }}>
-                <div ref={chartRef} className="w-full h-full" />
-              </div>
-            )}
-
-            <div className="mt-8 text-center">
-              <div className="inline-flex items-center gap-6 rounded-full bg-white/80 px-6 py-3 shadow-sm backdrop-blur-sm">
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full bg-blue-500" />
-                  <span className="text-sm text-muted-foreground">已访问城市</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full bg-slate-200" />
-                  <span className="text-sm text-muted-foreground">未访问</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </main>
       <Footer />
+
+      {showCityModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">选择城市 - {selectedProvince}</h2>
+              <button onClick={() => setShowCityModal(false)}><X className="h-5 w-5" /></button>
+            </div>
+            <div className="flex gap-2 mb-4">
+              <button onClick={() => handleAddFootprint(selectedProvince)} className="flex-1 py-2 rounded-lg bg-blue-500 text-white">整个省份</button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {cities.map((city) => (
+                <button key={city} onClick={() => handleAddFootprint(selectedProvince, city)} className="px-3 py-1.5 text-sm rounded-full border hover:border-blue-500">{city}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 function loadScript(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
-      resolve();
-      return;
-    }
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
     const script = document.createElement("script");
     script.src = src;
     script.onload = () => resolve();
     script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
     document.head.appendChild(script);
   });
-}
-
-// 简化版中国地图GeoJSON数据（仅包含省份轮廓）
-function getInlineChinaMap() {
-  return {
-    "type": "FeatureCollection",
-    "features": [
-      { "type": "Feature", "properties": { "name": "广东" }, "geometry": { "type": "Polygon", "coordinates": [[[110,20],[115,25],[120,25],[120,22],[115,20],[110,20]]] } },
-      { "type": "Feature", "properties": { "name": "浙江" }, "geometry": { "type": "Polygon", "coordinates": [[[118,27],[122,31],[122,29],[118,27]]] } },
-      { "type": "Feature", "properties": { "name": "江苏" }, "geometry": { "type": "Polygon", "coordinates": [[[116,31],[121,34],[121,32],[116,31]]] } },
-      { "type": "Feature", "properties": { "name": "山东" }, "geometry": { "type": "Polygon", "coordinates": [[[114,34],[121,38],[121,36],[114,34]]] } },
-      { "type": "Feature", "properties": { "name": "河南" }, "geometry": { "type": "Polygon", "coordinates": [[[110,31],[116,35],[116,33],[110,31]]] } },
-      { "type": "Feature", "properties": { "name": "四川" }, "geometry": { "type": "Polygon", "coordinates": [[[97,26],[110,34],[110,28],[97,26]]] } },
-      { "type": "Feature", "properties": { "name": "湖北" }, "geometry": { "type": "Polygon", "coordinates": [[[108,29],[116,33],[114,29],[108,29]]] } },
-      { "type": "Feature", "properties": { "name": "湖南" }, "geometry": { "type": "Polygon", "coordinates": [[[106,24],[114,30],[112,26],[106,24]]] } },
-      { "type": "Feature", "properties": { "name": "安徽" }, "geometry": { "type": "Polygon", "coordinates": [[[114,29],[120,32],[118,30],[114,29]]] } },
-      { "type": "Feature", "properties": { "name": "江西" }, "geometry": { "type": "Polygon", "coordinates": [[[114,24],[118,30],[118,28],[114,24]]] } },
-      { "type": "Feature", "properties": { "name": "福建" }, "geometry": { "type": "Polygon", "coordinates": [[[117,24],[120,28],[119,25],[117,24]]] } },
-      { "type": "Feature", "properties": { "name": "台湾" }, "geometry": { "type": "Polygon", "coordinates": [[[120,22],[122,25],[121,25],[120,22]]] } },
-      { "type": "Feature", "properties": { "name": "海南" }, "geometry": { "type": "Polygon", "coordinates": [[[108,18],[111,20],[110,19],[108,18]]] } },
-      { "type": "Feature", "properties": { "name": "广西" }, "geometry": { "type": "Polygon", "coordinates": [[[104,21],[112,26],[110,24],[104,21]]] } },
-      { "type": "Feature", "properties": { "name": "贵州" }, "geometry": { "type": "Polygon", "coordinates": [[[104,24],[109,29],[107,26],[104,24]]] } },
-      { "type": "Feature", "properties": { "name": "云南" }, "geometry": { "type": "Polygon", "coordinates": [[[97,21],[106,27],[104,25],[97,21]]] } },
-      { "type": "Feature", "properties": { "name": "陕西" }, "geometry": { "type": "Polygon", "coordinates": [[[105,32],[111,39],[110,36],[105,32]]] } },
-      { "type": "Feature", "properties": { "name": "甘肃" }, "geometry": { "type": "Polygon", "coordinates": [[[92,32],[108,42],[106,38],[92,32]]] } },
-      { "type": "Feature", "properties": { "name": "青海" }, "geometry": { "type": "Polygon", "coordinates": [[[89,35],[102,39],[99,35],[89,35]]] } },
-      { "type": "Feature", "properties": { "name": "内蒙古" }, "geometry": { "type": "Polygon", "coordinates": [[[97,38],[125,53],[120,46],[97,38]]] } },
-      { "type": "Feature", "properties": { "name": "黑龙江" }, "geometry": { "type": "Polygon", "coordinates": [[[121,45],[134,53],[130,48],[121,45]]] } },
-      { "type": "Feature", "properties": { "name": "吉林" }, "geometry": { "type": "Polygon", "coordinates": [[[121,40],[131,46],[128,43],[121,40]]] } },
-      { "type": "Feature", "properties": { "name": "辽宁" }, "geometry": { "type": "Polygon", "coordinates": [[[118,38],[125,43],[123,40],[118,38]]] } },
-      { "type": "Feature", "properties": { "name": "河北" }, "geometry": { "type": "Polygon", "coordinates": [[[113,36],[120,40],[118,38],[113,36]]] } },
-      { "type": "Feature", "properties": { "name": "山西" }, "geometry": { "type": "Polygon", "coordinates": [[[110,35],[114,40],[113,37],[110,35]]] } },
-      { "type": "Feature", "properties": { "name": "北京" }, "geometry": { "type": "Polygon", "coordinates": [[[116,39],[117,41],[116,40],[116,39]]] } },
-      { "type": "Feature", "properties": { "name": "天津" }, "geometry": { "type": "Polygon", "coordinates": [[[116,38],[118,40],[117,39],[116,38]]] } },
-      { "type": "Feature", "properties": { "name": "上海" }, "geometry": { "type": "Polygon", "coordinates": [[[120,30],[122,32],[121,31],[120,30]]] } },
-      { "type": "Feature", "properties": { "name": "重庆" }, "geometry": { "type": "Polygon", "coordinates": [[[106,28],[110,32],[108,29],[106,28]]] } },
-      { "type": "Feature", "properties": { "name": "西藏" }, "geometry": { "type": "Polygon", "coordinates": [[[78,28],[97,36],[92,31],[78,28]]] } },
-      { "type": "Feature", "properties": { "name": "新疆" }, "geometry": { "type": "Polygon", "coordinates": [[[73,35],[96,50],[90,42],[73,35]]] } },
-      { "type": "Feature", "properties": { "name": "宁夏" }, "geometry": { "type": "Polygon", "coordinates": [[[104,37],[106,39],[105,38],[104,37]]] } },
-      { "type": "Feature", "properties": { "name": "香港" }, "geometry": { "type": "Polygon", "coordinates": [[[113,22],[115,23],[114,22],[113,22]]] } },
-      { "type": "Feature", "properties": { "name": "澳门" }, "geometry": { "type": "Polygon", "coordinates": [[[113,22],[114,23],[113,22],[113,22]]] } }
-    ]
-  };
 }
