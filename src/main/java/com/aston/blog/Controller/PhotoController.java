@@ -3,6 +3,7 @@ package com.aston.blog.Controller;
 import com.aston.blog.Service.PhotoService;
 import com.aston.blog.common.Result;
 import com.aston.blog.entity.Photo;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,12 +29,20 @@ public class PhotoController {
     }
 
     @GetMapping("/photos")
-    public Result<List<Photo>> getAllPhotos() {
+    public Result<List<Photo>> getAllPhotos(HttpServletRequest request) {
+        String role = getUserRole(request);
+        if (!"ADMIN".equals(role)) {
+            return Result.error(403, "无权限");
+        }
         return Result.success(photoService.getAllPhotos());
     }
 
     @PostMapping("/photos/upload")
-    public Result<Photo> uploadPhoto(@RequestParam("file") MultipartFile file) throws IOException {
+    public Result<Photo> uploadPhoto(@RequestParam("file") MultipartFile file, HttpServletRequest request) throws IOException {
+        String role = getUserRole(request);
+        if (!"ADMIN".equals(role)) {
+            return Result.error(403, "无权限");
+        }
         if (file.isEmpty()) {
             return Result.error(400, "文件不能为空");
         }
@@ -59,20 +68,48 @@ public class PhotoController {
     }
 
     @DeleteMapping("/photos/{id}")
-    public Result<?> deletePhoto(@PathVariable String id) {
+    public Result<?> deletePhoto(@PathVariable String id, HttpServletRequest request) {
+        String role = getUserRole(request);
+        if (!"ADMIN".equals(role)) {
+            return Result.error(403, "无权限");
+        }
         photoService.deletePhoto(id);
         return Result.success(null);
     }
 
     @PutMapping("/photos/order")
-    public Result<?> updateOrder(@RequestBody List<String> photoIds) {
+    public Result<?> updateOrder(@RequestBody List<String> photoIds, HttpServletRequest request) {
+        String role = getUserRole(request);
+        if (!"ADMIN".equals(role)) {
+            return Result.error(403, "无权限");
+        }
         photoService.updateOrder(photoIds);
         return Result.success(null);
     }
 
     @PostMapping("/photos/sync")
-    public Result<?> syncPhotos() {
+    public Result<?> syncPhotos(HttpServletRequest request) {
+        String role = getUserRole(request);
+        if (!"ADMIN".equals(role)) {
+            return Result.error(403, "无权限");
+        }
         photoService.syncPhotosFromDirectory();
         return Result.success(null);
+    }
+
+    private String getUserRole(HttpServletRequest request) {
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getAuthorities() != null) {
+                return auth.getAuthorities().stream()
+                        .filter(a -> a.getAuthority().startsWith("ROLE_"))
+                        .map(a -> a.getAuthority().substring(5))
+                        .findFirst()
+                        .orElse(null);
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return null;
     }
 }

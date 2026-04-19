@@ -19,7 +19,7 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   return (
-    <Link href={`/blog/${post.slug}`} className="group block overflow-hidden rounded-2xl bg-white dark:bg-[#1c1c1e] border border-transparent shadow-sm transition-all duration-300 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 card-hover">
+    <Link href={`/blog/${post.slug}`} className="group block overflow-hidden rounded-2xl bg-card dark:bg-[#18181b] border border-border dark:border-gray-800 shadow-sm transition-all duration-300 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 card-hover">
       {post.coverImage && (
         <div className="aspect-video overflow-hidden">
           <img
@@ -30,15 +30,15 @@ export function PostCard({ post }: PostCardProps) {
         </div>
       )}
       <div className="p-6">
-        <h2 className="mb-2 line-clamp-2 text-lg font-semibold group-hover:text-[#007aff] transition-colors">
+        <h2 className="mb-2 line-clamp-2 text-lg font-semibold group-hover:text-[#007aff] transition-colors text-card-foreground dark:text-white">
           {post.title}
         </h2>
         {post.excerpt && (
-          <p className="mb-4 line-clamp-2 text-sm text-muted-foreground leading-relaxed">
+          <p className="mb-4 line-clamp-2 text-sm text-muted-foreground leading-relaxed dark:text-gray-400">
             {post.excerpt}
           </p>
         )}
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+        <div className="flex items-center gap-4 text-xs text-muted-foreground dark:text-gray-500">
           {post.publishedAt && (
             <span className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
@@ -59,7 +59,7 @@ export function PostCard({ post }: PostCardProps) {
             {post.tags.slice(0, 3).map((pt: any) => (
               <span
                 key={pt.tag?.slug || pt.slug || Math.random()}
-                className="rounded-full bg-[#007aff]/10 px-2.5 py-0.5 text-xs text-[#007aff]"
+                className="rounded-full bg-primary/10 dark:bg-primary/20 px-2.5 py-0.5 text-xs text-primary dark:text-blue-400"
               >
                 {pt.tag?.name || pt.name || ''}
               </span>

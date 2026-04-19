@@ -19,7 +19,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -88,19 +90,30 @@ public class SecurityConfig {
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 String token = authHeader.substring(7);
                 try {
+                    // 1. 先验证JWT签名和过期时间
                     String username = jwtUtil.extractUsername(token);
                     String userId = jwtUtil.extractUserId(token);
                     
-                    if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    if (username != null && userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                        // validateToken会验证签名和过期时间
                         if (jwtUtil.validateToken(token, username)) {
-                            // 将userId存在principal中，便于后续获取
+                            String role = jwtUtil.extractRole(token);
+                            
+                            // 创建权限列表
+                            List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+                            authorities.add(new SimpleGrantedAuthority("ROLE_" + (role != null ? role : "USER")));
+                            
+                            // 创建认证对象
                             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                userId, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+                                userId, 
+                                token, // 保留原始token供后续验证
+                                authorities);
                             SecurityContextHolder.getContext().setAuthentication(authToken);
                         }
                     }
                 } catch (Exception e) {
-                    // token无效，继续
+                    // token无效，打印日志（生产环境）
+                    // log.debug("JWT validation failed: {}", e.getMessage());
                 }
             }
 

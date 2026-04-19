@@ -11,6 +11,9 @@ import com.aston.blog.repository.UserRepository;
 import com.aston.blog.vo.auth.UserVO;
 import com.aston.blog.Service.UserService;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -53,6 +56,25 @@ public class UserServiceImpl implements UserService {
         
         user.setPasswordHash(passwordEncoder.encode(dto.getNewPassword()));
         userRepository.save(user);
+    }
+
+    @Override
+    public UserVO getAdmin() {
+        return userRepository.findByRole("ADMIN").map(this::convertToVO).orElse(null);
+    }
+
+    @Override
+    public List<UserVO> getAllUsers() {
+        return userRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean isAdmin(String userId) {
+        return userRepository.findById(userId)
+                .map(u -> "ADMIN".equals(u.getRole()))
+                .orElse(false);
     }
     
     private UserVO convertToVO(User user) {

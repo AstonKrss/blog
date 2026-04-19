@@ -33,7 +33,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("用户名或密码错误");
         }
         // 3. 生成 JWT Token
-        String token = jwtUtil.generateToken(user.getUsername(), user.getId());
+        String token = jwtUtil.generateToken(user.getUsername(), user.getId(), user.getRole());
         // 4. 组装返回数据
         UserVO userVO = new UserVO();
         userVO.setId(user.getId());
@@ -70,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
         //3.保存用户
         userRepository.save(newUser);
         //4.封装成userVO并登录
-        String token = jwtUtil.generateToken(newUser.getUsername(), newUser.getId());
+        String token = jwtUtil.generateToken(newUser.getUsername(), newUser.getId(), newUser.getRole());
         LoginVO loginVO = new LoginVO();
         UserVO userVO = new UserVO();
         userVO.setId(newUser.getId());

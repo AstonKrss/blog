@@ -48,6 +48,15 @@ export function Header() {
           <ThemeToggle />
           {user ? (
             <div className="flex items-center gap-3">
+              {user.role === "ADMIN" && (
+                <Link
+                  href="/dashboard/admin"
+                  className="flex items-center gap-1 text-sm font-medium text-orange-500 hover:text-orange-600"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  管理
+                </Link>
+              )}
               <Link href="/dashboard/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 {user.avatarUrl ? (
                   <img 

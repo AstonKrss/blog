@@ -57,14 +57,26 @@ public class PostController {
     }
 
     @PutMapping("/{id}")
-    public Result<PostDetailVO> updatePost(@PathVariable String id, @Valid @RequestBody UpdatePostDto dto) {
-        return Result.success(postService.updatePost(id, dto));
+    public Result<PostDetailVO> updatePost(@PathVariable String id, @Valid @RequestBody UpdatePostDto dto, HttpServletRequest request) {
+        String userId = getUserIdFromRequest(request);
+        if (userId == null) return Result.error(401, "未登录");
+        try {
+            return Result.success(postService.updatePost(id, dto, userId));
+        } catch (RuntimeException e) {
+            return Result.error(403, e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
-    public Result<?> deletePost(@PathVariable String id) {
-        postService.deletePost(id);
-        return Result.success(null);
+    public Result<?> deletePost(@PathVariable String id, HttpServletRequest request) {
+        String userId = getUserIdFromRequest(request);
+        if (userId == null) return Result.error(401, "未登录");
+        try {
+            postService.deletePost(id, userId);
+            return Result.success(null);
+        } catch (RuntimeException e) {
+            return Result.error(403, e.getMessage());
+        }
     }
 
     private String getUserIdFromRequest(HttpServletRequest request) {

@@ -57,14 +57,17 @@ export default function DashboardPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center"><p>加载中...</p></div>;
   if (!user) return null;
 
+  const isAdmin = user.role === "ADMIN";
+  const isAuthor = user.role === "ADMIN" || user.role === "AUTHOR";
+
   const quickActions = [
-    { href: "/dashboard/write", icon: PenTool, label: "写文章", desc: "创作新的技术文章", gradient: "from-indigo-500 to-blue-500" },
-    { href: "/dashboard/posts", icon: FileText, label: "文章管理", desc: "管理所有已发布的文章", gradient: "from-purple-500 to-pink-500" },
-    { href: "/dashboard/projects", icon: Code, label: "项目管理", desc: "管理作品集项目", gradient: "from-emerald-500 to-teal-500" },
-    { href: "/dashboard/photos", icon: Image, label: "照片管理", desc: "上传和管理照片", gradient: "from-pink-500 to-rose-500" },
-    { href: "/dashboard/friends", icon: Link2, label: "友链管理", desc: "审核友链申请", gradient: "from-cyan-500 to-teal-500" },
+    ...(isAuthor ? [{ href: "/dashboard/write", icon: PenTool, label: "写文章", desc: "创作新的技术文章", gradient: "from-indigo-500 to-blue-500" }] : []),
+    ...(isAuthor ? [{ href: "/dashboard/posts", icon: FileText, label: "文章管理", desc: "管理所有已发布的文章", gradient: "from-purple-500 to-pink-500" }] : []),
+    ...(isAdmin ? [{ href: "/dashboard/projects", icon: Code, label: "项目管理", desc: "管理作品集项目", gradient: "from-emerald-500 to-teal-500" }] : []),
+    ...(isAdmin ? [{ href: "/dashboard/photos", icon: Image, label: "照片管理", desc: "上传和管理照片", gradient: "from-pink-500 to-rose-500" }] : []),
+    ...(isAdmin ? [{ href: "/dashboard/friends", icon: Link2, label: "友链管理", desc: "审核友链申请", gradient: "from-cyan-500 to-teal-500" }] : []),
     { href: "/dashboard/profile", icon: User, label: "个人资料", desc: "编辑个人信息和头像", gradient: "from-orange-500 to-amber-500" },
-    { href: "/dashboard/settings", icon: Settings, label: "站点设置", desc: "管理博客基本配置", gradient: "from-slate-500 to-zinc-500" },
+    ...(isAdmin ? [{ href: "/dashboard/settings", icon: Settings, label: "站点设置", desc: "管理博客基本配置", gradient: "from-slate-500 to-zinc-500" }] : []),
   ];
 
   return (

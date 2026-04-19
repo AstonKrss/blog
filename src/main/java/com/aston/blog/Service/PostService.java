@@ -23,9 +23,9 @@ public interface PostService {
 
     PostDetailVO getPostBySlug(String slug);
 
-    PostDetailVO updatePost(String id, UpdatePostDto dto);
+    PostDetailVO updatePost(String id, UpdatePostDto dto, String userId);
 
-    void deletePost(String id);
+    void deletePost(String id, String userId);
 
     List<ArchiveYearVO> getArchive();
 

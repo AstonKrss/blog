@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Image, Upload, Trash2, GripVertical, Loader2 } from "lucide-react";
@@ -10,15 +11,20 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export default function PhotosPage() {
   const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [photos, setPhotos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && (!user || user.role !== "ADMIN")) {
+      router.push("/");
+      return;
+    }
+    if (user && user.role === "ADMIN") {
       loadPhotos();
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, router]);
 
   const loadPhotos = () => {
     fetch(`${API_BASE}/api/photos`, {

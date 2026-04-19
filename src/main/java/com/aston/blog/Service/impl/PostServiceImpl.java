@@ -161,8 +161,12 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDetailVO updatePost(String id, UpdatePostDto dto) {
+    public PostDetailVO updatePost(String id, UpdatePostDto dto, String userId) {
         Post post = postRepository.findByIdWithTags(id).orElse(null);
+        if (post == null) throw new RuntimeException("文章不存在");
+        if (!post.getAuthorId().equals(userId)) {
+            throw new RuntimeException("无权限操作");
+        }
 
         if (!post.getSlug().equals(dto.getSlug()) && postRepository.existsBySlug(dto.getSlug())) {
             throw new RuntimeException("Slug已存在: " + dto.getSlug());
@@ -199,9 +203,11 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public void deletePost(String id) {
-        if (!postRepository.existsById(id)) {
-            throw new RuntimeException("文章不存在");
+    public void deletePost(String id, String userId) {
+        Post post = postRepository.findById(id).orElse(null);
+        if (post == null) throw new RuntimeException("文章不存在");
+        if (!post.getAuthorId().equals(userId)) {
+            throw new RuntimeException("无权限操作");
         }
         postRepository.deleteById(id);
     }

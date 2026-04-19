@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Link2, Check, X, Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth-context";
 
@@ -19,15 +20,20 @@ interface FriendLink {
 
 export default function FriendsPage() {
   const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [friends, setFriends] = useState<FriendLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && (!user || user.role !== "ADMIN")) {
+      router.push("/");
+      return;
+    }
+    if (user && user.role === "ADMIN") {
       fetchFriends();
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, router]);
 
   const fetchFriends = async () => {
     try {

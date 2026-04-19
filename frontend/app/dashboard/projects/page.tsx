@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/header";
 import { Loader2, Code, Plus, Edit, Trash2, ExternalLink, Star, X, Upload } from "lucide-react";
 import { useAuth } from "@/components/auth-context";
@@ -9,6 +10,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export default function ProjectsManagePage() {
   const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -19,10 +21,14 @@ export default function ProjectsManagePage() {
   });
 
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && (!user || user.role !== "ADMIN")) {
+      router.push("/");
+      return;
+    }
+    if (user && user.role === "ADMIN") {
       loadProjects();
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, router]);
 
   const loadProjects = () => {
     const token = localStorage.getItem("token");

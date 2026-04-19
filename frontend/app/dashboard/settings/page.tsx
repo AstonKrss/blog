@@ -1,29 +1,39 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Settings, Save, Loader2, Sparkles } from "lucide-react";
+import { useAuth } from "@/components/auth-context";
 
 export default function SettingsPage() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const token = document.cookie.split("; ").find((row) => row.startsWith("auth_token="))?.split("=")[1];
-    fetch("/api/settings", { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.code === 0) {
-          const s: Record<string, string> = {};
-          (data.data?.settings || []).forEach((item: any) => { s[item.settingKey] = item.settingValue; });
-          setSettings(s);
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+    if (!authLoading && (!user || user.role !== "ADMIN")) {
+      router.push("/");
+      return;
+    }
+    if (user && user.role === "ADMIN") {
+      const token = localStorage.getItem("token");
+      fetch("/api/settings", { headers: { Authorization: `Bearer ${token}` } })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.code === 0) {
+            const s: Record<string, string> = {};
+            (data.data?.settings || []).forEach((item: any) => { s[item.settingKey] = item.settingValue; });
+            setSettings(s);
+          }
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    }
+  }, [user, authLoading, router]);
 
   const handleSave = async () => {
     setSaving(true);
