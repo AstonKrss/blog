@@ -3,6 +3,7 @@ package com.aston.blog.Service.impl;
 import com.aston.blog.Service.EmailCodeService;
 import com.aston.blog.entity.EmailCode;
 import com.aston.blog.repository.EmailCodeRepository;
+import com.aston.blog.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
     private static final int CODE_LENGTH = 6;
 
     private final EmailCodeRepository emailCodeRepository;
+    private final UserRepository userRepository;
     private final JavaMailSender mailSender;
 
     @Value("${spring.mail.username:}")
@@ -75,6 +77,11 @@ public class EmailCodeServiceImpl implements EmailCodeService {
     @Override
     @Transactional
     public boolean verifyCode(String email, String code, String type) {
+        // 先检查邮箱是否已被注册
+        if ("REGISTER".equals(type) && userRepository.existsByEmail(email)) {
+            throw new RuntimeException("该邮箱已被注册");
+        }
+
         Optional<EmailCode> emailCodeOpt = emailCodeRepository.findTopByEmailAndTypeAndUsedFalseOrderByCreatedAtDesc(email, type);
         
         if (emailCodeOpt.isEmpty()) {
