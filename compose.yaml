@@ -33,7 +33,7 @@ services:
     volumes:
       - ./uploads:/va/blog/uploads
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: bloguser
       SPRING_DATASOURCE_PASSWORD: Aston123@@blog
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
