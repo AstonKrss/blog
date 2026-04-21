@@ -31,11 +31,12 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - .:/uploads:/va/blog/uploads
+      - ./uploads:/va/blog/uploads
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
       SPRING_DATASOURCE_USERNAME: bloguser
       SPRING_DATASOURCE_PASSWORD: Aston123@@blog
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
       JWT_SECRET: mySecretKeyForJwtTokenGenerationThatIsLongEnough
       JWT_EXPIRATION: 86400000
       # QQ 邮件配置
