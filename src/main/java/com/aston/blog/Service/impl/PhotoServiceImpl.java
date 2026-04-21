@@ -13,7 +13,7 @@ public class PhotoServiceImpl implements PhotoService {
 
     private final PhotoRepository repository;
     private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/uploads/photos/";
-    private static final String FRONTEND_TREE_PHOTOS_DIR = System.getProperty("user.dir") + "/frontend/public/tree/photos/";
+    private static final String FRONTEND_TREE_PHOTOS_DIR = System.getProperty("user.dir") + "/public/tree/photos/";
 
     public PhotoServiceImpl(PhotoRepository repository) {
         this.repository = repository;
@@ -65,10 +65,12 @@ public class PhotoServiceImpl implements PhotoService {
         }
         File[] files = dir.listFiles((d, name) -> {
             String lower = name.toLowerCase();
-            return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".gif");
+            return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png")
+                    || lower.endsWith(".gif");
         });
-        if (files == null) return;
-        
+        if (files == null)
+            return;
+
         for (File file : files) {
             String filename = file.getName();
             if (repository.findByFilename(filename).isEmpty()) {
@@ -83,27 +85,29 @@ public class PhotoServiceImpl implements PhotoService {
     public int syncPhotosFromFrontendDirectory() {
         File frontendDir = new File(FRONTEND_TREE_PHOTOS_DIR);
         File uploadDir = new File(UPLOAD_DIR);
-        
+
         if (!frontendDir.exists() || !frontendDir.isDirectory()) {
             throw new RuntimeException("前端照片目录不存在: " + FRONTEND_TREE_PHOTOS_DIR);
         }
-        
+
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
         }
-        
+
         File[] files = frontendDir.listFiles((d, name) -> {
             String lower = name.toLowerCase();
-            return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".gif") || lower.endsWith(".webp");
+            return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".gif")
+                    || lower.endsWith(".webp");
         });
-        
-        if (files == null) return 0;
-        
+
+        if (files == null)
+            return 0;
+
         int count = 0;
         for (File file : files) {
             String filename = file.getName();
             File destFile = new File(UPLOAD_DIR + filename);
-            
+
             if (!destFile.exists()) {
                 try {
                     java.nio.file.Files.copy(file.toPath(), destFile.toPath());
@@ -112,7 +116,7 @@ public class PhotoServiceImpl implements PhotoService {
                     // 忽略复制失败的文件
                 }
             }
-            
+
             if (repository.findByFilename(filename).isEmpty()) {
                 Photo photo = new Photo();
                 photo.setFilename(filename);

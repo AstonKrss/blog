@@ -133,8 +133,20 @@ export default function TravelMapPage() {
           return `<b>${params.name}</b><br/>${isVisited ? "✓ 已访问" : "未访问"}`;
         }},
         visualMap: { show: false, min: 0, max: 1, inRange: { color: ["#f1f5f9", "#3b82f6"] } },
-        geo: { map: "china", zoom: 1.15, roam: true, emphasis: { itemStyle: { areaColor: "#fbbf24" } }, itemStyle: { normal: { areaColor: "#f1f5f9", borderColor: "#cbd5e1" } } },
-        series: [{ name: "省份", type: "map", mapType: "china", geoIndex: 0, data: provinceData }],
+        geo: { 
+          map: "china", 
+          zoom: 1.15, 
+          roam: true, 
+          emphasis: { itemStyle: { areaColor: "#fbbf24" } }, 
+          itemStyle: { normal: { areaColor: "#f1f5f9", borderColor: "#cbd5e1" } } 
+        },
+        series: [{ 
+          name: "省份", 
+          type: "map", 
+          map: "china", 
+          data: provinceData,
+          emphasis: { itemStyle: { areaColor: "#fbbf24" } }
+        }],
       });
 
       chart.on("click", (params: any) => {
