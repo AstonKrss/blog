@@ -63,7 +63,8 @@ public class VisitLogServiceImpl implements VisitLogService {
         List<Object[]> ips = visitLogRepository.topIpsSince(since);
         vo.setUniqueIps(ips.size());
 
-        vo.setTopCountries(convertToMapList(visitLogRepository.countByCountrySince(since), "country", "count"));
+        // 按城市统计（更精确）
+        vo.setTopCountries(convertToMapList(visitLogRepository.countByCitySince(since), "city", "count"));
         vo.setTopIsps(convertToMapList(visitLogRepository.countByIspSince(since), "isp", "count"));
         vo.setTopPages(convertToMapList(visitLogRepository.countByPathSince(since), "path", "count"));
         vo.setTopIps(convertToMapList(ips, "ip", "count"));

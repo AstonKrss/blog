@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, String> {
@@ -54,4 +55,12 @@ public interface PostRepository extends JpaRepository<Post, String> {
 
     @Query("SELECT p FROM Post p LEFT JOIN FETCH p.author LEFT JOIN FETCH p.tags WHERE p.status = :status AND (p.title LIKE CONCAT('%', :keyword, '%') OR p.content LIKE CONCAT('%', :keyword, '%'))")
     Page<Post> search(@Param("status") String status, @Param("keyword") String keyword, Pageable pageable);
+
+    @Query("SELECT p FROM Post p WHERE p.status = 'PUBLISHED' ORDER BY p.publishedAt DESC")
+    List<Post> findAllPublished();
+
+    @Query("SELECT p FROM Post p WHERE p.status = 'DRAFT' ORDER BY p.updatedAt DESC")
+    List<Post> findAllDrafts();
+
+    Optional<Post> findBySlugAndStatus(String slug, String status);
 }

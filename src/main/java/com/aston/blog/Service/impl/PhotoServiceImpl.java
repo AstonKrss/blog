@@ -13,6 +13,7 @@ public class PhotoServiceImpl implements PhotoService {
 
     private final PhotoRepository repository;
     private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/uploads/photos/";
+    private static final String FRONTEND_TREE_PHOTOS_DIR = System.getProperty("user.dir") + "/frontend/public/tree/photos/";
 
     public PhotoServiceImpl(PhotoRepository repository) {
         this.repository = repository;
@@ -76,5 +77,48 @@ public class PhotoServiceImpl implements PhotoService {
                 repository.save(photo);
             }
         }
+    }
+
+    @Override
+    public int syncPhotosFromFrontendDirectory() {
+        File frontendDir = new File(FRONTEND_TREE_PHOTOS_DIR);
+        File uploadDir = new File(UPLOAD_DIR);
+        
+        if (!frontendDir.exists() || !frontendDir.isDirectory()) {
+            throw new RuntimeException("前端照片目录不存在: " + FRONTEND_TREE_PHOTOS_DIR);
+        }
+        
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+        
+        File[] files = frontendDir.listFiles((d, name) -> {
+            String lower = name.toLowerCase();
+            return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".gif") || lower.endsWith(".webp");
+        });
+        
+        if (files == null) return 0;
+        
+        int count = 0;
+        for (File file : files) {
+            String filename = file.getName();
+            File destFile = new File(UPLOAD_DIR + filename);
+            
+            if (!destFile.exists()) {
+                try {
+                    java.nio.file.Files.copy(file.toPath(), destFile.toPath());
+                    count++;
+                } catch (Exception e) {
+                    // 忽略复制失败的文件
+                }
+            }
+            
+            if (repository.findByFilename(filename).isEmpty()) {
+                Photo photo = new Photo();
+                photo.setFilename(filename);
+                repository.save(photo);
+            }
+        }
+        return count;
     }
 }

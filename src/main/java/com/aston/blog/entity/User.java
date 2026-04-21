@@ -28,6 +28,17 @@ public class User {
     private String bio;
     @Column(length = 20)
     private String role; // ADMIN, AUTHOR, READER
+
+    // 邮箱验证相关字段
+    @Column(name = "email_verified")
+    private Boolean emailVerified = false;  // 邮箱是否已验证
+
+    @Column(name = "email_verify_token", length = 64)
+    private String emailVerifyToken;  // 邮箱验证 Token
+
+    @Column(name = "email_verify_expire")
+    private LocalDateTime emailVerifyExpire;  // 验证 Token 过期时间
+
     @CreationTimestamp // 插入时自动填充当前时间
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

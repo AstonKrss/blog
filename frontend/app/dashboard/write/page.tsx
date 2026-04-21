@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Header } from "@/components/header";
 import { useAuth } from "@/components/auth-context";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
-import { languageTries } from "@/components/code-completer";
+import { quickAutocomplete } from "@/components/code-completer";
 import { Loader2, Upload } from "lucide-react";
 
 const SUPPORTED_LANGUAGES = [
@@ -110,13 +110,15 @@ function WritePostContent() {
     }, 0);
   };
 
+  // 检测光标是否在代码块内
   const isInCodeBlock = () => {
     const textarea = textareaRef.current;
     if (!textarea) return false;
     const pos = textarea.selectionStart;
     const textBeforeCursor = content.substring(0, pos);
-    const codeBlockMatch = textBeforeCursor.match(/```[\w]*\s*$/);
-    return !!codeBlockMatch;
+    // 计算 ``` 数量，如果奇数则在代码块内
+    const matches = textBeforeCursor.match(/```/g);
+    return matches && matches.length % 2 === 1;
   };
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -238,6 +240,20 @@ function WritePostContent() {
       return;
     }
 
+    // Tab 键：插入4个空格
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      if (showSuggestions && suggestions.length > 0) {
+        // 有建议时，Tab 确认补全
+        replaceCurrentWord(suggestions[selectedIndex]);
+        setShowSuggestions(false);
+      } else {
+        // 没有建议时，插入4个空格
+        insertText('    ');
+      }
+      return;
+    }
+
     if (showSuggestions && suggestions.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -247,12 +263,6 @@ function WritePostContent() {
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         setSelectedIndex(i => (i - 1 + suggestions.length) % suggestions.length);
-        return;
-      }
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        replaceCurrentWord(suggestions[selectedIndex]);
-        setShowSuggestions(false);
         return;
       }
       if (e.key === 'Enter') {
@@ -278,24 +288,35 @@ function WritePostContent() {
     const textBeforeCursor = newContent.substring(0, cursorPos);
     const lastWordMatch = textBeforeCursor.match(/[\w$]+$/);
     
-    if (lastWordMatch && lastWordMatch[0].length >= 1 && isInCodeBlock()) {
-      const trie = languageTries[codeLanguage];
-      if (trie) {
-        const results = trie.autocomplete(lastWordMatch[0], 8);
-        if (results.length > 0) {
-          setSuggestions(results);
-          setShowSuggestions(true);
-          setSelectedIndex(0);
-          
-          const rect = el.getBoundingClientRect();
-          const lineHeight = 24;
-          const lines = textBeforeCursor.split('\n');
-          const currentLine = lines.length;
-          setCursorPosition({
-            top: rect.top + currentLine * lineHeight + 40,
-            left: rect.left + 20
-          });
-        }
+    // 只有输入2个以上字符时才触发补全
+    if (lastWordMatch && lastWordMatch[0].length >= 2 && isInCodeBlock()) {
+      const results = quickAutocomplete(lastWordMatch[0], codeLanguage, 6);
+      if (results.length > 0) {
+        setSuggestions(results);
+        setShowSuggestions(true);
+        setSelectedIndex(0);
+        
+        // 计算光标位置
+        const rect = el.getBoundingClientRect();
+        const lines = textBeforeCursor.split('\n');
+        const currentLineNum = lines.length;
+        
+        // 测量字符宽度
+        const measureSpan = document.createElement('span');
+        measureSpan.style.font = window.getComputedStyle(el).font;
+        measureSpan.style.visibility = 'hidden';
+        measureSpan.style.position = 'absolute';
+        measureSpan.textContent = lines[currentLineNum - 1] || '';
+        document.body.appendChild(measureSpan);
+        const charWidth = measureSpan.getBoundingClientRect().width / (lines[currentLineNum - 1]?.length || 1);
+        document.body.removeChild(measureSpan);
+        
+        setCursorPosition({
+          top: rect.top + (currentLineNum * 28) + 50,
+          left: Math.min(rect.left + (lines[currentLineNum - 1]?.length || 0) * charWidth + 16, window.innerWidth - 250)
+        });
+      } else {
+        setShowSuggestions(false);
       }
     } else {
       setShowSuggestions(false);
@@ -352,7 +373,7 @@ function WritePostContent() {
   const charCount = content.length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/20">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1 flex flex-col">
         
@@ -802,10 +823,10 @@ function WritePostContent() {
 export default function WritePostPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-slate-500">加载中...</span>
+          <span className="text-muted-foreground">加载中...</span>
         </div>
       </div>
     }>

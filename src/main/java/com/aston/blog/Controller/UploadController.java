@@ -1,6 +1,8 @@
 package com.aston.blog.Controller;
 
 import com.aston.blog.common.Result;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,7 +48,13 @@ public class UploadController {
     };
 
     @PostMapping("/upload/image")
-    public Result<String> uploadImage(@RequestParam("file") MultipartFile file) {
+    public Result<String> uploadImage(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        // 验证用户是否已登录
+        String userId = getUserIdFromRequest(request);
+        if (userId == null) {
+            return Result.error(401, "请先登录");
+        }
+
         if (file.isEmpty()) {
             return Result.error(400, "文件为空");
         }
@@ -105,6 +113,20 @@ public class UploadController {
         } catch (IOException e) {
             return Result.error(500, "文件上传失败: " + e.getMessage());
         }
+    }
+
+    private String getUserIdFromRequest(HttpServletRequest request) {
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getPrincipal() != null) {
+                Object principal = auth.getPrincipal();
+                if (principal instanceof String) {
+                    return (String) principal;
+                }
+            }
+        } catch (Exception e) {
+        }
+        return null;
     }
 
     /**

@@ -9,4 +9,5 @@ public interface PhotoService {
     void deletePhoto(String id);
     void updateOrder(List<String> photoIds);
     void syncPhotosFromDirectory();
+    int syncPhotosFromFrontendDirectory();
 }

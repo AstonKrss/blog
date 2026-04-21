@@ -5,10 +5,10 @@ services:
     container_name: blog-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: "Chuyangqi123@@"
+      MYSQL_ROOT_PASSWORD: Chuyangqi123@@
       MYSQL_DATABASE: myblog
       MYSQL_USER: bloguser
-      MYSQL_PASSWORD: "Aston123@@blog"
+      MYSQL_PASSWORD: Aston123@@blog
     ports:
       - "3306:3306"
     volumes:
@@ -16,7 +16,7 @@ services:
     networks:
       - blog-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pChuyangqi123@@"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -33,11 +33,19 @@ services:
     volumes:
       - .:/uploads:/va/blog/uploads
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
       SPRING_DATASOURCE_USERNAME: bloguser
-      SPRING_DATASOURCE_PASSWORD: "Aston123@@blog"
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      # SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+      SPRING_DATASOURCE_PASSWORD: Aston123@@blog
+      JWT_SECRET: mySecretKeyForJwtTokenGenerationThatIsLongEnough
+      JWT_EXPIRATION: 86400000
+      # QQ 邮件配置
+      MAIL_HOST: smtp.qq.com
+      MAIL_PORT: 587
+      MAIL_USERNAME: 3223957215@qq.com
+      MAIL_PASSWORD: wsukckbbexiccifh
+      BLOG_SITE_URL: http://47.242.21.40:8080
+      BLOG_OWNER_EMAIL: aston@example.com
+      BLOG_OWNER_NAME: Aston
     depends_on:
       mysql:
         condition: service_healthy

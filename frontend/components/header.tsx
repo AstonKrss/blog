@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "./auth-context";
-import { Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
+import { Menu, X, User, LogOut, LayoutDashboard, Rss } from "lucide-react";
 import { useState } from "react";
 
 export function Header() {
@@ -45,6 +45,15 @@ export function Header() {
               {link.label}
             </Link>
           ))}
+          <Link
+            href="/rss"
+            className={`flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary ${
+              pathname === "/rss" ? "text-primary" : "text-muted-foreground"
+            }`}
+            title="RSS 订阅"
+          >
+            <Rss className="h-4 w-4" />
+          </Link>
           <ThemeToggle />
           {user ? (
             <div className="flex items-center gap-3">

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { useAuth } from "@/components/auth-context";
-import { Github, Mail, BookOpen, Code, Shield, Terminal, Heart, Sparkles, Camera, Save } from "lucide-react";
+import { Github, Mail, BookOpen, Code, Shield, Terminal, Heart, Sparkles, Camera, Save, Loader2 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -18,7 +18,7 @@ interface AdminUser {
   role: string;
 }
 
-export default function AboutPage() {
+function AboutContent() {
   const { user: currentUser } = useAuth();
   const [admin, setAdmin] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,7 +63,6 @@ export default function AboutPage() {
       }
     } catch (e) {
         console.error(e);
-      // error
     } finally {
       setSaving(false);
     }
@@ -88,7 +87,10 @@ export default function AboutPage() {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="animate-pulse text-muted-foreground">加载中...</div>
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
+            <span className="text-muted-foreground">加载中...</span>
+          </div>
         </main>
         <Footer />
       </div>
@@ -250,5 +252,28 @@ export default function AboutPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+function AboutLoading() {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 animate-pulse" />
+          <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+export default function AboutPage() {
+  return (
+    <Suspense fallback={<AboutLoading />}>
+      <AboutContent />
+    </Suspense>
   );
 }

@@ -68,14 +68,13 @@ export default function AdminDashboardPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-background">
         <Header />
         <main className="flex-1 flex items-center justify-center">
           <div className="animate-pulse text-muted-foreground flex items-center gap-2">
             <Terminal className="h-4 w-4" /> 初始化系统监控...
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -91,46 +90,46 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-black">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-green-500/5 blur-[100px]" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-cyan-500/5 blur-[80px]" />
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(0,255,0,0.15) 1px, transparent 0)`,
-            backgroundSize: '30px 30px'
-          }} />
+      <main className="flex-1 overflow-auto">
+        {/* Subtle background decoration */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full bg-indigo-500/5 dark:bg-indigo-500/10 blur-[100px]" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-purple-500/5 dark:bg-purple-500/10 blur-[80px]" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 py-8">
+        <div className="relative mx-auto max-w-7xl px-4 py-6">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-500/20 border border-green-500/50">
-                <Server className="h-6 w-6 text-green-500" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/25">
+                <Server className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-green-500 font-mono">ADMIN SYSTEM</h1>
-                <p className="text-xs text-green-500/60 font-mono">&gt; 站点运维监控面板</p>
+                <h1 className="text-xl font-bold text-foreground">管理后台</h1>
+                <p className="text-xs text-muted-foreground">站点运维监控面板</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-xs text-green-500/60 font-mono">
-              <span className="animate-pulse">●</span>
-              SYSTEM ONLINE
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              系统正常
             </div>
           </div>
 
-          <div className="flex gap-1 mb-6 p-1 bg-black/50 rounded-lg border border-green-500/30 inline-flex">
+          <div className="flex gap-1 mb-6 p-1 bg-muted/50 rounded-xl inline-flex border border-border">
             {tabs.map(tab => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-mono transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all ${
                     activeTab === tab.id 
-                      ? "bg-green-500/20 text-green-500 border border-green-500/50" 
-                      : "text-green-500/60 hover:text-green-500 hover:bg-green-500/10"
+                      ? "bg-background text-foreground shadow-sm border border-border" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -143,41 +142,43 @@ export default function AdminDashboardPage() {
           {activeTab === "overview" && (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {[
-                { label: "TOTAL_USERS", value: users.length, icon: Users, color: "cyan" },
-                { label: "TOTAL_POSTS", value: stats?.totalPosts || 0, icon: FileText, color: "blue" },
-                { label: "COMMENTS", value: stats?.totalComments || 0, icon: MessageCircle, color: "purple" },
-                { label: "PAGE_VIEWS", value: stats?.totalViews || 0, icon: Eye, color: "green" },
+                { label: "用户总数", value: users.length, icon: Users, gradient: "from-cyan-500 to-blue-500" },
+                { label: "文章总数", value: stats?.totalPosts || 0, icon: FileText, gradient: "from-blue-500 to-indigo-500" },
+                { label: "评论总数", value: stats?.totalComments || 0, icon: MessageCircle, gradient: "from-purple-500 to-pink-500" },
+                { label: "总阅读量", value: stats?.totalViews || 0, icon: Eye, gradient: "from-orange-500 to-red-500" },
               ].map(card => {
                 const Icon = card.icon;
                 return (
-                  <div key={card.label} className="group relative overflow-hidden rounded-lg bg-black/50 border border-green-500/30 p-4 hover:border-green-500/60 transition-all">
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/5 rounded-full blur-2xl group-hover:bg-green-500/10 transition-all" />
+                  <div key={card.label} className="group relative overflow-hidden rounded-2xl border bg-card p-5 hover:shadow-lg transition-all">
+                    <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-5 transition-opacity`} />
                     <div className="relative flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-green-500/60 font-mono mb-1">{card.label}</p>
-                        <p className="text-2xl font-bold text-green-500 font-mono">{card.value.toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground mb-1">{card.label}</p>
+                        <p className="text-2xl font-bold text-foreground">{card.value.toLocaleString()}</p>
                       </div>
-                      <Icon className={`h-8 w-8 text-${card.color}-500/50`} />
+                      <div className={`p-3 rounded-xl bg-gradient-to-br ${card.gradient} shadow-lg opacity-80`}>
+                        <Icon className="h-6 w-6 text-white" />
+                      </div>
                     </div>
                   </div>
                 );
               })}
 
-              <div className="col-span-full rounded-lg bg-black/50 border border-green-500/30 p-4">
+              <div className="col-span-full rounded-2xl border bg-card p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <Activity className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-green-500 font-mono">实时流量监控</span>
+                  <Activity className="h-4 w-4 text-indigo-500" />
+                  <span className="text-sm font-medium text-foreground">24小时访问趋势</span>
                 </div>
                 <div className="h-32 flex items-end gap-1">
                   {analytics?.hourlyDistribution?.slice(0, 24).map((hour, i) => {
                     const maxCount = Math.max(...(analytics?.hourlyDistribution || [{count: 1}]).map(h => h.count), 1);
                     const height = (hour.count / maxCount) * 100;
                     return (
-                      <div key={i} className="flex-1 bg-green-500/20 border border-green-500/50 hover:bg-green-500/40 transition-all" style={{ height: `${Math.max(height, 4)}%` }} title={`${hour.hour}:00 - ${hour.count}次`} />
+                      <div key={i} className="flex-1 bg-gradient-to-t from-indigo-500/20 to-indigo-500/60 rounded-t hover:from-indigo-500/30 hover:to-indigo-500/80 transition-all" style={{ height: `${Math.max(height, 4)}%` }} title={`${hour.hour}:00 - ${hour.count}次`} />
                     );
                   })}
                 </div>
-                <div className="flex justify-between mt-2 text-xs text-green-500/40 font-mono">
+                <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                   <span>00:00</span>
                   <span>12:00</span>
                   <span>23:59</span>
@@ -188,77 +189,77 @@ export default function AdminDashboardPage() {
 
           {activeTab === "traffic" && (
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-lg bg-black/50 border border-green-500/30 p-4">
+              <div className="rounded-2xl border bg-card p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <Globe className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-green-500 font-mono">GEO_DISTRIBUTION</span>
+                  <Globe className="h-4 w-4 text-indigo-500" />
+                  <span className="text-sm font-medium text-foreground">访问地区</span>
                 </div>
-                <div className="space-y-2">
-                  {analytics?.topCountries?.slice(0, 8).map((item, i) => (
+                <div className="space-y-3">
+                  {analytics?.topCountries?.slice(0, 8).map((item: any, i: number) => (
                     <div key={i} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-3 w-3 text-green-500/50" />
-                        <span className="text-sm text-green-500/80 font-mono">{item.country}</span>
+                        <MapPin className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-sm text-foreground">{item.city || item.country || '未知'}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-24 h-2 bg-green-500/20 rounded overflow-hidden">
-                          <div className="h-full bg-green-500/60" style={{ width: `${(item.count / (analytics?.totalVisits || 1)) * 100}%` }} />
+                        <div className="w-24 h-2 bg-muted rounded overflow-hidden">
+                          <div className="h-full bg-indigo-500 rounded" style={{ width: `${(item.count / (analytics?.totalVisits || 1)) * 100}%` }} />
                         </div>
-                        <span className="text-xs text-green-500/60 font-mono w-12 text-right">{item.count}</span>
+                        <span className="text-xs text-muted-foreground w-12 text-right">{item.count}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-lg bg-black/50 border border-green-500/30 p-4">
+              <div className="rounded-2xl border bg-card p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <Monitor className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-green-500 font-mono">ISP_DISTRIBUTION</span>
+                  <Monitor className="h-4 w-4 text-indigo-500" />
+                  <span className="text-sm font-medium text-foreground">运营商</span>
                 </div>
-                <div className="space-y-2">
-                  {analytics?.topIsps?.slice(0, 8).map((item, i) => (
+                <div className="space-y-3">
+                  {analytics?.topIsps?.slice(0, 8).map((item: any, i: number) => (
                     <div key={i} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Server className="h-3 w-3 text-green-500/50" />
-                        <span className="text-sm text-green-500/80 font-mono">{item.isp}</span>
+                        <Server className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-sm text-foreground">{item.isp}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-24 h-2 bg-green-500/20 rounded overflow-hidden">
-                          <div className="h-full bg-cyan-500/60" style={{ width: `${(item.count / (analytics?.totalVisits || 1)) * 100}%` }} />
+                        <div className="w-24 h-2 bg-muted rounded overflow-hidden">
+                          <div className="h-full bg-cyan-500 rounded" style={{ width: `${(item.count / (analytics?.totalVisits || 1)) * 100}%` }} />
                         </div>
-                        <span className="text-xs text-green-500/60 font-mono w-12 text-right">{item.count}</span>
+                        <span className="text-xs text-muted-foreground w-12 text-right">{item.count}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-lg bg-black/50 border border-green-500/30 p-4">
+              <div className="rounded-2xl border bg-card p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <FileText className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-green-500 font-mono">TOP_PAGES</span>
+                  <FileText className="h-4 w-4 text-indigo-500" />
+                  <span className="text-sm font-medium text-foreground">热门页面</span>
                 </div>
                 <div className="space-y-2">
                   {analytics?.topPages?.slice(0, 10).map((item, i) => (
                     <div key={i} className="flex items-center justify-between">
-                      <span className="text-sm text-green-500/80 font-mono truncate flex-1">{item.path}</span>
-                      <span className="text-xs text-green-500/60 font-mono">{item.count}</span>
+                      <span className="text-sm text-foreground truncate flex-1 font-mono">{item.path}</span>
+                      <span className="text-xs text-muted-foreground ml-2">{item.count}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-lg bg-black/50 border border-green-500/30 p-4">
+              <div className="rounded-2xl border bg-card p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <Activity className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-green-500 font-mono">TOP_IP_ADDRESSES</span>
+                  <Activity className="h-4 w-4 text-indigo-500" />
+                  <span className="text-sm font-medium text-foreground">访问IP排行</span>
                 </div>
                 <div className="space-y-2">
                   {analytics?.topIps?.slice(0, 10).map((item, i) => (
                     <div key={i} className="flex items-center justify-between">
-                      <span className="text-sm text-green-500/80 font-mono">{item.ip}</span>
-                      <span className="text-xs text-green-500/60 font-mono">{item.count}</span>
+                      <span className="text-sm text-foreground font-mono">{item.ip}</span>
+                      <span className="text-xs text-muted-foreground">{item.count}</span>
                     </div>
                   ))}
                 </div>
@@ -267,34 +268,34 @@ export default function AdminDashboardPage() {
           )}
 
           {activeTab === "users" && (
-            <div className="rounded-lg bg-black/50 border border-green-500/30 overflow-hidden">
-              <div className="p-4 border-b border-green-500/30 flex items-center gap-2">
-                <Users className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-green-500 font-mono">USER_DATABASE</span>
+            <div className="rounded-2xl border bg-card overflow-hidden">
+              <div className="p-4 border-b border-border flex items-center gap-2">
+                <Users className="h-4 w-4 text-indigo-500" />
+                <span className="text-sm font-medium text-foreground">用户列表</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-green-500/10 text-green-500/80 text-xs font-mono">
-                      <th className="px-4 py-2 text-left">USER</th>
-                      <th className="px-4 py-2 text-left">EMAIL</th>
-                      <th className="px-4 py-2 text-left">ROLE</th>
-                      <th className="px-4 py-2 text-left">REGISTERED</th>
+                    <tr className="bg-muted/50 text-muted-foreground text-xs">
+                      <th className="px-4 py-3 text-left font-medium">用户</th>
+                      <th className="px-4 py-3 text-left font-medium">邮箱</th>
+                      <th className="px-4 py-3 text-left font-medium">角色</th>
+                      <th className="px-4 py-3 text-left font-medium">注册时间</th>
                     </tr>
                   </thead>
-                  <tbody className="text-sm font-mono">
+                  <tbody className="text-sm">
                     {users.map(u => (
-                      <tr key={u.id} className="border-b border-green-500/20 hover:bg-green-500/5">
-                        <td className="px-4 py-2 text-green-500/80">{u.displayName || u.username}</td>
-                        <td className="px-4 py-2 text-green-500/60">{u.email}</td>
-                        <td className="px-4 py-2">
-                          <span className={`px-2 py-0.5 rounded text-xs ${
-                            u.role === "ADMIN" ? "bg-red-500/20 text-red-500" :
-                            u.role === "AUTHOR" ? "bg-blue-500/20 text-blue-500" :
-                            "bg-gray-500/20 text-gray-500"
-                          }`}>{u.role}</span>
+                      <tr key={u.id} className="border-t border-border hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 text-foreground">{u.displayName || u.username}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            u.role === "ADMIN" ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" :
+                            u.role === "AUTHOR" ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" :
+                            "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                          }`}>{u.role === "ADMIN" ? "管理员" : u.role === "AUTHOR" ? "作者" : "读者"}</span>
                         </td>
-                        <td className="px-4 py-2 text-green-500/60">
+                        <td className="px-4 py-3 text-muted-foreground">
                           {u.createdAt ? new Date(u.createdAt).toLocaleDateString("zh-CN") : "-"}
                         </td>
                       </tr>
@@ -306,7 +307,6 @@ export default function AdminDashboardPage() {
           )}
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

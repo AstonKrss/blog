@@ -18,4 +18,7 @@ public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByRole(String role);
 
     List<User> findAllByOrderByCreatedAtDesc();
+
+    // 邮箱验证相关
+    Optional<User> findByEmailVerifyToken(String token);
 }

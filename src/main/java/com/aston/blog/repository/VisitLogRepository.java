@@ -19,8 +19,8 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, String> {
     @Query("SELECT v.country, COUNT(v) FROM VisitLog v WHERE v.createdAt >= ?1 GROUP BY v.country ORDER BY COUNT(v) DESC")
     List<Object[]> countByCountrySince(LocalDateTime since);
 
-    @Query("SELECT v.province, COUNT(v) FROM VisitLog v WHERE v.createdAt >= ?1 AND v.country = ?2 GROUP BY v.province ORDER BY COUNT(v) DESC")
-    List<Object[]> countByProvinceSince(LocalDateTime since, String country);
+    @Query(value = "SELECT COALESCE(NULLIF(CONCAT(IFNULL(province,''), IFNULL(city,'')), ''), country, '未知地区') as location, COUNT(*) as cnt FROM visit_logs WHERE created_at >= ?1 GROUP BY COALESCE(NULLIF(CONCAT(IFNULL(province,''), IFNULL(city,'')), ''), country, '未知地区') ORDER BY cnt DESC", nativeQuery = true)
+    List<Object[]> countByCitySince(LocalDateTime since);
 
     @Query("SELECT v.isp, COUNT(v) FROM VisitLog v WHERE v.createdAt >= ?1 GROUP BY v.isp ORDER BY COUNT(v) DESC")
     List<Object[]> countByIspSince(LocalDateTime since);

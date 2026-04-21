@@ -15,6 +15,8 @@ export default function PhotosPage() {
   const [photos, setPhotos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncingFromFrontend, setSyncingFromFrontend] = useState(false);
 
   useEffect(() => {
     if (!authLoading && (!user || user.role !== "ADMIN")) {
@@ -86,6 +88,7 @@ export default function PhotosPage() {
   };
 
   const handleSync = async () => {
+    setSyncing(true);
     const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${API_BASE}/api/photos/sync`, {
@@ -95,10 +98,40 @@ export default function PhotosPage() {
       const data = await res.json();
       if (data.code === 0) {
         loadPhotos();
+        alert("同步成功！");
+      } else {
+        alert("同步失败: " + data.message);
       }
     } catch (err) {
       console.error(err);
+      alert("同步失败");
     }
+    setSyncing(false);
+  };
+
+  const handleSyncFromFrontend = async () => {
+    if (!confirm("这将从 frontend/public/tree/photos/ 复制照片到 uploads/photos/，并更新数据库。是否继续？")) {
+      return;
+    }
+    setSyncingFromFrontend(true);
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`${API_BASE}/api/photos/sync-from-frontend`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.code === 0) {
+        loadPhotos();
+        alert(`成功同步 ${data.data} 张照片！`);
+      } else {
+        alert("同步失败: " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("同步失败");
+    }
+    setSyncingFromFrontend(false);
   };
 
   if (authLoading || loading) {
@@ -134,10 +167,21 @@ export default function PhotosPage() {
             </div>
             <div className="flex gap-2">
               <button 
-                onClick={handleSync}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-600 text-white hover:bg-gray-700"
+                onClick={handleSyncFromFrontend}
+                disabled={syncingFromFrontend}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+                title="从 frontend/public/tree/photos/ 同步"
               >
-                同步
+                {syncingFromFrontend ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                同步前端照片
+              </button>
+              <button 
+                onClick={handleSync}
+                disabled={syncing}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-600 text-white hover:bg-gray-700 disabled:opacity-50"
+              >
+                {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                刷新数据库
               </button>
               <label className="flex items-center gap-2 cursor-pointer px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg hover:shadow-xl transition-all">
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}

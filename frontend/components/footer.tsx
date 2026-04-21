@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Github, Mail } from "lucide-react";
+import { Github, Mail, Rss, Globe } from "lucide-react";
 
 export function Footer() {
   return (
@@ -11,6 +11,14 @@ export function Footer() {
             <p className="text-sm text-muted-foreground">
               DevSecOps 实践与技术分享
             </p>
+            <div className="mt-4 flex items-center gap-4">
+              <Link href="/rss" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground" title="RSS 订阅">
+                <Rss className="h-4 w-4" />
+              </Link>
+              <a href="/sitemap.xml" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground" title="网站地图" target="_blank">
+                <Globe className="h-4 w-4" />
+              </a>
+            </div>
           </div>
           <div>
             <h4 className="mb-4 font-medium">导航</h4>

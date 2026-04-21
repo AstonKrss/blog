@@ -97,6 +97,20 @@ public class PhotoController {
         return Result.success(null);
     }
 
+    @PostMapping("/photos/sync-from-frontend")
+    public Result<?> syncPhotosFromFrontend(HttpServletRequest request) {
+        String role = getUserRole(request);
+        if (!"ADMIN".equals(role)) {
+            return Result.error(403, "无权限");
+        }
+        try {
+            int count = photoService.syncPhotosFromFrontendDirectory();
+            return Result.success(count);
+        } catch (Exception e) {
+            return Result.error(500, "同步失败: " + e.getMessage());
+        }
+    }
+
     private String getUserRole(HttpServletRequest request) {
         try {
             var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();

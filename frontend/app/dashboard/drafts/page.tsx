@@ -48,7 +48,7 @@ export default function DraftsPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/20">
+    <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
         <div className="mx-auto max-w-4xl px-4 py-8">
