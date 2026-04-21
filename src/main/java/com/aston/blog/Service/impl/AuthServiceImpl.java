@@ -1,6 +1,7 @@
 package com.aston.blog.Service.impl;
 
 import com.aston.blog.Service.AuthService;
+import com.aston.blog.Service.EmailCodeService;
 import com.aston.blog.Service.EmailService;
 import com.aston.blog.common.JwtUtil;
 import com.aston.blog.dto.LoginDTO;
@@ -27,6 +28,7 @@ public class AuthServiceImpl implements AuthService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
+    private final EmailCodeService emailCodeService;
 
     // Token 有效期 24 小时
     private static final int TOKEN_EXPIRE_HOURS = 24;
@@ -62,6 +64,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public LoginVO register(RegisterDTO dto) {
+        // 0. 先验证验证码
+        if (!emailCodeService.verifyCode(dto.getEmail(), dto.getCode(), "REGISTER")) {
+            throw new RuntimeException("验证码错误或已过期");
+        }
+
         // 1. 检查用户名是否已存在
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new RuntimeException("用户名已存在");
@@ -70,28 +77,20 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("邮箱已存在");
         }
 
-        // 2. 创建新用户
+        // 2. 创建新用户（已验证邮箱，直接设为 true）
         User newUser = new User();
         newUser.setUsername(dto.getUsername());
         newUser.setEmail(dto.getEmail());
         newUser.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         newUser.setDisplayName(dto.getUsername());
         newUser.setRole("AUTHOR");
-        newUser.setEmailVerified(false);
-        newUser.setCreatedAt(LocalDateTime.now()); // 手动设置，避免 @CreationTimestamp 在事务内未生效
+        newUser.setEmailVerified(true); // 验证码通过 = 邮箱已验证
+        newUser.setCreatedAt(LocalDateTime.now());
 
-        // 3. 生成邮箱验证 Token
-        String verifyToken = generateVerifyToken();
-        newUser.setEmailVerifyToken(verifyToken);
-        newUser.setEmailVerifyExpire(LocalDateTime.now().plusHours(TOKEN_EXPIRE_HOURS));
-
-        // 4. 保存用户
+        // 3. 保存用户
         newUser = userRepository.save(newUser);
 
-        // 5. 发送验证邮件
-        emailService.sendVerificationEmail(newUser.getEmail(), newUser.getUsername(), verifyToken);
-
-        // 6. 生成登录 Token（用户注册后直接登录）
+        // 4. 生成登录 Token
         String token = jwtUtil.generateToken(newUser.getUsername(), newUser.getId(), newUser.getRole());
 
         LoginVO loginVO = new LoginVO();

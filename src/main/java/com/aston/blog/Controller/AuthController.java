@@ -1,13 +1,16 @@
 package com.aston.blog.Controller;
 
 import com.aston.blog.Service.AuthService;
+import com.aston.blog.Service.EmailCodeService;
 import com.aston.blog.common.Result;
 import com.aston.blog.dto.LoginDTO;
 import com.aston.blog.dto.RegisterDTO;
+import com.aston.blog.dto.SendCodeDTO;
 import com.aston.blog.entity.User;
 import com.aston.blog.repository.UserRepository;
 import com.aston.blog.vo.auth.LoginVO;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -20,10 +23,12 @@ import java.util.Map;
 public class AuthController {
     private final AuthService authService;
     private final UserRepository userRepository;
+    private final EmailCodeService emailCodeService;
 
-    public AuthController(AuthService authService, UserRepository userRepository) {
+    public AuthController(AuthService authService, UserRepository userRepository, EmailCodeService emailCodeService) {
         this.authService = authService;
         this.userRepository = userRepository;
+        this.emailCodeService = emailCodeService;
     }
 
     @PostMapping("/login")
@@ -36,8 +41,25 @@ public class AuthController {
         }
     }
 
+    /**
+     * 发送注册验证码
+     */
+    @PostMapping("/send-code")
+    public Result<?> sendRegisterCode(@Valid @RequestBody SendCodeDTO dto) {
+        try {
+            // 检查邮箱是否已注册
+            if (userRepository.existsByEmail(dto.getEmail())) {
+                return Result.error(400, "该邮箱已注册");
+            }
+            emailCodeService.sendCode(dto.getEmail(), "REGISTER");
+            return Result.success(Map.of("message", "验证码已发送"));
+        } catch (Exception e) {
+            return Result.error(500, e.getMessage());
+        }
+    }
+
     @PostMapping("/register")
-    public Result<LoginVO> register(@RequestBody RegisterDTO dto) {
+    public Result<LoginVO> register(@Valid @RequestBody RegisterDTO dto) {
         try {
             return Result.success(authService.register(dto));
         } catch (Exception e) {

@@ -20,7 +20,8 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string, code: string) => Promise<void>;
+  sendRegisterCode: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -78,11 +79,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.refresh();
   };
 
-  const register = async (username: string, email: string, password: string) => {
+  const sendRegisterCode = async (email: string) => {
+    const res = await fetch(`${API_BASE}/api/auth/send-code`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.code !== 0) throw new Error(data.message || "发送验证码失败");
+  };
+
+  const register = async (username: string, email: string, password: string, code: string) => {
     const res = await fetch(`${API_BASE}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, code }),
     });
     const data = await res.json();
     if (!res.ok || data.code !== 0) throw new Error(data.message || "注册失败");
@@ -100,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, sendRegisterCode, logout }}>
       {children}
     </AuthContext.Provider>
   );
