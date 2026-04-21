@@ -73,6 +73,7 @@ jobs:
             docker-compose down
             docker-compose up -d --build
             
-            docker image prune -f
+            # 清理未使用的 Docker 资源（释放磁盘空间）
+            docker system prune -af --volumes || true
             
             echo "部署完成！"

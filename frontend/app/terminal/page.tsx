@@ -346,6 +346,7 @@ export default function TerminalPage() {
               { cmd: "neofetch", desc: "系统详细信息" },
               { cmd: "matrix", desc: "黑客帝国效果" },
               { cmd: "clear", desc: "清屏" },
+              { cmd: "learn [topic]", desc: "🎓 学习中心 (docker/linux/git/nginx...)" },
             ].map(({ cmd, desc }) => (
               <div key={cmd} className="flex gap-2">
                 <span className="text-green-400 font-mono min-w-[180px]">{cmd}</span>
@@ -592,39 +593,6 @@ export default function TerminalPage() {
     if (trimmedCmd === "matrix") {
       setIsMatrix(!isMatrix);
       addToHistory(trimmedCmd, isMatrix ? "Matrix 效果已关闭" : "Matrix 效果已开启!");
-      setIsLoading(false);
-      return;
-    }
-
-    // Learn command (simplified version)
-    if (command === "learn") {
-      addToHistory(
-        trimmedCmd,
-        <div className="space-y-3">
-          <div className="text-cyan-400 font-bold">🎓 学习中心</div>
-          <div className="text-gray-400 text-sm">
-            输入 <span className="text-green-400">learn &lt;topic&gt;</span> 开始学习
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-              <div className="text-cyan-400">🐳 learn docker</div>
-              <div className="text-xs text-gray-500">容器化入门</div>
-            </div>
-            <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-              <div className="text-cyan-400">🐧 learn linux</div>
-              <div className="text-xs text-gray-500">常用命令</div>
-            </div>
-            <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-              <div className="text-cyan-400">📦 learn git</div>
-              <div className="text-xs text-gray-500">版本控制</div>
-            </div>
-            <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-              <div className="text-cyan-400">🌐 learn nginx</div>
-              <div className="text-xs text-gray-500">Web 服务器</div>
-            </div>
-          </div>
-        </div>
-      );
       setIsLoading(false);
       return;
     }
@@ -941,6 +909,328 @@ export default function TerminalPage() {
     // CLEAR (alias)
     if (trimmedCmd === "cls") {
       setHistory([]);
+      setIsLoading(false);
+      return;
+    }
+
+    // LEARN command
+    if (command === "learn") {
+      const topic = args[0]?.toLowerCase();
+      
+      if (!topic) {
+        addToHistory(trimmedCmd, (
+          <div className="space-y-4">
+            <div className="text-cyan-400 font-bold text-lg">🎓 学习中心</div>
+            <div className="text-gray-400">选择一个主题开始学习：</div>
+            <div className="grid grid-cols-1 gap-2 text-sm">
+              {[
+                { cmd: "learn docker", desc: "🐳 容器化技术", icon: "🐳" },
+                { cmd: "learn linux", desc: "🐧 Linux 命令行", icon: "🐧" },
+                { cmd: "learn git", desc: "📦 Git 版本控制", icon: "📦" },
+                { cmd: "learn nginx", desc: "🌐 Nginx Web服务器", icon: "🌐" },
+                { cmd: "learn dockerfile", desc: "📝 Dockerfile 编写", icon: "📝" },
+                { cmd: "learn dockercompose", desc: "🔗 Docker Compose", icon: "🔗" },
+              ].map(({ cmd, desc }) => (
+                <div key={cmd} className="flex items-center gap-2">
+                  <span className="text-green-400 font-mono w-44">{cmd}</span>
+                  <span className="text-gray-400">{desc}</span>
+                </div>
+              ))}
+            </div>
+            <div className="text-yellow-400 text-sm mt-4">💡 输入 <span className="text-green-400">learn &lt;topic&gt;</span> 开始学习，例如: <span className="text-green-400">learn docker</span></div>
+          </div>
+        ));
+        setIsLoading(false);
+        return;
+      }
+
+      // Docker content
+      if (topic === "docker") {
+        addToHistory(trimmedCmd, (
+          <div className="space-y-4 text-sm">
+            <div className="text-cyan-400 font-bold text-lg">🐳 Docker 容器化</div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">1. 什么是 Docker？</div>
+              <div className="text-gray-400 mt-1">Docker 是一个开源的容器化平台，让开发者可以打包应用及其依赖到一个可移植的容器中。</div>
+            </div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">2. 核心概念</div>
+              <div className="text-gray-400 mt-1 space-y-1">
+                <div>• <span className="text-yellow-400">镜像 (Image)</span> - 应用程序的模板，只读的</div>
+                <div>• <span className="text-yellow-400">容器 (Container)</span> - 镜像的运行实例</div>
+                <div>• <span className="text-yellow-400">仓库 (Registry)</span> - 存储和分发镜像的地方</div>
+              </div>
+            </div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">3. 常用命令</div>
+              <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
+                <div><span className="text-blue-400"># 拉取镜像</span></div>
+                <div>docker pull nginx</div>
+                <div><span className="text-blue-400"># 运行容器</span></div>
+                <div>docker run -d -p 80:80 nginx</div>
+                <div><span className="text-blue-400"># 查看运行中的容器</span></div>
+                <div>docker ps</div>
+                <div><span className="text-blue-400"># 查看所有容器</span></div>
+                <div>docker ps -a</div>
+                <div><span className="text-blue-400"># 停止容器</span></div>
+                <div>docker stop &lt;container_id&gt;</div>
+                <div><span className="text-blue-400"># 删除容器</span></div>
+                <div>docker rm &lt;container_id&gt;</div>
+                <div><span className="text-blue-400"># 查看镜像列表</span></div>
+                <div>docker images</div>
+              </div>
+            </div>
+            <div className="text-yellow-400 text-sm mt-4">💡 继续学习: <span className="text-green-400">learn dockerfile</span></div>
+          </div>
+        ));
+        setIsLoading(false);
+        return;
+      }
+
+      // Dockerfile content
+      if (topic === "dockerfile") {
+        addToHistory(trimmedCmd, (
+          <div className="space-y-4 text-sm">
+            <div className="text-cyan-400 font-bold text-lg">📝 Dockerfile 编写指南</div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">1. 基础结构</div>
+              <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
+                <div><span className="text-purple-400">FROM</span> openjdk:21-jdk-alpine</div>
+                <div><span className="text-purple-400">WORKDIR</span> /app</div>
+                <div><span className="text-purple-400">COPY</span> target/*.jar app.jar</div>
+                <div><span className="text-purple-400">EXPOSE</span> 8080</div>
+                <div><span className="text-purple-400">ENTRYPOINT</span> ["java", "-jar", "app.jar"]</div>
+              </div>
+            </div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">2. 常用指令</div>
+              <div className="text-gray-400 mt-1 space-y-1">
+                <div>• <span className="text-purple-400">FROM</span> - 指定基础镜像</div>
+                <div>• <span className="text-purple-400">RUN</span> - 执行命令 (构建时)</div>
+                <div>• <span className="text-purple-400">COPY</span> - 复制文件到容器</div>
+                <div>• <span className="text-purple-400">CMD</span> - 容器启动命令</div>
+                <div>• <span className="text-purple-400">ENV</span> - 设置环境变量</div>
+                <div>• <span className="text-purple-400">EXPOSE</span> - 声明端口</div>
+                <div>• <span className="text-purple-400">WORKDIR</span> - 设置工作目录</div>
+              </div>
+            </div>
+            <div className="text-yellow-400 text-sm">💡 继续学习: <span className="text-green-400">learn dockercompose</span></div>
+          </div>
+        ));
+        setIsLoading(false);
+        return;
+      }
+
+      // Docker Compose content
+      if (topic === "dockercompose") {
+        addToHistory(trimmedCmd, (
+          <div className="space-y-4 text-sm">
+            <div className="text-cyan-400 font-bold text-lg">🔗 Docker Compose</div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">1. 什么是 Docker Compose？</div>
+              <div className="text-gray-400 mt-1">用于定义和运行多容器 Docker 应用的工具，通过 YAML 文件配置应用服务。</div>
+            </div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">2. compose.yaml 示例</div>
+              <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
+                <div><span className="text-purple-400">services</span>:</div>
+                <div>&nbsp;&nbsp;<span className="text-blue-400">web</span>:</div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">image</span>: nginx</div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">ports</span>:</div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- "80:80"</div>
+                <div>&nbsp;&nbsp;<span className="text-blue-400">db</span>:</div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">image</span>: mysql:8</div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">environment</span>:</div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MYSQL_ROOT_PASSWORD: secret</div>
+              </div>
+            </div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">3. 常用命令</div>
+              <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
+                <div><span className="text-blue-400"># 启动所有服务</span></div>
+                <div>docker compose up -d</div>
+                <div><span className="text-blue-400"># 停止所有服务</span></div>
+                <div>docker compose down</div>
+                <div><span className="text-blue-400"># 查看日志</span></div>
+                <div>docker compose logs -f</div>
+                <div><span className="text-blue-400"># 重新构建</span></div>
+                <div>docker compose up -d --build</div>
+              </div>
+            </div>
+            <div className="text-yellow-400 text-sm">💡 返回学习中心: <span className="text-green-400">learn</span></div>
+          </div>
+        ));
+        setIsLoading(false);
+        return;
+      }
+
+      // Linux content
+      if (topic === "linux") {
+        addToHistory(trimmedCmd, (
+          <div className="space-y-4 text-sm">
+            <div className="text-cyan-400 font-bold text-lg">🐧 Linux 命令行</div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">1. 文件操作</div>
+              <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
+                <div><span className="text-blue-400"># 列出文件</span></div>
+                <div>ls -la</div>
+                <div><span className="text-blue-400"># 切换目录</span></div>
+                <div>cd /path/to/dir</div>
+                <div><span className="text-blue-400"># 创建目录</span></div>
+                <div>mkdir dirname</div>
+                <div><span className="text-blue-400"># 删除文件</span></div>
+                <div>rm file.txt</div>
+                <div><span className="text-blue-400"># 删除目录</span></div>
+                <div>rm -rf dirname</div>
+                <div><span className="text-blue-400"># 复制文件</span></div>
+                <div>cp source dest</div>
+                <div><span className="text-blue-400"># 移动文件</span></div>
+                <div>mv source dest</div>
+              </div>
+            </div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">2. 文本处理</div>
+              <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
+                <div><span className="text-blue-400"># 查看文件</span></div>
+                <div>cat file.txt</div>
+                <div><span className="text-blue-400"># 查找内容</span></div>
+                <div>grep "pattern" file.txt</div>
+                <div><span className="text-blue-400"># 统计行数</span></div>
+                <div>wc -l file.txt</div>
+                <div><span className="text-blue-400"># 排序</span></div>
+                <div>sort file.txt</div>
+              </div>
+            </div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">3. 系统命令</div>
+              <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
+                <div><span className="text-blue-400"># 查看进程</span></div>
+                <div>ps aux | grep nginx</div>
+                <div><span className="text-blue-400"># 杀死进程</span></div>
+                <div>kill -9 &lt;pid&gt;</div>
+                <div><span className="text-blue-400"># 查看内存</span></div>
+                <div>free -h</div>
+                <div><span className="text-blue-400"># 查看磁盘</span></div>
+                <div>df -h</div>
+                <div><span className="text-blue-400"># 查看网络</span></div>
+                <div>netstat -tlnp</div>
+              </div>
+            </div>
+            <div className="text-yellow-400 text-sm">💡 返回学习中心: <span className="text-green-400">learn</span></div>
+          </div>
+        ));
+        setIsLoading(false);
+        return;
+      }
+
+      // Git content
+      if (topic === "git") {
+        addToHistory(trimmedCmd, (
+          <div className="space-y-4 text-sm">
+            <div className="text-cyan-400 font-bold text-lg">📦 Git 版本控制</div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">1. 基础配置</div>
+              <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
+                <div><span className="text-blue-400"># 设置用户名</span></div>
+                <div>git config --global user.name "Your Name"</div>
+                <div><span className="text-blue-400"># 设置邮箱</span></div>
+                <div>git config --global user.email "you@example.com"</div>
+              </div>
+            </div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">2. 日常工作流</div>
+              <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
+                <div><span className="text-blue-400"># 初始化仓库</span></div>
+                <div>git init</div>
+                <div><span className="text-blue-400"># 克隆仓库</span></div>
+                <div>git clone &lt;url&gt;</div>
+                <div><span className="text-blue-400"># 添加文件到暂存区</span></div>
+                <div>git add .</div>
+                <div><span className="text-blue-400"># 提交到本地仓库</span></div>
+                <div>git commit -m "commit message"</div>
+                <div><span className="text-blue-400"># 推送到远程</span></div>
+                <div>git push origin main</div>
+                <div><span className="text-blue-400"># 从远程拉取</span></div>
+                <div>git pull origin main</div>
+              </div>
+            </div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">3. 分支管理</div>
+              <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
+                <div><span className="text-blue-400"># 查看分支</span></div>
+                <div>git branch</div>
+                <div><span className="text-blue-400"># 创建分支</span></div>
+                <div>git branch feature-name</div>
+                <div><span className="text-blue-400"># 切换分支</span></div>
+                <div>git checkout feature-name</div>
+                <div><span className="text-blue-400"># 创建并切换</span></div>
+                <div>git checkout -b feature-name</div>
+                <div><span className="text-blue-400"># 合并分支</span></div>
+                <div>git merge feature-name</div>
+                <div><span className="text-blue-400"># 删除分支</span></div>
+                <div>git branch -d feature-name</div>
+              </div>
+            </div>
+            <div className="text-yellow-400 text-sm">💡 返回学习中心: <span className="text-green-400">learn</span></div>
+          </div>
+        ));
+        setIsLoading(false);
+        return;
+      }
+
+      // Nginx content
+      if (topic === "nginx") {
+        addToHistory(trimmedCmd, (
+          <div className="space-y-4 text-sm">
+            <div className="text-cyan-400 font-bold text-lg">🌐 Nginx Web 服务器</div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">1. 基本概念</div>
+              <div className="text-gray-400 mt-1">Nginx 是一个高性能的 HTTP 服务器和反向代理服务器。</div>
+            </div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">2. nginx.conf 示例</div>
+              <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
+                <div><span className="text-purple-400">server</span> {'{'}</div>
+                <div>&nbsp;&nbsp;<span className="text-blue-400">listen</span> 80;</div>
+                <div>&nbsp;&nbsp;<span className="text-blue-400">server_name</span> example.com;</div>
+                <div>&nbsp;&nbsp;<span className="text-blue-400">location</span> / {'{'}</div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">root</span> /var/www/html;</div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">index</span> index.html;</div>
+                <div>&nbsp;&nbsp;{'}'}</div>
+                <div>&nbsp;&nbsp;<span className="text-blue-400">location</span> /api {'{'}</div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-blue-400">proxy_pass</span> http://localhost:8080;</div>
+                <div>&nbsp;&nbsp;{'}'}</div>
+                <div>{'}'}</div>
+              </div>
+            </div>
+            <div className="border-b border-gray-700 pb-2 mb-2">
+              <div className="text-green-400 font-bold">3. 常用命令</div>
+              <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
+                <div><span className="text-blue-400"># 测试配置</span></div>
+                <div>nginx -t</div>
+                <div><span className="text-blue-400"># 启动 Nginx</span></div>
+                <div>nginx</div>
+                <div><span className="text-blue-400"># 重载配置</span></div>
+                <div>nginx -s reload</div>
+                <div><span className="text-blue-400"># 停止</span></div>
+                <div>nginx -s stop</div>
+              </div>
+            </div>
+            <div className="text-yellow-400 text-sm">💡 返回学习中心: <span className="text-green-400">learn</span></div>
+          </div>
+        ));
+        setIsLoading(false);
+        return;
+      }
+
+      // Unknown topic
+      addToHistory(trimmedCmd, (
+        <div className="space-y-2">
+          <div className="text-red-400">❌ 未知主题: {topic}</div>
+          <div className="text-gray-400">可用主题: <span className="text-green-400">docker, linux, git, nginx, dockerfile, dockercompose</span></div>
+          <div className="text-yellow-400">💡 输入 <span className="text-green-400">learn</span> 查看所有主题</div>
+        </div>
+      ));
       setIsLoading(false);
       return;
     }

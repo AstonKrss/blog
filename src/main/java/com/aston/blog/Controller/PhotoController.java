@@ -17,7 +17,7 @@ import java.util.UUID;
 public class PhotoController {
 
     private final PhotoService photoService;
-    private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/uploads/photos/";
+    private static final String UPLOAD_DIR = "/app/uploads/photos/";
 
     public PhotoController(PhotoService photoService) {
         this.photoService = photoService;

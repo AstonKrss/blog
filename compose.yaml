@@ -31,7 +31,8 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./uploads:/va/blog/uploads
+      # 共享 uploads 目录：主机 ./uploads ↔ 容器 /app/uploads
+      - ./uploads:/app/uploads
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: bloguser
@@ -66,6 +67,9 @@ services:
       - "80:3000"
     environment:
       NEXT_PUBLIC_API_URL: http://47.242.21.40:8080
+    volumes:
+      # 共享 uploads 目录：主机 ./uploads ↔ 容器 /app/uploads
+      - ./uploads:/app/uploads
     depends_on:
       - backend
     networks:
