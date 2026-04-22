@@ -17,11 +17,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -46,13 +43,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .authorizeHttpRequests(authz -> authz
-                .anyRequest().permitAll()
-            )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(authz -> authz
+                        .anyRequest().permitAll())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -61,10 +57,9 @@ public class SecurityConfig {
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
         configuration.setAllowedOrigins(java.util.List.of(
-        "http://localhost:3000",
-        "http://47.242.21.40",
-        "http://47.242.21.40:8080"
-    ));
+                "http://localhost:3000",
+                "http://47.242.21.40",
+                "http://47.242.21.40:8080"));
         configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(java.util.List.of("*"));
         configuration.setAllowCredentials(true);
@@ -99,15 +94,25 @@ public class SecurityConfig {
                         if (jwtUtil.validateToken(token, username)) {
                             String role = jwtUtil.extractRole(token);
                             
-                            // 创建权限列表
-                            List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-                            authorities.add(new SimpleGrantedAuthority("ROLE_" + (role != null ? role : "USER")));
+                            // 2. 二次验证：从数据库再次查询确认用户存在且role匹配
+                            // 这里只做基础验证，更严格的可以查数据库
                             
-                            // 创建认证对象
+                            // 3. 创建认证对象，存入token中的所有信息
                             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                 userId, 
-                                token, // 保留原始token供后续验证
-                                authorities);
+                                null, 
+                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + (role != null ? role : "USER")))
+                            {
+                                @Override
+                                public Object getCredentials() {
+                                    return token; // 保留原始token供后续验证
+                                }
+                                
+                                @Override
+                                public Object getPrincipal() {
+                                    return userId;
+                                }
+                            };
                             SecurityContextHolder.getContext().setAuthentication(authToken);
                         }
                     }

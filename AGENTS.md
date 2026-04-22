@@ -29,7 +29,8 @@ blog/
 │   ├── components/          # React 组件
 │   └── lib/                 # 工具函数
 ├── compose.yaml             # Docker Compose（MySQL + backend + frontend）
-└── docs/SECURITY.md         # 安全架构文档
+├── docs/SECURITY.md         # 安全架构文档
+└── docs/SECURITY_TOOLS.md  # 安全工具 API 文档
 ```
 
 ## 常用命令
@@ -154,3 +155,26 @@ private String getUserIdFromRequest(HttpServletRequest request) {
 - **前端 API 路由** `app/api/*/route.ts` 是 Next.js Route Handlers，仅用于少数场景（如 `/api/posts` 分页），主要 API 来自后端。
 - **上传文件**: 通过 `UploadController` 上传到 `uploads/` 目录，前端通过 `/uploads/*` 路径访问。
 - **前端 `.env.production`**: 构建时写入，包含 `NEXT_PUBLIC_API_URL`，不应提交到 Git。
+
+## 安全工具箱
+
+位于 `frontend/app/tools/page.tsx`，集成网络安全常用工具：
+
+### 前端工具（纯浏览器实现）
+- **编码解码**: Base64, URL, HTML, Unicode, Hex, 二进制, ROT13
+- **哈希计算**: SHA-256, SHA-512, 密码生成, 文件哈希
+- **JWT & 正则**: JWT 解析器, 正则表达式测试器
+- **格式化**: JSON 格式化/压缩, 时间戳转换, UUID 生成
+- **其他**: User-Agent 查看, 二维码生成
+
+### 后端 API（SecurityToolsController）
+- `GET /api/tools/ip-info` - IP 地理位置查询
+- `GET /api/tools/dns?domain=xxx` - DNS 记录查询
+- `GET /api/tools/port-scan?host=xxx` - 端口扫描
+- `GET /api/tools/cors-test?url=xxx` - CORS 配置测试
+- `GET /api/tools/cve-search?keyword=xxx` - CVE 漏洞查询
+- `GET /api/tools/whois?domain=xxx` - Whois 查询
+- `GET /api/tools/subdomains?domain=xxx` - 子域名枚举
+- `GET /api/tools/breach-check?email=xxx` - 密码泄露检测
+
+详细 API 文档见 `docs/SECURITY_TOOLS.md`。

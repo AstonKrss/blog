@@ -1,120 +1,783 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Shield, Code, Globe, Lock, Hash, Search, Zap, ExternalLink, ArrowLeft } from "lucide-react";
+import { Shield, Code, Globe, Lock, Hash, Search, Zap, ArrowLeft, Copy, Check, Upload, FileText, QrCode, Clock, Key, Binary, FileJson, Type, Image, RefreshCw } from "lucide-react";
 
-type Tool = { name: string; desc: string; action: string } | { name: string; desc: string; url: string };
+type ToolCategory = {
+  name: string;
+  icon: any;
+  gradient: string;
+  tools: { name: string; desc: string; component: React.ReactNode }[];
+};
 
-const toolCategories: { name: string; icon: any; gradient: string; tools: Tool[] }[] = [
-  { name: "编码解码", icon: Code, gradient: "from-blue-500 to-cyan-500", tools: [
-    { name: "Base64 编码", desc: "Base64 编码/解码", action: "base64" },
-    { name: "URL 编码", desc: "URL 编码/解码", action: "url" },
-    { name: "HTML 实体", desc: "HTML 实体编码/解码", action: "html" },
-    { name: "Unicode 编码", desc: "Unicode 编码/解码", action: "unicode" },
-    { name: "Hex 编码", desc: "Hex 编码/解码", action: "hex" },
-    { name: "JWT 解析", desc: "解析 JWT Token", action: "jwt" },
-  ]},
-  { name: "哈希计算", icon: Hash, gradient: "from-emerald-500 to-teal-500", tools: [
-    { name: "MD5 哈希", desc: "计算 MD5 哈希值", action: "md5" },
-    { name: "SHA-1 哈希", desc: "计算 SHA-1 哈希值", action: "sha1" },
-    { name: "SHA-256 哈希", desc: "计算 SHA-256 哈希值", action: "sha256" },
-    { name: "CRC32", desc: "计算 CRC32 校验值", action: "crc32" },
-  ]},
-  { name: "加密解密", icon: Lock, gradient: "from-purple-500 to-pink-500", tools: [
-    { name: "AES 加密", desc: "AES 对称加密/解密", action: "aes" },
-    { name: "RSA 工具", desc: "RSA 密钥生成/加解密", action: "rsa" },
-    { name: "XOR 加密", desc: "XOR 异或加密/解密", action: "xor" },
-    { name: "ROT13", desc: "ROT13 替换加密", action: "rot13" },
-  ]},
-  { name: "信息收集", icon: Search, gradient: "from-orange-500 to-amber-500", tools: [
-    { name: "User-Agent 查看", desc: "查看你的浏览器 UA", action: "ua" },
-    { name: "IP 信息查询", desc: "查询你的 IP 地址信息", action: "ip" },
-    { name: "DNS 查询", desc: "DNS 记录查询", action: "dns" },
-    { name: "端口扫描", desc: "常用端口扫描工具", action: "portscan" },
-    { name: "子域名枚举", desc: "子域名发现工具", action: "subdomain" },
-    { name: "Whois 查询", desc: "域名 Whois 信息查询", action: "whois" },
-  ]},
-  { name: "Web 工具", icon: Globe, gradient: "from-cyan-500 to-blue-500", tools: [
-    { name: "HTTP 请求测试", desc: "发送 HTTP 请求", action: "http" },
-    { name: "CORS 测试", desc: "CORS 配置测试", action: "cors" },
-    { name: "Cookie 查看", desc: "查看当前 Cookie", action: "cookie" },
-    { name: "Header 查看", desc: "查看请求头信息", action: "headers" },
-  ]},
-  { name: "在线资源", icon: ExternalLink, gradient: "from-rose-500 to-pink-500", tools: [
-    { name: "CyberChef", desc: "瑞士军刀级编码工具", url: "https://gchq.github.io/CyberChef/" },
-    { name: "JWT.io", desc: "JWT Token 解析", url: "https://jwt.io/" },
-    { name: "Shodan", desc: "IoT 搜索引擎", url: "https://www.shodan.io/" },
-    { name: "VirusTotal", desc: "恶意文件检测", url: "https://www.virustotal.com/" },
-    { name: "Exploit-DB", desc: "漏洞利用数据库", url: "https://www.exploit-db.com/" },
-    { name: "CVE Details", desc: "CVE 漏洞详情", url: "https://www.cvedetails.com/" },
-  ]},
+// Base64 工具组件
+function Base64Tool() {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
+  const [mode, setMode] = useState<"encode" | "decode">("encode");
+
+  const process = useCallback(() => {
+    try {
+      if (mode === "encode") {
+        setOutput(btoa(unescape(encodeURIComponent(input))));
+      } else {
+        setOutput(decodeURIComponent(escape(atob(input))));
+      }
+    } catch { setOutput("解码失败，请检查输入是否有效"); }
+  }, [input, mode]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <button onClick={() => { setMode("encode"); setOutput(""); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === "encode" ? "bg-indigo-500 text-white" : "bg-muted"}`}>编码</button>
+        <button onClick={() => { setMode("decode"); setOutput(""); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === "decode" ? "bg-indigo-500 text-white" : "bg-muted"}`}>解码</button>
+      </div>
+      <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full rounded-xl border bg-muted/50 px-4 py-3 font-mono text-sm h-32" placeholder="输入内容..." />
+      <button onClick={process} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white">
+        <Zap className="h-4 w-4" /> 执行
+      </button>
+      {output && <ResultBox value={output} />}
+    </div>
+  );
+}
+
+// URL 编码工具
+function UrlTool() {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
+  const [mode, setMode] = useState<"encode" | "decode">("encode");
+
+  const process = useCallback(() => {
+    try {
+      if (mode === "encode") {
+        setOutput(encodeURIComponent(input));
+      } else {
+        setOutput(decodeURIComponent(input));
+      }
+    } catch { setOutput("解码失败"); }
+  }, [input, mode]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <button onClick={() => { setMode("encode"); setOutput(""); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === "encode" ? "bg-indigo-500 text-white" : "bg-muted"}`}>编码</button>
+        <button onClick={() => { setMode("decode"); setOutput(""); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === "decode" ? "bg-indigo-500 text-white" : "bg-muted"}`}>解码</button>
+      </div>
+      <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full rounded-xl border bg-muted/50 px-4 py-3 font-mono text-sm h-32" placeholder="输入URL..." />
+      <button onClick={process} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white">
+        <Zap className="h-4 w-4" /> 执行
+      </button>
+      {output && <ResultBox value={output} />}
+    </div>
+  );
+}
+
+// HTML 工具
+function HtmlTool() {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
+  const [mode, setMode] = useState<"encode" | "decode">("encode");
+
+  const process = useCallback(() => {
+    if (mode === "encode") {
+      setOutput(input.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"));
+    } else {
+      const ta = document.createElement("textarea");
+      ta.innerHTML = input;
+      setOutput(ta.value);
+    }
+  }, [input, mode]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <button onClick={() => { setMode("encode"); setOutput(""); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === "encode" ? "bg-indigo-500 text-white" : "bg-muted"}`}>编码</button>
+        <button onClick={() => { setMode("decode"); setOutput(""); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === "decode" ? "bg-indigo-500 text-white" : "bg-muted"}`}>解码</button>
+      </div>
+      <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full rounded-xl border bg-muted/50 px-4 py-3 font-mono text-sm h-32" placeholder="输入HTML..." />
+      <button onClick={process} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white">
+        <Zap className="h-4 w-4" /> 执行
+      </button>
+      {output && <ResultBox value={output} />}
+    </div>
+  );
+}
+
+// Unicode 工具
+function UnicodeTool() {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
+  const [mode, setMode] = useState<"encode" | "decode">("encode");
+
+  const process = useCallback(() => {
+    try {
+      if (mode === "encode") {
+        setOutput(JSON.stringify(input).slice(1, -1));
+      } else {
+        setOutput(JSON.parse('"' + input + '"'));
+      }
+    } catch { setOutput("转换失败"); }
+  }, [input, mode]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <button onClick={() => { setMode("encode"); setOutput(""); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === "encode" ? "bg-indigo-500 text-white" : "bg-muted"}`}>编码</button>
+        <button onClick={() => { setMode("decode"); setOutput(""); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === "decode" ? "bg-indigo-500 text-white" : "bg-muted"}`}>解码</button>
+      </div>
+      <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full rounded-xl border bg-muted/50 px-4 py-3 font-mono text-sm h-32" placeholder="输入文字..." />
+      <button onClick={process} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white">
+        <Zap className="h-4 w-4" /> 执行
+      </button>
+      {output && <ResultBox value={output} />}
+    </div>
+  );
+}
+
+// Hex 工具
+function HexTool() {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
+  const [mode, setMode] = useState<"encode" | "decode">("encode");
+
+  const process = useCallback(() => {
+    try {
+      if (mode === "encode") {
+        setOutput(Array.from(new TextEncoder().encode(input)).map(b => b.toString(16).padStart(2, "0")).join(" "));
+      } else {
+        const bytes = input.trim().split(/\s+/).map(h => parseInt(h, 16));
+        setOutput(new TextDecoder().decode(new Uint8Array(bytes)));
+      }
+    } catch { setOutput("转换失败"); }
+  }, [input, mode]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <button onClick={() => { setMode("encode"); setOutput(""); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === "encode" ? "bg-indigo-500 text-white" : "bg-muted"}`}>文本→Hex</button>
+        <button onClick={() => { setMode("decode"); setOutput(""); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === "decode" ? "bg-indigo-500 text-white" : "bg-muted"}`}>Hex→文本</button>
+      </div>
+      <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full rounded-xl border bg-muted/50 px-4 py-3 font-mono text-sm h-32" placeholder={mode === "encode" ? "输入文本..." : "输入Hex (如: 48 65 6c 6c 6f)..."} />
+      <button onClick={process} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white">
+        <Zap className="h-4 w-4" /> 执行
+      </button>
+      {output && <ResultBox value={output} />}
+    </div>
+  );
+}
+
+// Binary 工具
+function BinaryTool() {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
+  const [mode, setMode] = useState<"encode" | "decode">("encode");
+
+  const process = useCallback(() => {
+    try {
+      if (mode === "encode") {
+        setOutput(Array.from(new TextEncoder().encode(input)).map(b => b.toString(2).padStart(8, "0")).join(" "));
+      } else {
+        const bytes = input.trim().split(/\s+/).map(b => parseInt(b, 2));
+        setOutput(new TextDecoder().decode(new Uint8Array(bytes)));
+      }
+    } catch { setOutput("转换失败"); }
+  }, [input, mode]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <button onClick={() => { setMode("encode"); setOutput(""); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === "encode" ? "bg-indigo-500 text-white" : "bg-muted"}`}>文本→二进制</button>
+        <button onClick={() => { setMode("decode"); setOutput(""); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === "decode" ? "bg-indigo-500 text-white" : "bg-muted"}`}>二进制→文本</button>
+      </div>
+      <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full rounded-xl border bg-muted/50 px-4 py-3 font-mono text-sm h-32" placeholder={mode === "encode" ? "输入文本..." : "输入二进制 (如: 01001000 01100101)..."} />
+      <button onClick={process} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white">
+        <Zap className="h-4 w-4" /> 执行
+      </button>
+      {output && <ResultBox value={output} />}
+    </div>
+  );
+}
+
+// JWT 解析器
+function JwtTool() {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState<any>(null);
+
+  const parse = useCallback(() => {
+    try {
+      const parts = input.split(".");
+      if (parts.length !== 3) { setOutput({ error: "无效的JWT格式" }); return; }
+      const header = JSON.parse(atob(parts[0]));
+      const payload = JSON.parse(atob(parts[1]));
+      setOutput({ header, payload, signature: parts[2] });
+    } catch { setOutput({ error: "解析失败" }); }
+  }, [input]);
+
+  return (
+    <div className="space-y-4">
+      <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full rounded-xl border bg-muted/50 px-4 py-3 font-mono text-sm h-24" placeholder="输入JWT Token..." />
+      <button onClick={parse} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white">
+        <Key className="h-4 w-4" /> 解析
+      </button>
+      {output && (
+        <div className="space-y-3">
+          {output.error ? (
+            <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400">{output.error}</div>
+          ) : (
+            <>
+              <div className="rounded-xl border bg-card p-4">
+                <div className="mb-2 text-sm font-medium text-emerald-400">Header</div>
+                <pre className="text-sm font-mono overflow-x-auto">{JSON.stringify(output.header, null, 2)}</pre>
+              </div>
+              <div className="rounded-xl border bg-card p-4">
+                <div className="mb-2 text-sm font-medium text-cyan-400">Payload</div>
+                <pre className="text-sm font-mono overflow-x-auto">{JSON.stringify(output.payload, null, 2)}</pre>
+              </div>
+              <div className="rounded-xl border bg-card p-4">
+                <div className="mb-2 text-sm font-medium text-yellow-400">Signature</div>
+                <div className="text-sm font-mono break-all text-muted-foreground">{output.signature}</div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ROT13 工具
+function Rot13Tool() {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
+
+  const process = useCallback(() => {
+    setOutput(input.replace(/[a-zA-Z]/g, (c) => {
+      const base = c <= "Z" ? 65 : 97;
+      return String.fromCharCode(((c.charCodeAt(0) - base + 13) % 26) + base);
+    }));
+  }, [input]);
+
+  return (
+    <div className="space-y-4">
+      <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full rounded-xl border bg-muted/50 px-4 py-3 font-mono text-sm h-32" placeholder="输入文本..." />
+      <button onClick={process} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white">
+        <RefreshCw className="h-4 w-4" /> 加密/解密
+      </button>
+      {output && <ResultBox value={output} />}
+    </div>
+  );
+}
+
+// 哈希计算工具
+function HashTool({ algorithm }: { algorithm: string }) {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
+
+  const process = useCallback(async () => {
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(input);
+      let hashBuffer: ArrayBuffer;
+      switch (algorithm) {
+        case "md5": {
+          const msg Uint8Array = new Uint8Array(await crypto.subtle.digest("SHA-256", data));
+          // 简化的 MD5 实现
+          function md5(str: string): string {
+            function md5cycle(x: number[], k: number[]) {
+              let a = x[0], b = x[1], c = x[2], d = x[3];
+              a = ff(a, b, c, d, k[0], 7, -680876936);
+              d = ff(d, a, b, c, k[1], 12, -389564586);
+              c = ff(c, d, a, b, k[2], 17, 606105819);
+              b = ff(b, c, d, a, k[3], 22, -1044525330);
+              a = ff(a, b, c, d, k[4], 7, -176418897);
+              d = ff(d, a, b, c, k[5], 12, 1200080426);
+              c = ff(c, d, a, b, k[6], 17, -1473231341);
+              b = ff(b, c, d, a, k[7], 22, -45705983);
+              a = ff(a, b, c, d, k[8], 7, 1770035416);
+              d = ff(d, a, b, c, k[9], 12, -1958414417);
+              c = ff(c, d, a, b, k[10], 17, -42063);
+              b = ff(b, c, d, a, k[11], 22, -1990404162);
+              a = ff(a, b, c, d, k[12], 7, 1804603682);
+              d = ff(d, a, b, c, k[13], 12, -40341101);
+              c = ff(c, d, a, b, k[14], 17, -1502002290);
+              b = ff(b, c, d, a, k[15], 22, 1236535329);
+              a = gg(a, b, c, d, k[1], 5, -165796510);
+              d = gg(d, a, b, c, k[6], 9, -1069501632);
+              c = gg(c, d, a, b, k[11], 14, 643717713);
+              b = gg(b, c, d, a, k[0], 20, -373897302);
+              a = gg(a, b, c, d, k[5], 5, -701558691);
+              d = gg(d, a, b, c, k[10], 9, 38016083);
+              c = gg(c, d, a, b, k[15], 14, -660478335);
+              b = gg(b, c, d, a, k[4], 20, -405537848);
+              a = gg(a, b, c, d, k[9], 5, 568446438);
+              d = gg(d, a, b, c, k[14], 9, -1019803690);
+              c = gg(c, d, a, b, k[3], 14, -187363961);
+              b = gg(b, c, d, a, k[8], 20, 1163531501);
+              a = gg(a, b, c, d, k[13], 5, -1444681467);
+              d = gg(d, a, b, c, k[2], 9, -51403784);
+              c = gg(c, d, a, b, k[7], 14, 1735328473);
+              b = gg(b, c, d, a, k[12], 20, -1926607734);
+              a = hh(a, b, c, d, k[5], 4, -378558);
+              d = hh(d, a, b, c, k[8], 11, -2022574463);
+              c = hh(c, d, a, b, k[11], 16, 1839030562);
+              b = hh(b, c, d, a, k[14], 23, -35309556);
+              a = hh(a, b, c, d, k[1], 4, -1530992060);
+              d = hh(d, a, b, c, k[4], 11, 1272893353);
+              c = hh(c, d, a, b, k[7], 16, -155497632);
+              b = hh(b, c, d, a, k[10], 23, -1094730640);
+              a = hh(a, b, c, d, k[13], 4, 681279174);
+              d = hh(d, a, b, c, k[0], 11, -358537222);
+              c = hh(c, d, a, b, k[3], 16, -722521979);
+              b = hh(b, c, d, a, k[6], 23, 76029189);
+              a = hh(a, b, c, d, k[9], 4, -640364487);
+              d = hh(d, a, b, c, k[12], 11, -421815835);
+              c = hh(c, d, a, b, k[15], 16, 530742520);
+              b = hh(b, c, d, a, k[2], 23, -995338651);
+              a = ii(a, b, c, d, k[0], 6, -198630844);
+              d = ii(d, a, b, c, k[7], 10, 1126891415);
+              c = ii(c, d, a, b, k[14], 15, -1416354905);
+              b = ii(b, c, d, a, k[5], 21, -57434055);
+              a = ii(a, b, c, d, k[12], 6, 1700485571);
+              d = ii(d, a, b, c, k[3], 10, -1894986606);
+              c = ii(c, d, a, b, k[10], 15, -1051523);
+              b = ii(b, c, d, a, k[1], 21, -2054922799);
+              a = ii(a, b, c, d, k[8], 6, 1873313359);
+              d = ii(d, a, b, c, k[15], 10, -30611744);
+              c = ii(c, d, a, b, k[6], 15, -1560198380);
+              b = ii(b, c, d, a, k[13], 21, 1309151649);
+              a = ii(a, b, c, d, k[4], 6, -145523070);
+              d = ii(d, a, b, c, k[11], 10, -1120210379);
+              c = ii(c, d, a, b, k[2], 15, 718787259);
+              b = ii(b, c, d, a, k[9], 21, -343485551);
+              x[0] = add32(a, x[0]); x[1] = add32(b, x[1]); x[2] = add32(c, x[2]); x[3] = add32(d, x[3]);
+            }
+            function cmn(q: number, a: number, b: number, x: number, s: number, t: number) { return add32(rol32(add32(add32(a, q), add32(x, t)), s), b); }
+            function ff(a: number, b: number, c: number, d: number, x: number, s: number, t: number) { return cmn((b & c) | ((~b) & d), a, b, x, s, t); }
+            function gg(a: number, b: number, c: number, d: number, x: number, s: number, t: number) { return cmn((b & d) | (c & (~d)), a, b, x, s, t); }
+            function hh(a: number, b: number, c: number, d: number, x: number, s: number, t: number) { return cmn(b ^ c ^ d, a, b, x, s, t); }
+            function ii(a: number, b: number, c: number, d: number, x: number, s: number, t: number) { return cmn(c ^ (b | (~d)), a, b, x, s, t); }
+            function md51(s: string): number[] { const md5blk: number[] = []; for (let i = 0; i < 64; i += 4) { md5blk[i >> 2] = s.charCodeAt(i) + (s.charCodeAt(i + 1) << 8) + (s.charCodeAt(i + 2) << 16) + (s.charCodeAt(i + 3) << 24); } return md5blk; }
+            const hex_chr = "0123456789abcdef".split("");
+            function rhex(n: number): string { let s = ""; for (let j = 0; j < 4; j++) s += hex_chr[(n >> (j * 8 + 4)) & 0x0F] + hex_chr[(n >> (j * 8)) & 0x0F]; return s; }
+            function hex(x: number[]): string { for (let i = 0; i < x.length; i++) x[i] = rhex(x[i]); return x.join(""); }
+            function add32(a: number, b: number): number { return (a + b) & 0xFFFFFFFF; }
+            function md5blk_array(s: string): number[] { const md5blks: number[] = [], aliases = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".split(""); const aliases = []; return md5blks; }
+            let state = [1732584193, -271733879, -1732584194, 271733878], length = s.length, buffer_view = new Uint8Array(length + 72); return hex(state); 
+          }
+          setOutput(md5(input));
+          return;
+        }
+        case "sha1": hashBuffer = await crypto.subtle.digest("SHA-1", data); break;
+        case "sha256": hashBuffer = await crypto.subtle.digest("SHA-256", data); break;
+        case "sha512": hashBuffer = await crypto.subtle.digest("SHA-512", data); break;
+        default: return;
+      }
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      setOutput(hashArray.map(b => b.toString(16).padStart(2, "0")).join(""));
+    } catch { setOutput("计算失败"); }
+  }, [input, algorithm]);
+
+  return (
+    <div className="space-y-4">
+      <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full rounded-xl border bg-muted/50 px-4 py-3 font-mono text-sm h-32" placeholder="输入文本..." />
+      <button onClick={process} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-2.5 text-sm font-medium text-white">
+        <Hash className="h-4 w-4" /> 计算 {algorithm.toUpperCase()}
+      </button>
+      {output && <ResultBox value={output} />}
+    </div>
+  );
+}
+
+// 密码生成器
+function PasswordGenerator() {
+  const [length, setLength] = useState(16);
+  const [password, setPassword] = useState("");
+  const [options, setOptions] = useState({ uppercase: true, lowercase: true, numbers: true, symbols: true });
+
+  const generate = useCallback(() => {
+    let chars = "";
+    if (options.uppercase) chars += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    if (options.lowercase) chars += "abcdefghijklmnopqrstuvwxyz";
+    if (options.numbers) chars += "0123456789";
+    if (options.symbols) chars += "!@#$%^&*()_+-=[]{}|;:,.<>?";
+    if (!chars) { setPassword("请至少选择一项"); return; }
+    const arr = new Uint32Array(length);
+    crypto.getRandomValues(arr);
+    setPassword(Array.from(arr).map(x => chars[x % chars.length]).join(""));
+  }, [length, options]);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="mb-2 block text-sm font-medium">密码长度: {length}</label>
+        <input type="range" min="8" max="64" value={length} onChange={(e) => setLength(Number(e.target.value))} className="w-full" />
+      </div>
+      <div className="flex flex-wrap gap-3">
+        {(["uppercase", "lowercase", "numbers", "symbols"] as const).map(opt => (
+          <label key={opt} className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={options[opt]} onChange={(e) => setOptions(p => ({ ...p, [opt]: e.target.checked }))} className="rounded" />
+            <span className="text-sm">{opt === "uppercase" ? "大写字母" : opt === "lowercase" ? "小写字母" : opt === "numbers" ? "数字" : "特殊符号"}</span>
+          </label>
+        ))}
+      </div>
+      <button onClick={generate} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-2.5 text-sm font-medium text-white">
+        <Key className="h-4 w-4" /> 生成密码
+      </button>
+      {password && <ResultBox value={password} copyable />}
+    </div>
+  );
+}
+
+// JSON 格式化工具
+function JsonTool() {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
+  const [error, setError] = useState("");
+
+  const process = useCallback((action: "format" | "minify" | "validate") => {
+    try {
+      const parsed = JSON.parse(input);
+      if (action === "format") setOutput(JSON.stringify(parsed, null, 2));
+      else if (action === "minify") setOutput(JSON.stringify(parsed));
+      setError("");
+    } catch (e: any) { setError(e.message); setOutput(""); }
+  }, [input]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <button onClick={() => process("format")} className={`px-4 py-2 rounded-lg text-sm font-medium ${"bg-indigo-500 text-white"}`}>格式化</button>
+        <button onClick={() => process("minify")} className={`px-4 py-2 rounded-lg text-sm font-medium bg-muted`}>压缩</button>
+        <button onClick={() => process("validate")} className={`px-4 py-2 rounded-lg text-sm font-medium bg-muted`}>验证</button>
+      </div>
+      <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full rounded-xl border bg-muted/50 px-4 py-3 font-mono text-sm h-32" placeholder="输入JSON..." />
+      {error ? <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-sm">{error}</div> : output && <ResultBox value={output} />}
+    </div>
+  );
+}
+
+// 时间戳转换器
+function TimestampTool() {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState<any>(null);
+
+  const convert = useCallback(() => {
+    try {
+      const num = parseInt(input);
+      const isMs = input.length > 10;
+      const date = new Date(isMs ? num : num * 1000);
+      setOutput({
+        unix: Math.floor(date.getTime() / 1000),
+        unixMs: date.getTime(),
+        iso: date.toISOString(),
+        local: date.toLocaleString("zh-CN"),
+        utc: date.toUTCString(),
+      });
+    } catch { setOutput({ error: "无效的时间戳" }); }
+  }, [input]);
+
+  const now = () => {
+    const date = new Date();
+    setInput(Math.floor(date.getTime() / 1000).toString());
+    setOutput({
+      unix: Math.floor(date.getTime() / 1000),
+      unixMs: date.getTime(),
+      iso: date.toISOString(),
+      local: date.toLocaleString("zh-CN"),
+      utc: date.toUTCString(),
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <input type="text" value={input} onChange={(e) => setInput(e.target.value)} className="flex-1 rounded-xl border bg-muted/50 px-4 py-2.5 font-mono text-sm" placeholder="输入时间戳 (秒或毫秒)..." />
+        <button onClick={convert} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white">
+          <Clock className="h-4 w-4" /> 转换
+        </button>
+        <button onClick={now} className="flex items-center gap-2 rounded-xl bg-muted px-5 py-2.5 text-sm font-medium">
+          当前时间
+        </button>
+      </div>
+      {output && (
+        output.error ? <div className="p-4 rounded-xl border border-red-500/30 text-red-400">{output.error}</div> :
+        <div className="grid gap-2 text-sm font-mono">
+          <div className="flex justify-between p-3 rounded-xl border"><span className="text-muted-foreground">Unix (秒)</span><span className="text-emerald-400">{output.unix}</span></div>
+          <div className="flex justify-between p-3 rounded-xl border"><span className="text-muted-foreground">Unix (毫秒)</span><span className="text-cyan-400">{output.unixMs}</span></div>
+          <div className="flex justify-between p-3 rounded-xl border"><span className="text-muted-foreground">ISO 8601</span><span className="text-yellow-400">{output.iso}</span></div>
+          <div className="flex justify-between p-3 rounded-xl border"><span className="text-muted-foreground">本地时间</span><span>{output.local}</span></div>
+          <div className="flex justify-between p-3 rounded-xl border"><span className="text-muted-foreground">UTC</span><span className="text-muted-foreground">{output.utc}</span></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// UUID 生成器
+function UuidTool() {
+  const [count, setCount] = useState(1);
+  const [uuids, setUuids] = useState<string[]>([]);
+
+  const generate = useCallback(() => {
+    const newUuids: string[] = [];
+    for (let i = 0; i < count; i++) {
+      newUuids.push(crypto.randomUUID());
+    }
+    setUuids(newUuids);
+  }, [count]);
+
+  const v4 = () => {
+    const newUuids: string[] = [];
+    for (let i = 0; i < count; i++) {
+      newUuids.push("xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0;
+        return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
+      }));
+    }
+    setUuids(newUuids);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2 items-center">
+        <label className="text-sm">生成数量:</label>
+        <input type="number" min="1" max="20" value={count} onChange={(e) => setCount(Number(e.target.value))} className="w-20 rounded-xl border bg-muted/50 px-3 py-2 text-sm" />
+        <button onClick={generate} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white">
+          <Key className="h-4 w-4" /> UUID v4
+        </button>
+      </div>
+      {uuids.length > 0 && (
+        <div className="space-y-2">
+          {uuids.map((uuid, i) => <ResultBox key={i} value={uuid} copyable />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 文件哈希工具
+function FileHashTool() {
+  const [file, setFile] = useState<File | null>(null);
+  const [results, setResults] = useState<Record<string, string>>({});
+
+  const process = useCallback(async (algorithm: string) => {
+    if (!file) return;
+    try {
+      const buffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest(algorithm.toUpperCase(), buffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+      setResults(r => ({ ...r, [algorithm]: hash }));
+    } catch { }
+  }, [file]);
+
+  const processAll = useCallback(async () => {
+    if (!file) return;
+    const algs = ["MD5", "SHA-1", "SHA-256", "SHA-512"];
+    const results: Record<string, string> = {};
+    for (const alg of algs) {
+      try {
+        const buffer = await file.arrayBuffer();
+        let hashBuffer: ArrayBuffer;
+        if (alg === "MD5") {
+          // 简化的 MD5
+          results[alg] = "浏览器不支持MD5计算";
+        } else {
+          hashBuffer = await crypto.subtle.digest(alg, buffer);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          results[alg] = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+        }
+      } catch { results[alg] = "计算失败"; }
+    }
+    setResults(results);
+  }, [file]);
+
+  return (
+    <div className="space-y-4">
+      <div className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer hover:border-indigo-500/50 transition-colors"
+        onClick={() => document.getElementById("file-input")?.click()}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) setFile(f); }}>
+        <input id="file-input" type="file" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+        <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <p className="text-muted-foreground">{file ? file.name : "点击或拖拽文件到此处"}</p>
+        {file && <p className="text-sm text-muted-foreground mt-1">{(file.size / 1024).toFixed(2)} KB</p>}
+      </div>
+      {file && (
+        <>
+          <button onClick={processAll} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white">
+            <Hash className="h-4 w-4" /> 计算所有哈希
+          </button>
+          {Object.entries(results).map(([alg, hash]) => (
+            <div key={alg} className="space-y-1">
+              <div className="text-sm font-medium">{alg}</div>
+              <ResultBox value={hash} copyable />
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
+// 正则表达式测试器
+function RegexTool() {
+  const [pattern, setPattern] = useState("");
+  const [flags, setFlags] = useState("g");
+  const [input, setInput] = useState("");
+  const [matches, setMatches] = useState<string[]>([]);
+  const [error, setError] = useState("");
+
+  const test = useCallback(() => {
+    try {
+      const regex = new RegExp(pattern, flags);
+      const results = input.match(regex) || [];
+      setMatches(results);
+      setError("");
+    } catch (e: any) { setError(e.message); setMatches([]); }
+  }, [pattern, flags, input]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <input value={pattern} onChange={(e) => setPattern(e.target.value)} className="flex-1 rounded-xl border bg-muted/50 px-4 py-2.5 font-mono text-sm" placeholder="正则表达式..." />
+        <input value={flags} onChange={(e) => setFlags(e.target.value)} className="w-20 rounded-xl border bg-muted/50 px-4 py-2.5 font-mono text-sm text-center" placeholder="flags" />
+      </div>
+      <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full rounded-xl border bg-muted/50 px-4 py-3 font-mono text-sm h-32" placeholder="测试文本..." />
+      <button onClick={test} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white">
+        <Search className="h-4 w-4" /> 测试
+      </button>
+      {error && <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-sm">{error}</div>}
+      {matches.length > 0 && (
+        <div>
+          <div className="mb-2 text-sm font-medium">匹配结果 ({matches.length} 个)</div>
+          <div className="flex flex-wrap gap-2">
+            {matches.map((m, i) => (
+              <span key={i} className="px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-mono text-sm">{m}</span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// User-Agent 查看器
+function UaTool() {
+  const ua = navigator.userAgent;
+  const isMobile = /Mobile|Android|iPhone|iPad/i.test(ua);
+  
+  return (
+    <div className="space-y-4">
+      <ResultBox value={ua} copyable />
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div className="p-4 rounded-xl border"><div className="text-muted-foreground mb-1">设备类型</div><div className={isMobile ? "text-amber-400" : "text-emerald-400"}>{isMobile ? "移动设备" : "桌面设备"}</div></div>
+        <div className="p-4 rounded-xl border"><div className="text-muted-foreground mb-1">浏览器</div><div className="truncate">{navigator.userAgent.split(" ")[0]}</div></div>
+        <div className="p-4 rounded-xl border"><div className="text-muted-foreground mb-1">语言</div><div className="text-emerald-400">{navigator.language}</div></div>
+        <div className="p-4 rounded-xl border"><div className="text-muted-foreground mb-1">屏幕</div><div className="text-cyan-400">{window.screen.width} x {window.screen.height}</div></div>
+      </div>
+    </div>
+  );
+}
+
+// 二维码生成器
+function QrCodeTool() {
+  const [input, setInput] = useState("");
+  const [qrUrl, setQrUrl] = useState("");
+
+  const generate = useCallback(() => {
+    if (input) setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(input)}`);
+  }, [input]);
+
+  return (
+    <div className="space-y-4">
+      <textarea value={input} onChange={(e) => setInput(e.target.value)} className="w-full rounded-xl border bg-muted/50 px-4 py-3 font-mono text-sm h-24" placeholder="输入内容..." />
+      <button onClick={generate} className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white">
+        <QrCode className="h-4 w-4" /> 生成二维码
+      </button>
+      {qrUrl && <img src={qrUrl} alt="QR Code" className="mx-auto rounded-xl border" />}
+    </div>
+  );
+}
+
+// 结果展示组件
+function ResultBox({ value, copyable }: { value: string; copyable?: boolean }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => { navigator.clipboard.writeText(value); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+  return (
+    <div className="relative group">
+      <pre className="w-full rounded-xl border bg-muted/50 p-4 text-sm font-mono break-all whitespace-pre-wrap">{value}</pre>
+      {copyable && (
+        <button onClick={copy} className="absolute top-2 right-2 p-2 rounded-lg bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity">
+          {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// 工具列表
+const toolCategories: ToolCategory[] = [
+  {
+    name: "编码解码",
+    icon: Code,
+    gradient: "from-blue-500 to-cyan-500",
+    tools: [
+      { name: "Base64", desc: "Base64 编码/解码", component: <Base64Tool /> },
+      { name: "URL", desc: "URL 编码/解码", component: <UrlTool /> },
+      { name: "HTML", desc: "HTML 实体编码/解码", component: <HtmlTool /> },
+      { name: "Unicode", desc: "Unicode 编码/解码", component: <UnicodeTool /> },
+      { name: "Hex", desc: "十六进制转换", component: <HexTool /> },
+      { name: "二进制", desc: "二进制转换", component: <BinaryTool /> },
+      { name: "ROT13", desc: "ROT13 加密/解密", component: <Rot13Tool /> },
+    ],
+  },
+  {
+    name: "哈希与密码",
+    icon: Hash,
+    gradient: "from-emerald-500 to-teal-500",
+    tools: [
+      { name: "SHA-256", desc: "SHA-256 哈希计算", component: <HashTool algorithm="sha256" /> },
+      { name: "SHA-512", desc: "SHA-512 哈希计算", component: <HashTool algorithm="sha512" /> },
+      { name: "密码生成", desc: "随机密码生成器", component: <PasswordGenerator /> },
+      { name: "文件哈希", desc: "计算文件哈希值", component: <FileHashTool /> },
+    ],
+  },
+  {
+    name: "JWT & 正则",
+    icon: Key,
+    gradient: "from-purple-500 to-pink-500",
+    tools: [
+      { name: "JWT 解析", desc: "解析 JWT Token", component: <JwtTool /> },
+      { name: "正则测试", desc: "正则表达式测试器", component: <RegexTool /> },
+    ],
+  },
+  {
+    name: "格式化工具",
+    icon: FileJson,
+    gradient: "from-orange-500 to-amber-500",
+    tools: [
+      { name: "JSON", desc: "JSON 格式化/压缩", component: <JsonTool /> },
+      { name: "时间戳", desc: "Unix 时间戳转换", component: <TimestampTool /> },
+      { name: "UUID", desc: "UUID 生成器", component: <UuidTool /> },
+    ],
+  },
+  {
+    name: "其他工具",
+    icon: Globe,
+    gradient: "from-cyan-500 to-blue-500",
+    tools: [
+      { name: "User-Agent", desc: "查看浏览器信息", component: <UaTool /> },
+      { name: "二维码", desc: "生成二维码", component: <QrCodeTool /> },
+    ],
+  },
 ];
 
 export default function ToolsPage() {
-  const [activeTool, setActiveTool] = useState<string | null>(null);
-  const [input, setInput] = useState("");
-  const [output, setOutput] = useState("");
-  const [key, setKey] = useState("");
-
-  const processTool = (tool: Tool) => {
-    if ("url" in tool) { window.open(tool.url, "_blank"); return; }
-    setActiveTool(tool.action); setInput(""); setOutput(""); setKey("");
-  };
-
-  const execute = () => {
-    if (!activeTool || !input) return;
-    let result = "";
-    try {
-      switch (activeTool) {
-        case "base64":
-          if (input.match(/^[A-Za-z0-9+/=]+$/)) result = atob(input);
-          else result = btoa(unescape(encodeURIComponent(input)));
-          break;
-        case "url":
-          try { result = decodeURIComponent(input); } catch { result = encodeURIComponent(input); }
-          break;
-        case "html":
-          const ta = document.createElement("textarea");
-          ta.innerHTML = input;
-          result = ta.value;
-          if (result === input) result = input.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-          break;
-        case "unicode":
-          try { result = JSON.parse('"' + input + '"'); } catch { result = JSON.stringify(input).slice(1, -1); }
-          break;
-        case "hex":
-          if (input.match(/^[0-9a-fA-F ]+$/)) result = input.split(" ").map((h: string) => String.fromCharCode(parseInt(h.trim(), 16))).join("");
-          else result = input.split("").map((c: string) => c.charCodeAt(0).toString(16).padStart(2, "0")).join(" ");
-          break;
-        case "jwt":
-          const parts = input.split(".");
-          if (parts.length === 3) {
-            const header = JSON.parse(atob(parts[0].replace(/-/g, "+").replace(/_/g, "/")));
-            const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
-            result = "Header:\n" + JSON.stringify(header, null, 2) + "\n\nPayload:\n" + JSON.stringify(payload, null, 2);
-          } else result = "无效的 JWT 格式";
-          break;
-        case "rot13":
-          result = input.replace(/[a-zA-Z]/g, (c: string) => {
-            const base = c <= "Z" ? 65 : 97;
-            return String.fromCharCode(((c.charCodeAt(0) - base + 13) % 26) + base);
-          });
-          break;
-        case "ua": result = navigator.userAgent; break;
-        case "cookie": result = document.cookie || "无 Cookie"; break;
-        case "headers": result = "Referer: " + document.referrer + "\nOrigin: " + window.location.origin + "\nUser-Agent: " + navigator.userAgent; break;
-        case "xor":
-          result = input.split("").map((c: string, i: number) => String.fromCharCode(c.charCodeAt(0) ^ key.charCodeAt(i % key.length))).join("");
-          break;
-        default: result = "该工具正在开发中...";
-      }
-    } catch (e: any) { result = "错误: " + e.message; }
-    setOutput(result);
-  };
-
-  const currentTool = toolCategories.flatMap(c => c.tools).find((t): t is { name: string; desc: string; action: string } => "action" in t && t.action === activeTool);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeTool, setActiveTool] = useState<{ name: string; component: React.ReactNode } | null>(null);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -128,35 +791,17 @@ export default function ToolsPage() {
         <div className="relative mx-auto max-w-6xl px-4 py-12">
           {activeTool ? (
             <div className="mx-auto max-w-3xl animate-scale-in">
-              <button onClick={() => { setActiveTool(null); setInput(""); setOutput(""); }}
-                className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <button onClick={() => setActiveTool(null)} className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft className="h-4 w-4" /> 返回工具列表
               </button>
               <div className="rounded-2xl border bg-card/80 backdrop-blur-sm p-6 shadow-sm glow-card">
-                <h2 className="mb-4 text-xl font-bold">{currentTool?.name || activeTool}</h2>
-                {(activeTool === "aes" || activeTool === "xor" || activeTool === "rsa") && (
-                  <div className="mb-4">
-                    <label className="mb-1.5 block text-sm font-medium">密钥</label>
-                    <input value={key} onChange={(e) => setKey(e.target.value)}
-                      className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" placeholder="输入密钥" />
+                <h2 className="mb-6 text-2xl font-bold flex items-center gap-3">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${activeCategory ? toolCategories.find(c => c.name === activeCategory)?.gradient : "from-indigo-500 to-purple-500"}`}>
+                    <Shield className="h-5 w-5 text-white" />
                   </div>
-                )}
-                <div className="mb-4">
-                  <label className="mb-1.5 block text-sm font-medium">输入</label>
-                  <textarea value={input} onChange={(e) => setInput(e.target.value)}
-                    className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    rows={4} placeholder="输入内容..." />
-                </div>
-                <button onClick={execute}
-                  className="mb-4 flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:shadow-xl transition-all hover:-translate-y-0.5">
-                  <Zap className="h-4 w-4" /> 执行
-                </button>
-                {output && (
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium">输出</label>
-                    <pre className="whitespace-pre-wrap rounded-xl border bg-muted/50 p-4 text-sm font-mono">{output}</pre>
-                  </div>
-                )}
+                  {activeTool.name}
+                </h2>
+                {activeTool.component}
               </div>
             </div>
           ) : (
@@ -169,26 +814,27 @@ export default function ToolsPage() {
                   <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">安全工具箱</span>
                 </h1>
                 <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-                  网络安全工程师常用的编码、加密、信息收集工具
+                  网络安全从业者常用的编码、加密、哈希、信息收集工具
                 </p>
               </div>
 
-              <div className="space-y-10">
+              <div className="space-y-12">
                 {toolCategories.map((category) => {
                   const Icon = category.icon;
                   return (
                     <div key={category.name}>
-                      <div className="mb-4 flex items-center gap-3">
-                        <div className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br ${category.gradient}`}>
-                          <Icon className="h-4 w-4 text-white" />
+                      <div className="mb-6 flex items-center gap-3">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${category.gradient} shadow-lg`}>
+                          <Icon className="h-5 w-5 text-white" />
                         </div>
-                        <h2 className="text-xl font-bold">{category.name}</h2>
+                        <h2 className="text-2xl font-bold">{category.name}</h2>
                       </div>
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {category.tools.map((tool) => (
-                          <button key={tool.name} onClick={() => processTool(tool)}
-                            className="group relative overflow-hidden rounded-xl border bg-card/80 backdrop-blur-sm p-5 text-left transition-all hover:-translate-y-1 hover:shadow-lg card-hover glow-card">
-                            <h3 className="mb-1 font-semibold group-hover:text-indigo-500 transition-colors">{tool.name}</h3>
+                          <button key={tool.name} onClick={() => { setActiveTool({ name: tool.name, component: tool.component }); setActiveCategory(category.name); }}
+                            className="group relative overflow-hidden rounded-2xl border bg-card/80 p-6 text-left transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10 card-hover">
+                            <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-0 group-hover:opacity-5 transition-opacity`} />
+                            <h3 className="mb-2 text-lg font-semibold group-hover:text-indigo-500 transition-colors">{tool.name}</h3>
                             <p className="text-sm text-muted-foreground">{tool.desc}</p>
                           </button>
                         ))}

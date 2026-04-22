@@ -7,7 +7,6 @@ import lombok.Data;
 public class CreateProjectDTO {
     @NotBlank(message = "项目名称不能为空")
     private String name;
-    
     private String description;
     private String url;
     private String demoUrl;
@@ -15,5 +14,5 @@ public class CreateProjectDTO {
     private String techStack;
     private Integer sortOrder;
     private Boolean featured;
-    private String status;
+    private String status; // DRAFT 或 PUBLISHED
 }
