@@ -12,8 +12,8 @@ import java.util.List;
 public class PhotoServiceImpl implements PhotoService {
 
     private final PhotoRepository repository;
-    private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/uploads/photos/";
-    private static final String FRONTEND_TREE_PHOTOS_DIR = System.getProperty("user.dir") + "/public/tree/photos/";
+    private static final String UPLOAD_DIR = "/app/uploads/photos/";
+    private static final String FRONTEND_TREE_PHOTOS_DIR = "/app/uploads/tree/photos/";
 
     public PhotoServiceImpl(PhotoRepository repository) {
         this.repository = repository;

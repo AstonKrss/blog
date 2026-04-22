@@ -21,16 +21,15 @@ public class TagServiceImpl implements TagService {
     @Override
     public List<TagVO> getAllTags() {
         return tagRepository.findAll().stream()
-                .map(this::convertToTagVO)
+                .map(tag -> {
+                    TagVO vo = new TagVO();
+                    vo.setId(tag.getId());
+                    vo.setName(tag.getName());
+                    vo.setSlug(tag.getSlug());
+                    vo.setDescription(tag.getDescription());
+                    vo.setPostCount(tagRepository.countPostsByTagId(tag.getId()));
+                    return vo;
+                })
                 .collect(Collectors.toList());
-    }
-
-    private TagVO convertToTagVO(Tag tag) {
-        TagVO vo = new TagVO();
-        vo.setId(tag.getId());
-        vo.setName(tag.getName());
-        vo.setSlug(tag.getSlug());
-        vo.setDescription(tag.getDescription());
-        return vo;
     }
 }
