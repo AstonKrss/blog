@@ -194,18 +194,14 @@ export default async function HomePage() {
               <h2 className="text-3xl font-black mb-2">终端</h2>
               <p className="text-muted-foreground">试试输入命令探索博客，或者点击快捷入口</p>
             </div>
-            <div className="rounded-3xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700">
+            <div className="rounded-2xl border border-green-500/30 overflow-hidden shadow-2xl shadow-green-500/10">
               <iframe 
                 src="/terminal" 
-                className="w-full h-[600px] border-0 rounded-b-3xl"
+                className="w-full h-[600px] border-0"
                 title="Interactive Terminal"
                 sandbox="allow-same-origin allow-scripts"
+                loading="lazy"
               />
-              <div className="text-center py-2 bg-muted/50 border-t border-gray-200 dark:border-gray-700">
-                <a href="/terminal" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  打开完整终端 →
-                </a>
-              </div>
             </div>
           </div>
         </section>

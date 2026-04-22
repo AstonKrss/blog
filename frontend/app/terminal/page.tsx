@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
 import { Terminal, BookOpen, TerminalSquare, ChevronRight, Lock, Unlock } from "lucide-react";
 import Link from "next/link";
 
@@ -100,13 +99,13 @@ export default function TerminalPage() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [history, scrollToBottom]);
+  }, [history, scrollToBottom, isEmbedded]);
 
   useEffect(() => {
-    if (isVimMode && vimInputRef.current) {
+    if (isVimMode && vimInputRef.current && !isEmbedded) {
       vimInputRef.current.focus();
     }
-  }, [isVimMode]);
+  }, [isVimMode, isEmbedded]);
 
   // Initial welcome message
   useEffect(() => {
@@ -148,10 +147,10 @@ export default function TerminalPage() {
 
   // Auto-focus input after command execution
   useEffect(() => {
-    if (!isVimMode && !isLoading && inputRef.current) {
+    if (!isVimMode && !isLoading && inputRef.current && !isEmbedded) {
       inputRef.current.focus();
     }
-  }, [history, isLoading, isVimMode]);
+  }, [history, isLoading, isVimMode, isEmbedded]);
 
   const checkAuth = async () => {
     try {
@@ -1456,7 +1455,8 @@ export default function TerminalPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <main className="flex-1 relative overflow-hidden">
+      {!isEmbedded && <Header />}
+      <main className={`flex-1 relative overflow-hidden ${isEmbedded ? '!py-0' : ''}`}>
         {/* Animated background */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-950 to-black" />
