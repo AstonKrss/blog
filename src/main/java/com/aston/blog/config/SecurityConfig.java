@@ -102,17 +102,7 @@ public class SecurityConfig {
                                 userId, 
                                 null, 
                                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + (role != null ? role : "USER")))
-                            {
-                                @Override
-                                public Object getCredentials() {
-                                    return token; // 保留原始token供后续验证
-                                }
-                                
-                                @Override
-                                public Object getPrincipal() {
-                                    return userId;
-                                }
-                            };
+                            );
                             SecurityContextHolder.getContext().setAuthentication(authToken);
                         }
                     }

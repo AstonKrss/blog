@@ -7,6 +7,7 @@ import com.aston.blog.dto.ApplyFriendLinkDTO;
 import com.aston.blog.dto.ApproveFriendLinkDTO;
 import com.aston.blog.vo.friend.FriendLinkListVO;
 import com.aston.blog.vo.friend.FriendLinkVO;
+import com.aston.blog.Service.FriendLinkService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,9 +22,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/api")
 public class FriendLinkController {
 
-    private final FriendSerivice friendService;
+    private final FriendLinkService friendService;
 
-    public FriendLinkController(FriendSerivice friendService) {
+    public FriendLinkController(FriendLinkService friendService) {
         this.friendService = friendService;
     }
 
@@ -45,7 +46,7 @@ public class FriendLinkController {
             @RequestParam(required = false) String status,
             @RequestHeader("Authorization") String token) {
         // 这里应该验证管理员权限
-        return Result.success(friendService.getPendingFriends());
+        return Result.success(friendService.getPendingFriendLinks());
     }
 
     // 审核友链
