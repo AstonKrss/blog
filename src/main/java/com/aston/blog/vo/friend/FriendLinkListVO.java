@@ -1,9 +1,11 @@
 package com.aston.blog.vo.friend;
 
-import lombok.Data;
 import java.util.List;
+import com.aston.blog.vo.friend.FriendLinkVO;
+
+import lombok.Data;
 
 @Data
 public class FriendLinkListVO {
-    private List<FriendLinkVO> friends;
+    List<FriendLinkVO> friends;
 }
