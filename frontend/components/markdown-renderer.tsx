@@ -2,6 +2,7 @@
 
 import { marked, Renderer } from "marked";
 import { useEffect, useMemo } from "react";
+import DOMPurify from "isomorphic-dompurify";
 
 // 生成与后端一致的 ID
 function slugify(text: string): string {
@@ -36,7 +37,14 @@ export function MarkdownRenderer({ content }: { content: string }) {
 
     try {
       const result = marked.parse(content);
-      return typeof result === "string" ? result : "";
+      const rawHtml = typeof result === "string" ? result : "";
+      // XSS 防护：净化 HTML，保留安全标签
+      return DOMPurify.sanitize(rawHtml, {
+        ALLOWED_TAGS: ['h1','h2','h3','h4','h5','h6','p','br','strong','em','code','pre','blockquote',
+          'ul','ol','li','a','img','table','thead','tbody','tr','th','td','hr','div','span'],
+        ALLOWED_ATTR: ['href','src','alt','class','id','target','rel'],
+        ALLOW_DATA_ATTR: false,
+      });
     } catch (err) {
       console.error("Markdown parse error:", err);
       return `<p style="color: red;">内容解析失败</p><pre>${content}</pre>`;

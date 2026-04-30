@@ -1,5 +1,6 @@
 package com.aston.blog.Controller;
 
+import com.aston.blog.Service.AttackLogService;
 import com.aston.blog.Service.AuthService;
 import com.aston.blog.Service.EmailCodeService;
 import com.aston.blog.common.Result;
@@ -9,8 +10,10 @@ import com.aston.blog.dto.SendCodeDTO;
 import com.aston.blog.entity.User;
 import com.aston.blog.repository.UserRepository;
 import com.aston.blog.vo.auth.LoginVO;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -18,27 +21,56 @@ import org.springframework.web.bind.annotation.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
+import io.jsonwebtoken.security.Request;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
     private final UserRepository userRepository;
     private final EmailCodeService emailCodeService;
+    private final AttackLogService attackLogService;
 
-    public AuthController(AuthService authService, UserRepository userRepository, EmailCodeService emailCodeService) {
+    public AuthController(AuthService authService, UserRepository userRepository, EmailCodeService emailCodeService,
+            AttackLogService attackLogService) {
         this.authService = authService;
         this.userRepository = userRepository;
         this.emailCodeService = emailCodeService;
+        this.attackLogService = attackLogService;
     }
 
     @PostMapping("/login")
-    public Result<LoginVO> login(@RequestBody LoginDTO dto) {
+    public Result<LoginVO> login(@RequestBody LoginDTO dto, HttpServletRequest request) {
+        String ip = getClientIp(request);
+        String userAgent = request.getHeader("User-Agent") != null ? request.getHeader("User-Agent") : "";
+        String username = dto.getUsername();
+        String password = dto.getPassword();
+
+        if (attackLogService.isIpBlocked(ip)) {
+            return Result.error(403, "您的IP已被封禁，请15分钟后再试");
+        }
+
+        // 暴力破解登录接口，记录登录尝试日志
+        if (attackLogService.isBruteForce(ip, username)) {
+            attackLogService.blockIp(ip);
+            attackLogService.recordAttack(ip, "/api/auth/login", "POST", "username=" + username, "BRUTE_FORCE",
+                    userAgent, null);
+            return Result.error(429, "登录尝试次数过多，请15分钟后再试");
+        }
+
         try {
             LoginVO loginVO = authService.login(dto);
+            attackLogService.recordLoginAttempt(ip, username, true, userAgent); // 成功
             return Result.success(loginVO);
         } catch (Exception e) {
-            return Result.error(400, e.getMessage());
+            if (isWeakPassword(password)) {
+                attackLogService.recordAttack(ip, "/api/auth/login", "POST",
+                        "username=" + username + ", password=WeakPassword", "WEAK_PASSWORD_ATTACK", userAgent, null);
+            }
+            attackLogService.recordLoginAttempt(ip, username, false, userAgent); // 失败
+            return Result.error(401, "用户名或密码错误");
         }
+
     }
 
     /**
@@ -151,5 +183,71 @@ public class AuthController {
         } catch (Exception e) {
         }
         return null;
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String[] headers = {
+            "X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP",
+            "WL-Proxy-Client-IP", "HTTP_X_FORWARDED_FOR", "HTTP_X_FORWARDED",
+            "HTTP_CLIENT_IP", "HTTP_FORWARDED_FOR", "REMOTE_ADDR"
+        };
+        for (String header : headers) {
+            String ip = request.getHeader(header);
+            if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+                return ip.split(",")[0].trim();
+            }
+        }
+        return request.getRemoteAddr();
+    }
+
+    private boolean isWeakPassword(String password) {
+        if (password == null || password.isEmpty())
+            return false;
+
+        int score = 0;
+        String p = password.toLowerCase();
+        if (p.matches("\\d+"))
+            score += 10;
+
+        if (p.matches("[a-z]+"))
+            score += 10;
+
+        if (hasSequentialNumbers(p))
+            score += 20;
+
+        if (p.matches(".*(.)\\1{2,}.*"))
+            score += 15;
+
+        if (hasKeyboardPattern(p))
+            score += 15;
+
+        if (password.length() <= 6)
+            score += 10;
+
+        if (p.matches("[a-z]{1,8}"))
+            score += 10;
+
+        return score >= 60;
+    }
+
+    private boolean hasSequentialNumbers(String p) {
+        String seq = "0123456789";
+        String rev = "9876543210";
+        for (int i = 0; i < p.length() - 2; i++) {
+            String sub = p.substring(i, i + 3);
+            if (seq.contains(sub) || rev.contains(sub))
+                return true;
+        }
+        return false;
+    }
+
+    private boolean hasKeyboardPattern(String p) {
+        String[] patterns = { "qwerty", "qwert", "asdf", "asdfg", "zxcv", "zxcvb",
+                "1qaz", "2wsx", "3edc", "qazwsx", "!@#$", "qweasd" };
+        for (String pattern : patterns) {
+            if (p.contains(pattern))
+                return true;
+        }
+        return false;
     }
 }

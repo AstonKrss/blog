@@ -65,6 +65,16 @@ public class PublicController {
         return Result.success(postService.getStats());
     }
 
+    @GetMapping("/posts/{slug}/toc")
+    public Result<List<Map<String, Object>>> getPostToc(@PathVariable String slug) {
+        PostDetailVO post = postService.getPostBySlug(slug);
+        if (post == null) {
+            return Result.error(404, "文章未找到");
+        }
+        List<Map<String, Object>> toc = postService.extractToc(post.getContent());
+        return Result.success(toc);
+    }
+
     @GetMapping("/tags")
     public Result<List<TagVO>> getTags() {
         return Result.success(tagService.getAllTags());

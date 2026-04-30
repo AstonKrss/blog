@@ -9,6 +9,7 @@ import com.aston.blog.vo.post.PostListVO;
 import com.aston.blog.vo.stats.StatsVO;
 
 import java.util.List;
+import java.util.Map;
 
 import com.aston.blog.vo.post.SearchResultVO;
 
@@ -25,7 +26,7 @@ public interface PostService {
 
     PostDetailVO updatePost(String id, UpdatePostDto dto, String userId);
 
-    void deletePost(String id, String userId);
+    void deletePost(String id, String userId, String role);
 
     List<ArchiveYearVO> getArchive();
 
@@ -34,4 +35,6 @@ public interface PostService {
     void incrementViewCount(String postId);
 
     SearchResultVO search(String query, int page, int limit);
+
+    List<Map<String, Object>> extractToc(String content);
 }

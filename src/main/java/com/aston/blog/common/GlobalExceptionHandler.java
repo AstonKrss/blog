@@ -2,12 +2,14 @@ package com.aston.blog.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +36,34 @@ public class GlobalExceptionHandler {
         Map<String, Object> result = new HashMap<>();
         result.put("code", 400);
         result.put("message", "参数类型错误");
+        result.put("timestamp", System.currentTimeMillis());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoResource(NoResourceFoundException e) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("code", 404);
+        result.put("message", "请求的资源不存在");
+        result.put("timestamp", System.currentTimeMillis());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException e) {
+        String message = "数据操作失败";
+        Throwable cause = e.getCause();
+        if (cause != null && cause.getMessage() != null) {
+            if (cause.getMessage().contains("foreign key constraint")) {
+                message = "关联数据不存在，请重新登录后再试";
+            } else if (cause.getMessage().contains("Duplicate entry")) {
+                message = "数据已存在";
+            }
+        }
+        log.error("数据完整性异常: {}", e.getMessage());
+        Map<String, Object> result = new HashMap<>();
+        result.put("code", 400);
+        result.put("message", message);
         result.put("timestamp", System.currentTimeMillis());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }

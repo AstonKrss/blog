@@ -11,11 +11,17 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Autowired
     private VisitLoggingInterceptor visitLoggingInterceptor;
+    @Autowired
+    private SecurityInterceptor securityInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(visitLoggingInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns("/api/auth/login", "/api/auth/register");
+
+        registry.addInterceptor(securityInterceptor)
+                .addPathPatterns("/**");
     }
+
 }

@@ -106,12 +106,17 @@ export default function PostsManagePage() {
                       <button 
                         onClick={async () => {
                           if (!confirm("确定要删除这篇文章吗？")) return;
-                          const token = document.cookie.split("; ").find((row) => row.startsWith("auth_token="))?.split("=")[1];
+                          const token = localStorage.getItem("token");
                           const res = await fetch(`/api/posts/${post.id}`, {
                             method: "DELETE",
                             headers: { Authorization: `Bearer ${token}` }
                           });
-                          if (res.ok) setPosts(posts.filter((p) => p.id !== post.id));
+                          const data = await res.json();
+                          if (data.code === 0) {
+                            setPosts(posts.filter((p) => p.id !== post.id));
+                          } else {
+                            alert(data.message || "删除失败");
+                          }
                         }}
                         className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title="删除">
                         <Trash2 className="h-4 w-4 text-red-500" />

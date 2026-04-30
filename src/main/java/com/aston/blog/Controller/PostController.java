@@ -71,8 +71,11 @@ public class PostController {
     public Result<?> deletePost(@PathVariable String id, HttpServletRequest request) {
         String userId = getUserIdFromRequest(request);
         if (userId == null) return Result.error(401, "未登录");
+        
+        String role = getRoleFromRequest(request);
+        
         try {
-            postService.deletePost(id, userId);
+            postService.deletePost(id, userId, role);
             return Result.success(null);
         } catch (RuntimeException e) {
             return Result.error(403, e.getMessage());
@@ -87,6 +90,17 @@ public class PostController {
                 if (principal instanceof String) {
                     return (String) principal;
                 }
+            }
+        } catch (Exception e) {
+        }
+        return null;
+    }
+    
+    private String getRoleFromRequest(HttpServletRequest request) {
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getAuthorities() != null && auth.getAuthorities().iterator().hasNext()) {
+                return auth.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
             }
         } catch (Exception e) {
         }

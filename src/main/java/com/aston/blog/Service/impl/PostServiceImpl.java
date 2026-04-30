@@ -203,10 +203,12 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public void deletePost(String id, String userId) {
+    public void deletePost(String id, String userId, String role) {
         Post post = postRepository.findById(id).orElse(null);
         if (post == null) throw new RuntimeException("文章不存在");
-        if (!post.getAuthorId().equals(userId)) {
+        
+        // 管理员可以删除任何文章，非管理员只能删除自己的文章
+        if (!"ADMIN".equals(role) && !post.getAuthorId().equals(userId)) {
             throw new RuntimeException("无权限操作");
         }
         postRepository.deleteById(id);
@@ -346,6 +348,29 @@ public class PostServiceImpl implements PostService {
         result.setPosts(posts);
         result.setTotal(postPage.getTotalElements());
         return result;
+    }
+
+    @Override
+    public List<Map<String, Object>> extractToc(String content) {
+        List<Map<String, Object>> toc = new ArrayList<>();
+        if (content == null || content.isEmpty()) return toc;
+
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("^(#{1,6})\\s+(.+)$", java.util.regex.Pattern.MULTILINE);
+        java.util.regex.Matcher matcher = pattern.matcher(content);
+
+        while (matcher.find()) {
+            int level = matcher.group(1).length();
+            String text = matcher.group(2).trim();
+            String id = text.toLowerCase()
+                    .replaceAll("[^\\w\\u4e00-\\u9fa5]+", "-")
+                    .replaceAll("^-|-$", "");
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", id);
+            item.put("text", text);
+            item.put("level", level);
+            toc.add(item);
+        }
+        return toc;
     }
 
 }
