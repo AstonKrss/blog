@@ -49,12 +49,24 @@ public class AuthController {
      * 设置 JWT Token 到 httpOnly Cookie
      */
     private void setTokenCookie(HttpServletResponse response, String token) {
+        // COOKIE_DOMAIN 环境变量:
+        // - 本地开发: 不设置或留空，cookie 只对当前服务生效（前端通过 rewrite 代理访问）
+        // - 生产环境: 设置为你的域名或 IP，如 47.242.21.40
+        String domain = System.getenv("COOKIE_DOMAIN");
+
         Cookie cookie = new Cookie(TOKEN_COOKIE_NAME, token);
         cookie.setHttpOnly(true);  // 防止 XSS 读取
-        cookie.setSecure(false);   // 生产环境设为 true (HTTPS)
+        cookie.setSecure(false);   // 生产环境 HTTPS 时设为 true
         cookie.setPath("/");
         cookie.setMaxAge(TOKEN_COOKIE_MAX_AGE);
-        cookie.setDomain(System.getenv().get("COOKIE_DOMAIN")); // 可选：设置域名
+
+        // 只有设置了环境变量才设置 domain
+        if (domain != null && !domain.isEmpty()) {
+            cookie.setDomain(domain);
+        }
+        // 如果没设置 domain，cookie 只对当前服务生效
+        // 本地开发时前端通过 /api 代理访问后端，cookie 可以正常使用
+
         response.addCookie(cookie);
     }
 
@@ -62,11 +74,18 @@ public class AuthController {
      * 清除 Token Cookie
      */
     private void clearTokenCookie(HttpServletResponse response) {
+        String domain = System.getenv("COOKIE_DOMAIN");
+
         Cookie cookie = new Cookie(TOKEN_COOKIE_NAME, "");
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
         cookie.setPath("/");
         cookie.setMaxAge(0);  // 立即过期
+
+        if (domain != null && !domain.isEmpty()) {
+            cookie.setDomain(domain);
+        }
+
         response.addCookie(cookie);
     }
 

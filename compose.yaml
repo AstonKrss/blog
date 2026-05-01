@@ -48,6 +48,8 @@ services:
       BLOG_SITE_URL: http://47.242.21.40:8080
       BLOG_OWNER_EMAIL: aston@example.com
       BLOG_OWNER_NAME: Aston
+      # Cookie 域名设置（关键：让前端页面能共享 httpOnly cookie）
+      COOKIE_DOMAIN: 47.242.21.40
     depends_on:
       mysql:
         condition: service_healthy

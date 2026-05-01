@@ -56,10 +56,23 @@ public class SecurityConfig {
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-        configuration.setAllowedOrigins(java.util.List.of(
+
+        // 从环境变量读取允许的域名
+        String allowedOrigins = System.getenv("CORS_ALLOWED_ORIGINS");
+        java.util.List<String> originsList;
+        if (allowedOrigins != null && !allowedOrigins.isEmpty()) {
+            originsList = java.util.Arrays.asList(allowedOrigins.split(","));
+        } else {
+            // 默认允许本地开发和生产 IP
+            originsList = java.util.List.of(
                 "http://localhost:3000",
                 "http://47.242.21.40",
-                "http://47.242.21.40:8080"));
+                "http://47.242.21.40:80",
+                "http://47.242.21.40:8080"
+            );
+        }
+
+        configuration.setAllowedOrigins(originsList);
         configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(java.util.List.of("*"));
         configuration.setAllowCredentials(true);
