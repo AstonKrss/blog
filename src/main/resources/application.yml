@@ -1,18 +1,51 @@
 spring:
+  application:
+    name: blog
+
+  # 数据库配置（生产环境用环境变量）
   datasource:
-    url: jdbc:mysql://localhost:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
-    username: root
-    password: root
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  # JPA/Hibernate 配置
   jpa:
     hibernate:
       ddl-auto: update        # 开发阶段用 update，生产环境建议改成 validate
-    show-sql: true            # 控制台打印 SQL 语句，方便调试
+    show-sql: false           # 生产环境关闭 SQL 日志
     open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
 
+  # 邮件配置（生产环境用环境变量）
+  mail:
+    host: ${MAIL_HOST:smtp.qq.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:3223957215@qq.com}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  # Docker Compose 禁用
   docker:
     compose:
       enabled: false
+
+# 服务器配置
 server:
   port: 8080
+
+# 博客站点配置
+blog:
+  site:
+    url: ${BLOG_SITE_URL:http://localhost:8080}
+  owner:
+    email: ${BLOG_OWNER_EMAIL:}
+    name: ${BLOG_OWNER_NAME:Aston}
