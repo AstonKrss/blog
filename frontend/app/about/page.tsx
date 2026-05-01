@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useState, useEffect, Suspense } from "react";
 import { Header } from "@/components/header";
@@ -47,7 +48,7 @@ function AboutContent() {
     if (!currentUser || currentUser.role !== "ADMIN") return;
     setSaving(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const res = await fetch(`${API_BASE}/api/users/profile`, {
         method: "PUT",
         headers: {

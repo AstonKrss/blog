@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useState, useEffect } from "react";
 import { MessageSquare, Send } from "lucide-react";
@@ -35,7 +36,7 @@ export function CommentSection({ postId }: { postId: string }) {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     setIsLoggedIn(!!token);
     fetchComments();
   }, [postId]);
@@ -44,7 +45,7 @@ export function CommentSection({ postId }: { postId: string }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const res = await fetch(`/api/public/comments/${postId}`, {
         method: "POST",
         headers: {

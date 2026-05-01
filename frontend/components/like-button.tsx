@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useState, useEffect } from "react";
 import { Heart } from "lucide-react";
@@ -16,7 +17,7 @@ export function LikeButton({ postId }: { postId: string }) {
 
   const fetchLikeStatus = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const res = await fetch(`${API_BASE}/api/posts/${postId}/like`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
@@ -34,7 +35,7 @@ export function LikeButton({ postId }: { postId: string }) {
 
   const handleLike = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const res = await fetch(`${API_BASE}/api/posts/${postId}/like`, {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {}

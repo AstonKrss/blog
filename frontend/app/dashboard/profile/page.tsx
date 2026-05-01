@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useState, useEffect } from "react";
 import { Header } from "@/components/header";
@@ -22,7 +23,7 @@ export default function ProfilePage() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     if (!token) {
       setLoading(false);
       return;
@@ -45,7 +46,7 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const res = await fetch(`${API_BASE}/api/users/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -72,7 +73,7 @@ export default function ProfilePage() {
       alert("图片大小不能超过5MB");
       return;
     }
-    const token = localStorage.getItem("token");
+    const token = getToken();
     const formData = new FormData();
     formData.append("file", file);
     try {
@@ -106,7 +107,7 @@ export default function ProfilePage() {
     }
     setChangingPassword(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const res = await fetch(`${API_BASE}/api/users/password`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },

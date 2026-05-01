@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -20,7 +21,7 @@ export default function SettingsPage() {
       return;
     }
     if (user && user.role === "ADMIN") {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       fetch("/api/settings", { headers: { Authorization: `Bearer ${token}` } })
         .then((r) => r.json())
         .then((data) => {

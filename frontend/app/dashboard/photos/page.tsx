@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -30,7 +31,7 @@ export default function PhotosPage() {
 
   const loadPhotos = () => {
     fetch(`${API_BASE}/api/photos`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      headers: { Authorization: `Bearer ${getToken()}` }
     })
       .then(r => r.json())
       .then(data => {
@@ -47,7 +48,7 @@ export default function PhotosPage() {
     if (!files || files.length === 0) return;
 
     setUploading(true);
-    const token = localStorage.getItem("token");
+    const token = getToken();
 
     for (let i = 0; i < files.length; i++) {
       const formData = new FormData();
@@ -72,7 +73,7 @@ export default function PhotosPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("确定删除这张照片？")) return;
-    const token = localStorage.getItem("token");
+    const token = getToken();
     try {
       const res = await fetch(`${API_BASE}/api/photos/${id}`, {
         method: "DELETE",
@@ -89,7 +90,7 @@ export default function PhotosPage() {
 
   const handleSync = async () => {
     setSyncing(true);
-    const token = localStorage.getItem("token");
+    const token = getToken();
     try {
       const res = await fetch(`${API_BASE}/api/photos/sync`, {
         method: "POST",
@@ -114,7 +115,7 @@ export default function PhotosPage() {
       return;
     }
     setSyncingFromFrontend(true);
-    const token = localStorage.getItem("token");
+    const token = getToken();
     try {
       const res = await fetch(`${API_BASE}/api/photos/sync-from-frontend`, {
         method: "POST",

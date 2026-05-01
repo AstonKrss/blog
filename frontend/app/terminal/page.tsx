@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Header } from "@/components/header";
@@ -154,7 +155,7 @@ export default function TerminalPage() {
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       if (token) {
         const res = await fetch(`${API_BASE}/api/terminal/check-auth`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -212,7 +213,7 @@ export default function TerminalPage() {
 
   const saveFile = async (path: string, content: string): Promise<boolean> => {
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       if (!token) return false;
 
       const res = await fetch(`${API_BASE}/api/terminal/write`, {
@@ -309,7 +310,7 @@ export default function TerminalPage() {
 
     // Logout command
     if (trimmedCmd === "logout") {
-      localStorage.removeItem("token");
+      clearToken();
       setIsAuthenticated(false);
       addToHistory(trimmedCmd, <span className="text-green-400">已退出登录</span>);
       setIsLoading(false);

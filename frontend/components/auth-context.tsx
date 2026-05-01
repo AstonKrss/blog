@@ -38,7 +38,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
-      const token = localStorage.getItem("token");
+      // 从 cookie 获取 token（httpOnly cookie 由后端设置）
+      const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
       if (!token) {
         setUser(null);
         setLoading(false);
@@ -51,7 +52,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.code === 0 && data.data?.user) {
         setUser(data.data.user);
       } else {
-        localStorage.removeItem("token");
+        // 清除失效的 cookie
+        document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
         setUser(null);
       }
     } catch {
@@ -73,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     const data = await res.json();
     if (!res.ok || data.code !== 0) throw new Error(data.message || "登录失败");
-    localStorage.setItem("token", data.data.token);
+    // token 已通过 httpOnly cookie 由后端设置，前端无需存储
     setUser(data.data.user);
     router.push("/dashboard");
     router.refresh();
@@ -97,14 +99,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     const data = await res.json();
     if (!res.ok || data.code !== 0) throw new Error(data.message || "注册失败");
-    localStorage.setItem("token", data.data.token);
+    // token 已通过 httpOnly cookie 由后端设置，前端无需存储
     setUser(data.data.user);
     router.push("/dashboard");
     router.refresh();
   };
 
   const logout = async () => {
-    localStorage.removeItem("token");
+    // 调用后端登出接口清除 httpOnly cookie
+    try {
+      await fetch(`${API_BASE}/api/auth/logout`, { method: "POST" });
+    } catch {
+      // 忽略错误，继续清除本地状态
+    }
+    // 清除本地 cookie 副本（虽然后端已清除，这里做双重保险）
+    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
     setUser(null);
     router.push("/");
     router.refresh();

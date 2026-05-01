@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -37,7 +38,7 @@ export default function FriendsPage() {
 
   const fetchFriends = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       console.log("Token:", token);
       const res = await fetch(`${API_BASE}/api/friends`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -58,7 +59,7 @@ export default function FriendsPage() {
   const handleApprove = async (id: string, status: string) => {
     setProcessing(id);
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const res = await fetch(`${API_BASE}/api/friends/${id}/status`, {
         method: "PUT",
         headers: {

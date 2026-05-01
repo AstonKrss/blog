@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useState, useEffect } from "react";
 import { Header } from "@/components/header";
@@ -14,7 +15,7 @@ export default function PostsManagePage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     fetch(`${API_BASE}/api/posts`, { 
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -106,7 +107,7 @@ export default function PostsManagePage() {
                       <button 
                         onClick={async () => {
                           if (!confirm("确定要删除这篇文章吗？")) return;
-                          const token = localStorage.getItem("token");
+                          const token = getToken();
                           const res = await fetch(`/api/posts/${post.id}`, {
                             method: "DELETE",
                             headers: { Authorization: `Bearer ${token}` }

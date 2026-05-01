@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useState, useEffect, Suspense, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -125,7 +126,7 @@ function WritePostContent() {
   
   const fetchPostData = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const res = await fetch(`${API_BASE}/api/posts/${postId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -165,7 +166,7 @@ function WritePostContent() {
     if (!title || !content) return;
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const url = isEdit ? `${API_BASE}/api/posts/${postId}` : `${API_BASE}/api/posts`;
       const method = isEdit ? "PUT" : "POST";
       const bodyData = { 
@@ -206,7 +207,7 @@ function WritePostContent() {
     formData.append("file", file);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const res = await fetch(`${API_BASE}/api/upload/image`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -347,7 +348,7 @@ function WritePostContent() {
         formData.append("file", file);
 
         try {
-          const token = localStorage.getItem("token");
+          const token = getToken();
           const res = await fetch(`${API_BASE}/api/upload/image`, {
             method: "POST",
             headers: { Authorization: `Bearer ${token}` },

@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useState, useEffect } from "react";
 import { Header } from "@/components/header";
@@ -84,7 +85,7 @@ export default function AdminDashboardPage() {
     }
 
     if (user && user.role === "ADMIN") {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       Promise.all([
         fetch(`${API_BASE}/api/public/stats`).then(r => r.json()),
         fetch(`${API_BASE}/api/users`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),

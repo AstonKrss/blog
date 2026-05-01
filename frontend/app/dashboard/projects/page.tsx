@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -31,7 +32,7 @@ export default function ProjectsManagePage() {
   }, [user, authLoading, router]);
 
   const loadProjects = () => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     fetch(`${API_BASE}/api/projects`, {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -53,7 +54,7 @@ export default function ProjectsManagePage() {
       return;
     }
     setSaving(true);
-    const token = localStorage.getItem("token");
+    const token = getToken();
     try {
       const res = await fetch(
         editing ? `${API_BASE}/api/projects/${editing.id}` : `${API_BASE}/api/projects`,
@@ -79,7 +80,7 @@ export default function ProjectsManagePage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("确定删除？")) return;
-    const token = localStorage.getItem("token");
+    const token = getToken();
     try {
       const res = await fetch(`${API_BASE}/api/projects/${id}`, {
         method: "DELETE",
@@ -97,7 +98,7 @@ export default function ProjectsManagePage() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const token = localStorage.getItem("token");
+    const token = getToken();
     const formData = new FormData();
     formData.append("file", file);
     try {

@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useEffect, useRef, useState } from "react";
 import { Header } from "@/components/header";
@@ -60,7 +61,7 @@ export default function TravelMapPage() {
 
   const handleAddFootprint = async (province: string, city?: string) => {
     if (!user) return;
-    const token = localStorage.getItem("token");
+    const token = getToken();
     try {
       await fetch(`${API_BASE}/api/footprints`, {
         method: "POST",
@@ -78,7 +79,7 @@ export default function TravelMapPage() {
 
   const handleDeleteFootprint = async (id: string) => {
     if (!confirm("确定删除这个足迹？")) return;
-    const token = localStorage.getItem("token");
+    const token = getToken();
     try {
       const res = await fetch(`${API_BASE}/api/footprints/${id}`, {
         method: "DELETE",

@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -12,7 +13,7 @@ export default function FavoritesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = getToken();
     if (!token) {
       setLoading(false);
       return;
@@ -32,7 +33,7 @@ export default function FavoritesPage() {
 
   const handleRemove = async (postId: string) => {
     if (!confirm("取消收藏？")) return;
-    const token = localStorage.getItem("token");
+    const token = getToken();
     try {
       const res = await fetch(`${API_BASE}/api/posts/${postId}/favorite`, {
         method: "DELETE",

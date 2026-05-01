@@ -1,4 +1,5 @@
-"use client";
+"use client"
+import { getToken, clearToken } from "@/lib/token"
 
 import { useAuth } from "@/components/auth-context";
 import { Header } from "@/components/header";
@@ -29,7 +30,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = getToken();
         console.log("Dashboard - Token:", token);
         const res = await fetch(`${API_BASE}/api/posts`, {
           headers: { Authorization: `Bearer ${token}` }

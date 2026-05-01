@@ -71,36 +71,50 @@ public class SecurityConfig {
 
     static class JwtAuthenticationFilter extends OncePerRequestFilter {
         private final JwtUtil jwtUtil;
+        private static final String TOKEN_COOKIE_NAME = "auth_token";
 
         public JwtAuthenticationFilter(JwtUtil jwtUtil) {
             this.jwtUtil = jwtUtil;
+        }
+
+        /**
+         * 从请求中获取 Token（优先从 Cookie，fallback 到 Authorization header）
+         */
+        private String extractToken(HttpServletRequest request) {
+            // 1. 先尝试从 Cookie 获取
+            if (request.getCookies() != null) {
+                for (var cookie : request.getCookies()) {
+                    if (TOKEN_COOKIE_NAME.equals(cookie.getName())) {
+                        return cookie.getValue();
+                    }
+                }
+            }
+            // 2. Fallback 到 Authorization header
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                return authHeader.substring(7);
+            }
+            return null;
         }
 
         @Override
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
                 throws ServletException, IOException {
 
-            String authHeader = request.getHeader("Authorization");
+            String token = extractToken(request);
 
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
+            if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 try {
-                    // 1. 先验证JWT签名和过期时间
                     String username = jwtUtil.extractUsername(token);
                     String userId = jwtUtil.extractUserId(token);
-                    
-                    if (username != null && userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                        // validateToken会验证签名和过期时间
+
+                    if (username != null && userId != null) {
                         if (jwtUtil.validateToken(token, username)) {
                             String role = jwtUtil.extractRole(token);
-                            
-                            // 2. 二次验证：从数据库再次查询确认用户存在且role匹配
-                            // 这里只做基础验证，更严格的可以查数据库
-                            
-                            // 3. 创建认证对象，存入token中的所有信息
+
                             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                userId, 
-                                null, 
+                                userId,
+                                null,
                                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + (role != null ? role : "USER")))
                             );
                             SecurityContextHolder.getContext().setAuthentication(authToken);

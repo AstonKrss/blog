@@ -11,7 +11,9 @@ import com.aston.blog.entity.User;
 import com.aston.blog.repository.UserRepository;
 import com.aston.blog.vo.auth.LoginVO;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.security.core.Authentication;
@@ -31,6 +33,10 @@ public class AuthController {
     private final EmailCodeService emailCodeService;
     private final AttackLogService attackLogService;
 
+    // Token Cookie 配置
+    private static final String TOKEN_COOKIE_NAME = "auth_token";
+    private static final int TOKEN_COOKIE_MAX_AGE = 60 * 60 * 24; // 24 小时
+
     public AuthController(AuthService authService, UserRepository userRepository, EmailCodeService emailCodeService,
             AttackLogService attackLogService) {
         this.authService = authService;
@@ -39,8 +45,33 @@ public class AuthController {
         this.attackLogService = attackLogService;
     }
 
+    /**
+     * 设置 JWT Token 到 httpOnly Cookie
+     */
+    private void setTokenCookie(HttpServletResponse response, String token) {
+        Cookie cookie = new Cookie(TOKEN_COOKIE_NAME, token);
+        cookie.setHttpOnly(true);  // 防止 XSS 读取
+        cookie.setSecure(false);   // 生产环境设为 true (HTTPS)
+        cookie.setPath("/");
+        cookie.setMaxAge(TOKEN_COOKIE_MAX_AGE);
+        cookie.setDomain(System.getenv().get("COOKIE_DOMAIN")); // 可选：设置域名
+        response.addCookie(cookie);
+    }
+
+    /**
+     * 清除 Token Cookie
+     */
+    private void clearTokenCookie(HttpServletResponse response) {
+        Cookie cookie = new Cookie(TOKEN_COOKIE_NAME, "");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);  // 立即过期
+        response.addCookie(cookie);
+    }
+
     @PostMapping("/login")
-    public Result<LoginVO> login(@RequestBody LoginDTO dto, HttpServletRequest request) {
+    public Result<LoginVO> login(@RequestBody LoginDTO dto, HttpServletRequest request, HttpServletResponse response) {
         String ip = getClientIp(request);
         String userAgent = request.getHeader("User-Agent") != null ? request.getHeader("User-Agent") : "";
         String username = dto.getUsername();
@@ -60,6 +91,9 @@ public class AuthController {
 
         try {
             LoginVO loginVO = authService.login(dto);
+            // 设置 httpOnly Cookie（浏览器自动发送，JS 无法读取，防 XSS）
+            setTokenCookie(response, loginVO.getToken());
+            // 仍然返回 token（兼容 API 客户端和部分前端场景）
             attackLogService.recordLoginAttempt(ip, username, true, userAgent); // 成功
             return Result.success(loginVO);
         } catch (Exception e) {
@@ -91,9 +125,13 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public Result<LoginVO> register(@Valid @RequestBody RegisterDTO dto) {
+    public Result<LoginVO> register(@Valid @RequestBody RegisterDTO dto, HttpServletResponse response) {
         try {
-            return Result.success(authService.register(dto));
+            LoginVO loginVO = authService.register(dto);
+            // 设置 httpOnly Cookie（浏览器自动发送，JS 无法读取，防 XSS）
+            setTokenCookie(response, loginVO.getToken());
+            // 仍然返回 token（兼容 API 客户端和部分前端场景）
+            return Result.success(loginVO);
         } catch (Exception e) {
             return Result.error(400, e.getMessage());
         }
@@ -137,6 +175,15 @@ public class AuthController {
         } catch (Exception e) {
             return Result.error(400, e.getMessage());
         }
+    }
+
+    /**
+     * 退出登录 - 清除 httpOnly Cookie
+     */
+    @PostMapping("/logout")
+    public Result<?> logout(HttpServletResponse response) {
+        clearTokenCookie(response);
+        return Result.success(Map.of("message", "已退出登录"));
     }
 
     @GetMapping("/me")
