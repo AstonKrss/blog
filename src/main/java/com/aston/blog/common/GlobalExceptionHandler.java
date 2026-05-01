@@ -54,18 +54,24 @@ public class GlobalExceptionHandler {
         String message = "数据操作失败";
         Throwable cause = e.getCause();
         if (cause != null && cause.getMessage() != null) {
-            if (cause.getMessage().contains("foreign key constraint")) {
-                message = "关联数据不存在，请重新登录后再试";
-            } else if (cause.getMessage().contains("Duplicate entry")) {
+            String errorMsg = cause.getMessage();
+            if (errorMsg.contains("foreign key constraint")) {
+                // 判断是否是 author_id 外键错误（用户不存在）
+                if (errorMsg.contains("posts_ibfk_1") || errorMsg.contains("author_id")) {
+                    message = "登录已失效，请重新登录";
+                } else {
+                    message = "关联数据不存在，请检查后重试";
+                }
+            } else if (errorMsg.contains("Duplicate entry")) {
                 message = "数据已存在";
             }
         }
         log.error("数据完整性异常: {}", e.getMessage());
         Map<String, Object> result = new HashMap<>();
-        result.put("code", 400);
+        result.put("code", 401);  // 用户相关问题返回 401
         result.put("message", message);
         result.put("timestamp", System.currentTimeMillis());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
     }
 
     @ExceptionHandler(RuntimeException.class)

@@ -38,8 +38,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
-      // 从 cookie 获取 token（httpOnly cookie 由后端设置）
-      const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
+      // 优先从 cookie 获取 token
+      let token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
+
+      // 如果 cookie 没有，尝试从会话存储获取（登录时后端通过 header 返回）
+      if (!token) {
+        token = sessionStorage.getItem('auth_token');
+      }
+
       if (!token) {
         setUser(null);
         setLoading(false);
@@ -52,8 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.code === 0 && data.data?.user) {
         setUser(data.data.user);
       } else {
-        // 清除失效的 cookie
-        document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+        sessionStorage.removeItem('auth_token');
         setUser(null);
       }
     } catch {
@@ -75,7 +80,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     const data = await res.json();
     if (!res.ok || data.code !== 0) throw new Error(data.message || "登录失败");
-    // token 已通过 httpOnly cookie 由后端设置，前端无需存储
+    // 保存 token 到 sessionStorage（作为 cookie 的备用）
+    if (data.data.token) {
+      sessionStorage.setItem('auth_token', data.data.token);
+    }
     setUser(data.data.user);
     router.push("/dashboard");
     router.refresh();
@@ -99,7 +107,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     const data = await res.json();
     if (!res.ok || data.code !== 0) throw new Error(data.message || "注册失败");
-    // token 已通过 httpOnly cookie 由后端设置，前端无需存储
+    // 保存 token 到 sessionStorage
+    if (data.data.token) {
+      sessionStorage.setItem('auth_token', data.data.token);
+    }
     setUser(data.data.user);
     router.push("/dashboard");
     router.refresh();
@@ -108,12 +119,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     // 调用后端登出接口清除 httpOnly cookie
     try {
-      await fetch(`${API_BASE}/api/auth/logout`, { method: "POST" });
+      const token = sessionStorage.getItem('auth_token');
+      if (token) {
+        await fetch(`${API_BASE}/api/auth/logout`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
     } catch {
-      // 忽略错误，继续清除本地状态
+      // 忽略错误
     }
-    // 清除本地 cookie 副本（虽然后端已清除，这里做双重保险）
-    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+    sessionStorage.removeItem('auth_token');
+    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=localhost';
     setUser(null);
     router.push("/");
     router.refresh();

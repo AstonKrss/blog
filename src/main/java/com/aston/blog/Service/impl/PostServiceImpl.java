@@ -8,6 +8,7 @@ import com.aston.blog.entity.Tag;
 import com.aston.blog.repository.CommentRepository;
 import com.aston.blog.repository.PostRepository;
 import com.aston.blog.repository.TagRepository;
+import com.aston.blog.repository.UserRepository;
 import com.aston.blog.vo.archive.ArchiveMonthVO;
 import com.aston.blog.vo.archive.ArchiveYearVO;
 import com.aston.blog.vo.comment.PaginationVO;
@@ -35,12 +36,14 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final TagRepository tagRepository;
     private final CommentRepository commentRepository;
+    private final UserRepository userRepository;
 
     public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository,
-            CommentRepository commentRepository) {
+            CommentRepository commentRepository, UserRepository userRepository) {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
         this.commentRepository = commentRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -101,6 +104,16 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostDetailVO createPost(CreatePostDTO dto, String authorId) {
+        // 验证作者是否存在
+        if (authorId == null || authorId.isEmpty()) {
+            throw new RuntimeException("用户未登录，请重新登录");
+        }
+
+        // 验证 authorId 是否对应有效的用户
+        if (!userRepository.existsById(authorId)) {
+            throw new RuntimeException("用户不存在或登录已失效，请重新登录");
+        }
+
         if (postRepository.existsBySlug(dto.getSlug())) {
             throw new RuntimeException("Slug已存在: " + dto.getSlug());
         }

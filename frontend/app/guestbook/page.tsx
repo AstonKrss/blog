@@ -20,7 +20,7 @@ export default function GuestbookPage() {
       .then(r => r.json())
       .then(data => {
         if (data.code === 0) {
-          setGuestbooks(data.data?.guestbooks || []);
+          setGuestbooks(Array.isArray(data.data) ? data.data : []);
         }
         setLoading(false);
       })
