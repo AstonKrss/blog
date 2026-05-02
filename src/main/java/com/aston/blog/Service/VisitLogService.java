@@ -11,4 +11,7 @@ public interface VisitLogService {
     Page<com.aston.blog.entity.VisitLog> getRecentLogs(int page, int size);
 
     VisitAnalyticsVO getAnalytics(LocalDateTime since);
+
+    /** 过去5分钟内的唯一IP数（即在线人数估算） */
+    long countOnlineVisitors();
 }

@@ -155,7 +155,7 @@ export default function TravelMapPage() {
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger-container">
                     {footprints.map((fp, i) => (
-                      <div key={fp.id} className="group relative rounded-2xl glass-card p-5 shadow-sm transition-all duration-400 hover:-translate-y-1 hover:shadow-xl animate-fade-in-up" style={{ animationDelay: `${0.05 * i}s` }}>
+                      <div key={fp.id} className="group relative rounded-2xl glass-card p-5 shadow-sm transition-all duration-400 hover:-translate-y-1 hover:shadow-xl border border-transparent hover:border-blue-500/20 animate-fade-in-up" style={{ animationDelay: `${0.05 * i}s` }}>
                         <div className="absolute top-0 right-0 h-6 w-1 rounded-l-full bg-gradient-to-b from-blue-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <div className="flex items-start gap-3.5">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 text-blue-500 shadow-md transition-transform duration-300 group-hover:scale-110">

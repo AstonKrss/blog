@@ -40,68 +40,66 @@ export function Header() {
     { href: "/photos", label: "相册" },
   ];
 
-  
   return (
     <header
       className={`sticky top-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "glass-card shadow-lg shadow-black/5"
-          : "border-b bg-background/80"
+          ? "glass-card shadow-xl shadow-black/5 border-b border-white/10"
+          : "bg-background/60 backdrop-blur-xl border-b border-border/30"
       }`}
     >
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-6">
         {/* Logo */}
-        <Link href="/" className="group flex items-center gap-2">
+        <Link href="/" className="group flex items-center gap-3">
           <div className="relative">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 shadow-lg shadow-rose-500/30 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-rose-500/40 group-hover:scale-110">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 shadow-lg shadow-rose-500/25 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-rose-500/35 group-hover:scale-110">
               <span className="text-white font-bold text-sm">A</span>
             </div>
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 opacity-0 group-hover:opacity-30 blur-lg transition-opacity duration-300" />
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 opacity-0 group-hover:opacity-30 blur-lg transition-opacity duration-300" />
           </div>
-          <div className="hidden sm:block">
-            <span className="text-lg font-bold gradient-text">Aston</span>
+          <div className="hidden sm:flex items-center gap-1">
+            <span className="text-lg font-black gradient-text">Aston</span>
             <span className="text-lg font-light text-muted-foreground">.blog</span>
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="hidden items-center gap-0.5 lg:flex">
           {mainLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`relative px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group ${
+              className={`relative px-3.5 py-2 text-sm font-medium rounded-xl transition-all duration-200 group ${
                 pathname === link.href
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "text-foreground bg-muted/50"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
               }`}
             >
               <span className="relative z-10">{link.label}</span>
               {pathname === link.href && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-5 rounded-full bg-gradient-to-r from-rose-500 to-pink-500" />
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full bg-gradient-to-r from-rose-500 to-pink-500" />
               )}
-              <span className="absolute inset-0 rounded-lg bg-gradient-to-r from-rose-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
             </Link>
           ))}
 
-          {/* More dropdown — 原生 details/summary，无 hover 时序问题 */}
+          {/* More dropdown — native details/summary */}
           <details className="relative">
             <summary
-              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground rounded-lg hover:text-foreground hover:bg-muted transition-colors cursor-pointer list-none"
+              className="flex items-center gap-1 px-3.5 py-2 text-sm font-medium text-muted-foreground rounded-xl hover:text-foreground hover:bg-muted/30 transition-colors cursor-pointer list-none"
             >
               更多
               <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 [&_details[open]_&]:rotate-180" />
             </summary>
-            <div className="absolute top-full right-0 mt-2 w-48 glass-card rounded-xl shadow-2xl overflow-hidden z-50">
+            <div className="absolute top-full right-0 mt-2 w-52 rounded-2xl glass-card shadow-2xl border border-white/10 overflow-hidden z-50">
               <div className="p-1.5 space-y-0.5">
                 {moreLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg transition-all duration-150 ${
+                    className={`flex items-center gap-2.5 px-3 py-2.5 text-sm rounded-xl transition-all duration-150 ${
                       pathname === link.href
-                        ? "bg-gradient-to-r from-rose-500/20 to-orange-400/20 text-primary font-medium"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        ? "bg-gradient-to-r from-rose-500/10 to-orange-400/10 text-foreground font-medium"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
                     }`}
                   >
                     {link.label}
@@ -116,7 +114,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <Link
             href="/rss"
-            className="hidden md:flex p-2 rounded-lg text-muted-foreground hover:text-orange-500 transition-colors"
+            className="hidden md:flex p-2 rounded-xl text-muted-foreground hover:text-orange-500 hover:bg-orange-500/10 transition-all duration-200"
             title="RSS 订阅"
           >
             <Rss className="h-4 w-4" />
@@ -127,9 +125,9 @@ export function Header() {
               {user.role === "ADMIN" && (
                 <Link
                   href="/dashboard/admin"
-                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-orange-500 rounded-lg hover:bg-orange-500/10 transition-all"
+                  className="hidden md:flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-orange-500 rounded-xl hover:bg-orange-500/10 transition-all duration-200"
                 >
-                  <div className="h-5 w-5 rounded bg-orange-500/20 flex items-center justify-center">
+                  <div className="h-5 w-5 rounded-lg bg-orange-500/20 flex items-center justify-center">
                     <LayoutDashboard className="h-3 w-3" />
                   </div>
                   管理
@@ -150,14 +148,14 @@ export function Header() {
               </Link>
               <Link
                 href="/dashboard"
-                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                className="hidden md:flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all duration-200"
               >
                 <LayoutDashboard className="h-4 w-4" />
                 控制台
               </Link>
               <button
                 onClick={logout}
-                className="p-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all"
+                className="p-2 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all duration-200"
                 title="退出登录"
               >
                 <LogOut className="h-4 w-4" />
@@ -166,7 +164,7 @@ export function Header() {
           ) : (
             <Link
               href="/login"
-              className="hidden md:flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/25 transition-all hover:shadow-xl hover:shadow-rose-500/30 hover:-translate-y-0.5"
+              className="hidden md:flex items-center gap-1.5 px-5 py-2.5 text-sm font-semibold rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/25 transition-all hover:shadow-xl hover:shadow-rose-500/30 hover:-translate-y-0.5 active:scale-95"
             >
               <User className="h-4 w-4" />
               登录
@@ -175,7 +173,7 @@ export function Header() {
 
           {/* Mobile menu toggle */}
           <button
-            className="p-2 rounded-lg hover:bg-muted transition-colors lg:hidden"
+            className="p-2 rounded-xl hover:bg-muted/30 transition-colors lg:hidden"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
           >
@@ -189,11 +187,11 @@ export function Header() {
 
       {/* Mobile menu */}
       <div
-        className={`lg:hidden overflow-hidden transition-all duration-400 border-t ${
+        className={`lg:hidden overflow-hidden transition-all duration-400 border-t border-border/30 ${
           menuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="glass-card border-t px-4 py-4 space-y-1">
+        <div className="glass-card border-t px-4 py-4 space-y-1 mx-3 mb-3 rounded-2xl">
           {[...mainLinks, ...moreLinks].map((link) => (
             <Link
               key={link.href}
@@ -201,18 +199,18 @@ export function Header() {
               onClick={() => setMenuOpen(false)}
               className={`flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150 ${
                 pathname === link.href
-                  ? "bg-gradient-to-r from-rose-500/20 to-orange-400/20 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  ? "bg-gradient-to-r from-rose-500/10 to-orange-400/10 text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
               }`}
             >
               {link.label}
             </Link>
           ))}
-          <div className="pt-3 border-t mt-3 flex items-center justify-between">
+          <div className="pt-3 border-t border-white/5 mt-3 flex items-center justify-between">
             <ThemeToggle />
             {user ? (
               <div className="flex items-center gap-3">
-                <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="text-sm font-medium">
+                <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-foreground">
                   控制台
                 </Link>
                 <button onClick={() => { logout(); setMenuOpen(false); }} className="text-sm font-medium text-red-500">
@@ -220,7 +218,7 @@ export function Header() {
                 </button>
               </div>
             ) : (
-              <Link href="/login" onClick={() => setMenuOpen(false)} className="text-sm font-medium">
+              <Link href="/login" onClick={() => setMenuOpen(false)} className="text-sm font-medium gradient-text">
                 登录
               </Link>
             )}

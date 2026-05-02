@@ -38,18 +38,19 @@ export function PostCard({ post, index = 0, featured = false }: PostCardProps) {
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className={`group relative block overflow-hidden rounded-2xl glass-card border border-border/50 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-rose-500/10 ${featured ? "hover:-translate-y-2" : "hover:-translate-y-2"}`}
+      className={`group relative block overflow-hidden rounded-2xl glass-card shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-rose-500/15 hover:-translate-y-2 hover:border-rose-500/25 ${featured ? "" : ""}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{ animationDelay: `${index * 0.1}s` }}
     >
-      {/* Hover glow effect */}
+      {/* Hover glow border effect */}
       <div
-        className={`absolute inset-0 rounded-2xl transition-opacity duration-500 ${
+        className={`absolute -inset-px rounded-2xl transition-opacity duration-500 pointer-events-none -z-10 ${
           hovered ? "opacity-100" : "opacity-0"
         }`}
         style={{
-          background: `linear-gradient(135deg, rgba(244, 63, 94, 0.10) 0%, rgba(236, 72, 153, 0.05) 50%, rgba(249, 115, 22, 0.07) 100%)`,
+          background: `linear-gradient(135deg, rgba(244, 63, 94, 0.3) 0%, rgba(236, 72, 153, 0.15) 50%, rgba(249, 115, 22, 0.2) 100%)`,
+          filter: "blur(8px)",
         }}
       />
 
@@ -101,12 +102,15 @@ export function PostCard({ post, index = 0, featured = false }: PostCardProps) {
         </div>
       )}
 
+      {/* Glass overlay at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
+
       {/* Content */}
       <div className={`relative space-y-3 ${featured ? "p-6" : "p-5"}`}>
         {/* Title */}
         <h2
           className={`line-clamp-2 text-lg font-bold transition-colors duration-300 ${
-            hovered ? "text-primary" : "text-foreground"
+            hovered ? "bg-gradient-to-r from-rose-500 to-pink-500 bg-clip-text text-transparent" : "text-foreground"
           } ${featured ? "text-xl" : ""}`}
         >
           {post.title}
@@ -154,7 +158,7 @@ export function PostCard({ post, index = 0, featured = false }: PostCardProps) {
           </div>
           {/* Arrow indicator */}
           <div
-            className={`flex items-center gap-1 text-xs font-medium text-primary transition-all duration-300 ${
+            className={`flex items-center gap-1 text-xs font-medium bg-gradient-to-r from-rose-500 to-pink-500 bg-clip-text text-transparent transition-all duration-300 ${
               hovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
             }`}
           >
@@ -169,7 +173,7 @@ export function PostCard({ post, index = 0, featured = false }: PostCardProps) {
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-700"
         style={{
           background: hovered
-            ? "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%)"
+            ? "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)"
             : "none",
         }}
       />

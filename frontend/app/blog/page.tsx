@@ -91,7 +91,7 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar */}
             <aside className="w-full lg:w-64 shrink-0 animate-fade-in-left">
-              <div className="rounded-2xl glass-card p-5 sticky top-24 space-y-5">
+              <div className="rounded-2xl glass-card p-5 sticky top-24 space-y-5 shadow-md border-rose-500/10 hover:shadow-xl transition-shadow duration-300">
                 {/* Filter header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm font-semibold">

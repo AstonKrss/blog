@@ -33,4 +33,7 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, String> {
 
     @Query("SELECT v.ipAddress, COUNT(v) FROM VisitLog v WHERE v.createdAt >= ?1 GROUP BY v.ipAddress ORDER BY COUNT(v) DESC")
     List<Object[]> topIpsSince(LocalDateTime since);
+
+    @Query("SELECT COUNT(DISTINCT v.ipAddress) FROM VisitLog v WHERE v.createdAt >= ?1")
+    long countUniqueIpsSince(LocalDateTime since);
 }

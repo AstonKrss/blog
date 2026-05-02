@@ -32,6 +32,8 @@ import java.util.Map;
 
 import com.aston.blog.vo.post.SearchResultVO;
 
+import com.aston.blog.Service.VisitLogService;
+
 @RestController
 @RequestMapping("/api/public")
 public class PublicController {
@@ -39,13 +41,15 @@ public class PublicController {
     private final TagService tagService;
     private final ArchiveService archiveService;
     private final CommentService commentService;
+    private final VisitLogService visitLogService;
 
     public PublicController(PostService postService, TagService tagService, ArchiveService archiveService,
-            CommentService commentService) {
+            CommentService commentService, VisitLogService visitLogService) {
         this.postService = postService;
         this.tagService = tagService;
         this.archiveService = archiveService;
         this.commentService = commentService;
+        this.visitLogService = visitLogService;
     }
 
     @GetMapping("/posts")
@@ -63,6 +67,14 @@ public class PublicController {
     @GetMapping("/stats")
     public Result<StatsVO> getStats() {
         return Result.success(postService.getStats());
+    }
+
+    @GetMapping("/online")
+    public Result<Map<String, Object>> getOnlineCount() {
+        long count = visitLogService.countOnlineVisitors();
+        Map<String, Object> data = new java.util.HashMap<>();
+        data.put("online", count);
+        return Result.success(data);
     }
 
     @GetMapping("/posts/{slug}/toc")

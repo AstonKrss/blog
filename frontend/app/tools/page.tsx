@@ -227,10 +227,9 @@ export default function ToolsPage() {
                           <button
                             key={tool.name}
                             onClick={() => { setActiveTool({ name: tool.name, component: tool.component }); setActiveCategory(category.name); }}
-                            className="group relative overflow-hidden rounded-2xl glass-card p-6 text-left transition-all duration-400 hover:-translate-y-2 hover:shadow-2xl"
+                            className="group relative overflow-hidden rounded-2xl glass-card p-6 text-left transition-all duration-400 hover:-translate-y-2 hover:shadow-2xl border border-transparent hover:border-rose-500/20"
                             style={{ animationDelay: `${0.05 * ti}s` }}
                           >
-                            <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-0 group-hover:opacity-[0.06] transition-opacity duration-400`} />
                             <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${category.gradient} scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`} />
                             <div className={`relative mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${category.gradient} shadow-md transition-transform duration-300 group-hover:scale-110`}>
                               <Icon className="h-5 w-5 text-white" />

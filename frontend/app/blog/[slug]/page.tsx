@@ -65,7 +65,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        <ReadingProgress />
+        <ReadingProgress readingTime={readingTime} />
         <main className="flex-1">
 
           {/* Hero */}
@@ -181,9 +181,9 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             )}
 
             <div className="container mx-auto px-4 py-8">
-              <div className="rounded-3xl glass-card overflow-hidden shadow-xl animate-fade-in-up delay-100">
+              <div className="rounded-3xl glass-card overflow-hidden shadow-xl animate-fade-in-up delay-100 border-rose-500/10">
                 {/* Author bar */}
-                <div className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-border/30 bg-gradient-to-r from-rose-500/5 via-pink-500/5 to-pink-5/5">
+                <div className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-border/30 bg-gradient-to-r from-rose-500/5 via-pink-500/5 to-pink-500/5">
                   <div className="flex items-center gap-3">
                     <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 flex items-center justify-center text-white font-bold shadow-md transition-transform duration-300 hover:scale-110">
                       {authorName[0]?.toUpperCase()}
@@ -204,7 +204,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 md:px-8 py-6 border-t border-border/30 bg-gradient-to-r from-rose-500/5 to-purple-5/5">
+                <div className="px-6 md:px-8 py-6 border-t border-border/30 bg-gradient-to-r from-rose-500/5 to-pink-500/5">
                   <div className="flex items-center justify-between">
                     <LikeButton postId={post.id} />
                     <a

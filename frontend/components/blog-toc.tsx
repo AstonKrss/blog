@@ -45,7 +45,7 @@ function PostCard({ post, index, onHover }: PostCardProps) {
   return (
     <article
       id={`post-${post.id}`}
-      className="group relative rounded-2xl glass-card p-5 overflow-hidden transition-all duration-400 hover:-translate-y-1 hover:shadow-xl"
+      className="group relative rounded-2xl glass-card p-5 overflow-hidden transition-all duration-400 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-rose-500/10 hover:border-rose-500/20 border border-transparent"
       onMouseEnter={() => onHover(post.id)}
       onMouseLeave={() => onHover(null)}
     >
@@ -184,7 +184,7 @@ export function BlogTOC({ posts, tags = [] }: { posts: Post[]; tags?: Tag[] }) {
     <div className="flex flex-col lg:flex-row gap-8">
       {/* ── Left TOC Sidebar ── */}
       <aside className="w-full lg:w-72 shrink-0">
-        <div className="rounded-2xl glass-card p-5 sticky top-24 max-h-[calc(100vh-180px)] overflow-y-auto space-y-4">
+        <div className="rounded-2xl glass-card p-5 sticky top-24 max-h-[calc(100vh-180px)] overflow-y-auto space-y-4 shadow-md border-rose-500/10">
           {/* TOC Header */}
           <div className="flex items-center gap-2 pb-3 border-b border-border/30">
             <BookOpen className="h-4 w-4 text-rose-500" />

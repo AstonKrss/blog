@@ -100,7 +100,7 @@ function SearchContent() {
                     <Link
                       key={post.id}
                       href={`/blog/${post.slug}`}
-                      className="group flex items-start gap-4 rounded-2xl glass-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                      className="group flex items-start gap-4 rounded-2xl glass-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border border-transparent hover:border-pink-500/20"
                       style={{ animationDelay: `${0.05 * i}s` }}
                     >
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500/20 to-pink-500/20 text-pink-500 transition-transform duration-300 group-hover:scale-110">

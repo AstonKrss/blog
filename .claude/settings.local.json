@@ -13,7 +13,19 @@
       "Bash(npm run *)",
       "Read(//d//**)",
       "Bash(mvn compile *)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(clawhub list *)",
+      "Bash(clawhub --help)",
+      "Bash(npx clawhub *)",
+      "Bash(clawhub *)",
+      "Bash(claude --version)",
+      "Bash(claude -V)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(ls D:/Users/32239/java_code/blog/*.xml D:/Users/32239/java_code/blog/*.bat)",
+      "Bash(ls D:/Users/32239/java_code/blog/mvnw*)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s http://localhost:8080)",
+      "Bash(curl -s http://localhost:8080/api/public/online)"
     ]
   }
 }

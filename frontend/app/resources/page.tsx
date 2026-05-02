@@ -99,7 +99,7 @@ export default function ResourcesPage() {
                           href={resource.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group relative overflow-hidden rounded-2xl glass-card p-5 shadow-sm transition-all duration-400 hover:-translate-y-2 hover:shadow-2xl"
+                          className="group relative overflow-hidden rounded-2xl glass-card p-5 shadow-sm transition-all duration-400 hover:-translate-y-2 hover:shadow-2xl border border-transparent hover:border-rose-500/20"
                           style={{ animationDelay: `${0.05 * ri}s` }}
                         >
                           <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-0 group-hover:opacity-[0.06] transition-opacity duration-400`} />

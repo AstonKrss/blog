@@ -6,6 +6,7 @@ import { SkillShowcase } from "@/components/skill-showcase";
 import { RandomQuote } from "@/components/random-quote";
 import { VisitorInteraction } from "@/components/visitor-interaction";
 import ScrollLock from "@/components/scroll-lock";
+import { LazyIframe } from "@/components/lazy-iframe";
 import {
   Shield, Code, BookOpen, Github, ExternalLink, ArrowRight, Zap,
   FileText, Terminal, Globe, Sparkles, Eye, MessageSquare, Heart,
@@ -298,14 +299,11 @@ export default async function HomePage() {
                 </div>
                 <span className="text-xs text-green-500/60 ml-2 font-mono">aston@blog:~</span>
               </div>
-              <iframe
+              <LazyIframe
                 src="/terminal"
-                className="w-full h-[500px] border-0"
                 title="Interactive Terminal"
-                tabIndex={-1}
-                style={{ outline: "none" }}
-                sandbox="allow-same-origin allow-scripts"
-                loading="lazy"
+                className="rounded-b-2xl overflow-hidden"
+                style={{ height: "500px" }}
               />
             </div>
           </div>
@@ -331,7 +329,7 @@ export default async function HomePage() {
               {/* Large feature cards */}
               <Link
                 href="/tools"
-                className="col-span-2 group relative overflow-hidden rounded-2xl glass-card border border-border/50 p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl min-h-[180px]"
+                className="col-span-2 group relative overflow-hidden rounded-2xl glass-card border border-border/50 p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-500/20 min-h-[180px]"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-rose-500/15 via-pink-500/10 to-orange-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-rose-500 to-pink-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
@@ -353,7 +351,7 @@ export default async function HomePage() {
 
               <Link
                 href="/timeline"
-                className="group relative overflow-hidden rounded-2xl glass-card border border-border/50 p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl"
+                className="group relative overflow-hidden rounded-2xl glass-card border border-border/50 p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-500/20"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-500/15 to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-amber-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
@@ -368,7 +366,7 @@ export default async function HomePage() {
 
               <Link
                 href="/terminal"
-                className="group relative overflow-hidden rounded-2xl glass-card border border-border/50 p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl"
+                className="group relative overflow-hidden rounded-2xl glass-card border border-border/50 p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-500/20"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-pink-500/15 to-rose-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-pink-500 to-rose-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
@@ -383,7 +381,7 @@ export default async function HomePage() {
 
               <Link
                 href="/resources"
-                className="group relative overflow-hidden rounded-2xl glass-card border border-border/50 p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl"
+                className="group relative overflow-hidden rounded-2xl glass-card border border-border/50 p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-500/20"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-400/15 to-yellow-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-400 to-yellow-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
@@ -398,7 +396,7 @@ export default async function HomePage() {
 
               <Link
                 href="/archive"
-                className="group relative overflow-hidden rounded-2xl glass-card border border-border/50 p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl"
+                className="group relative overflow-hidden rounded-2xl glass-card border border-border/50 p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-500/20"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-pink-500/15 to-rose-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-pink-500 to-rose-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
@@ -413,7 +411,7 @@ export default async function HomePage() {
 
               <Link
                 href="/projects"
-                className="col-span-2 group relative overflow-hidden rounded-2xl glass-card border border-border/50 p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl"
+                className="col-span-2 group relative overflow-hidden rounded-2xl glass-card border border-border/50 p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-500/20"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-rose-500/10 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-rose-500 to-pink-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />

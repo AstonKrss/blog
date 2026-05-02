@@ -9,6 +9,8 @@ import { BackToTop } from "@/components/back-to-top";
 import { ClickEffects } from "@/components/games/click-effects";
 import { MusicVisualizer } from "@/components/games/music-visualizer";
 import { ConsoleEasterEgg } from "@/components/games/console-easter-egg";
+import { CommandPalette } from "@/components/command-palette";
+import { LiveVisitor } from "@/components/live-visitor";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -76,6 +78,8 @@ export default function RootLayout({
               <ClickEffects />
               <MusicVisualizer />
               <ConsoleEasterEgg />
+              <CommandPalette />
+              <LiveVisitor />
             </div>
           </AuthProvider>
         </ThemeProvider>

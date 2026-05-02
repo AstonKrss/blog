@@ -19,17 +19,17 @@ export function Footer() {
 
   return (
     <>
-      <footer className="relative border-t bg-background/50">
+      <footer className="relative border-t">
         {/* Decorative gradient line */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pink-500/50 to-transparent" />
 
         <div className="container mx-auto px-4 py-16">
           {/* Main footer grid */}
-          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {/* Brand */}
-            <div className="space-y-4 animate-fade-in-up">
+            <div className="group space-y-4 p-5 rounded-2xl glass-card animate-fade-in-up transition-all duration-300 hover:-translate-y-1">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 shadow-lg shadow-rose-500/20">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 shadow-lg shadow-rose-500/20 transition-transform duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-rose-500/30">
                   <span className="text-white font-bold">A</span>
                 </div>
                 <div>
@@ -40,7 +40,7 @@ export function Footer() {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 探索技术的无限可能，分享安全、开发与 DevOps 的实践经验。
               </p>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {[
                   { icon: Rss, href: "/rss", label: "RSS" },
                   { icon: Github, href: "https://github.com/", label: "GitHub", external: true },
@@ -51,17 +51,17 @@ export function Footer() {
                     href={href}
                     target={external ? "_blank" : undefined}
                     rel={external ? "noopener noreferrer" : undefined}
-                    className="group flex h-9 w-9 items-center justify-center rounded-xl glass-card text-muted-foreground shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:text-foreground"
+                    className="group flex h-9 w-9 items-center justify-center rounded-xl glass-card text-muted-foreground shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:text-foreground border-transparent hover:border-rose-500/20"
                     title={label}
                   >
-                    <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+                    <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-120" />
                   </a>
                 ))}
               </div>
             </div>
 
             {/* Navigation */}
-            <div className="space-y-4 animate-fade-in-up delay-100">
+            <div className="group space-y-4 p-5 rounded-2xl glass-card animate-fade-in-up delay-100 transition-all duration-300 hover:-translate-y-1">
               <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
                 导航
               </h3>
@@ -87,7 +87,7 @@ export function Footer() {
             </div>
 
             {/* Explore */}
-            <div className="space-y-4 animate-fade-in-up delay-200">
+            <div className="group space-y-4 p-5 rounded-2xl glass-card animate-fade-in-up delay-200 transition-all duration-300 hover:-translate-y-1">
               <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
                 探索
               </h3>
@@ -113,7 +113,7 @@ export function Footer() {
             </div>
 
             {/* Subscribe */}
-            <div className="space-y-4 animate-fade-in-up delay-300">
+            <div className="group space-y-4 p-5 rounded-2xl glass-card animate-fade-in-up delay-300 transition-all duration-300 hover:-translate-y-1">
               <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
                 订阅更新
               </h3>
@@ -122,9 +122,9 @@ export function Footer() {
               </p>
               <Link
                 href="/rss"
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-orange-500/20 transition-all hover:shadow-xl hover:shadow-orange-500/30 hover:-translate-y-0.5"
+                className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-rose-500/20 transition-all hover:shadow-xl hover:shadow-rose-500/30 hover:-translate-y-0.5 active:scale-95"
               >
-                <Rss className="h-4 w-4" />
+                <Rss className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
                 订阅 RSS
               </Link>
             </div>
@@ -166,12 +166,12 @@ export function Footer() {
       {/* Back to top button */}
       <button
         onClick={scrollToTop}
-        className={`fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-2xl glass-card shadow-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl ${
+        className={`fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-2xl glass-card shadow-xl transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl hover:border-rose-500/30 ${
           showBackTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
         }`}
         aria-label="回到顶部"
       >
-        <ArrowUp className="h-5 w-5 text-primary" />
+        <ArrowUp className="h-5 w-5 text-rose-500" />
       </button>
     </>
   );

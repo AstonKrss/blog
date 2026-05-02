@@ -196,7 +196,7 @@ export default function GuestbookPage() {
                   return (
                     <div
                       key={gb.id}
-                      className="group rounded-2xl glass-card overflow-hidden shadow-sm hover:shadow-lg transition-all duration-400 animate-fade-in-up"
+                      className="group rounded-2xl glass-card overflow-hidden shadow-sm hover:shadow-lg transition-all duration-400 hover:-translate-y-1 border border-transparent hover:border-rose-500/20 animate-fade-in-up"
                       style={{ animationDelay: `${0.05 * i}s` }}
                     >
                       {/* Card header */}

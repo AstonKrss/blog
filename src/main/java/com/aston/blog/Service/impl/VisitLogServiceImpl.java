@@ -83,6 +83,12 @@ public class VisitLogServiceImpl implements VisitLogService {
         return vo;
     }
 
+    @Override
+    public long countOnlineVisitors() {
+        LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
+        return visitLogRepository.countUniqueIpsSince(fiveMinutesAgo);
+    }
+
     private List<Map<String, Object>> convertToMapList(List<Object[]> data, String key1, String key2) {
         return data.stream().limit(10).map(obj -> {
             Map<String, Object> map = new HashMap<>();

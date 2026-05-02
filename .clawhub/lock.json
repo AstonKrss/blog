@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "skills": {
+    "code-review": {
+      "version": "1.0.0",
+      "installedAt": 1777704365951
+    },
+    "github": {
+      "version": "1.0.0",
+      "installedAt": 1777704368189
+    },
+    "multi-search-engine": {
+      "version": "2.1.3",
+      "installedAt": 1777704422237
+    },
+    "browser": {
+      "version": "1.0.0",
+      "installedAt": 1777704482108
+    }
+  }
+}

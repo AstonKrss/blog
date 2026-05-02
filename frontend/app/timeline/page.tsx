@@ -119,7 +119,7 @@ export default function TimelinePage() {
                         <Icon className="h-4 w-4 text-white" />
                       </div>
 
-                      <div className="rounded-2xl glass-card overflow-hidden shadow-sm transition-all duration-400 hover:shadow-lg">
+                      <div className="rounded-2xl glass-card overflow-hidden shadow-sm transition-all duration-400 hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-rose-500/20">
                         <button
                           onClick={() => toggleYear(yearData.year)}
                           className="accordion-header w-full flex items-center justify-between p-5"
@@ -177,7 +177,7 @@ export default function TimelinePage() {
                 return (
                   <div
                     key={skillGroup.category}
-                    className="rounded-2xl glass-card overflow-hidden shadow-sm transition-all duration-400 hover:shadow-xl animate-fade-in-up"
+                    className="rounded-2xl glass-card overflow-hidden shadow-sm transition-all duration-400 hover:shadow-xl hover:-translate-y-1 border border-transparent hover:border-rose-500/20 animate-fade-in-up"
                     style={{ animationDelay: `${0.1 * si}s` }}
                   >
                     <button onClick={() => toggleSkill(skillGroup.category)} className="accordion-header w-full flex items-center justify-between p-5">

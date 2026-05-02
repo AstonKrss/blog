@@ -115,7 +115,7 @@ function AboutContent() {
 
         <div className="relative mx-auto max-w-4xl px-4 py-14">
           {/* Profile card */}
-          <div className="mb-12 relative overflow-hidden rounded-2xl glass-card shadow-xl animate-fade-in-up">
+          <div className="mb-12 relative overflow-hidden rounded-2xl glass-card shadow-xl animate-fade-in-up border-rose-500/10 hover:shadow-2xl hover:shadow-rose-500/10 transition-all duration-500 hover:-translate-y-1">
             {/* Gradient top */}
             <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-rose-500/10 via-pink-500/10 to-pink-500/10" />
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-rose-500/30 via-pink-500/30 to-pink-500/30" />
@@ -252,7 +252,7 @@ function AboutContent() {
                 return (
                   <div
                     key={tech.category}
-                    className="group relative overflow-hidden rounded-2xl glass-card p-6 shadow-sm transition-all duration-400 hover:-translate-y-2 hover:shadow-xl"
+                    className="group relative overflow-hidden rounded-2xl glass-card p-6 shadow-sm transition-all duration-400 hover:-translate-y-2 hover:shadow-xl hover:shadow-rose-500/10 border border-transparent hover:border-rose-500/20"
                     style={{ animationDelay: `${0.1 * i}s` }}
                   >
                     {/* Gradient on hover */}

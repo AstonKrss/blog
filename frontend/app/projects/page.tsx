@@ -65,7 +65,7 @@ export default function ProjectsPage() {
                 return (
                   <div
                     key={project.id}
-                    className={`group relative flex flex-col rounded-2xl glass-card overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl animate-fade-in-up`}
+                    className={`group relative flex flex-col rounded-2xl glass-card overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-500/20 border border-transparent animate-fade-in-up`}
                     style={{ animationDelay: `${0.05 * i}s` }}
                   >
                     {/* Gradient top accent */}

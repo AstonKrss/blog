@@ -85,7 +85,7 @@ export default function TagsPage() {
                         href={`/blog?tag=${tag.slug}`}
                         onMouseEnter={() => setSelectedTag(tag.slug)}
                         onMouseLeave={() => setSelectedTag(null)}
-                        className={`relative flex flex-col items-center justify-center rounded-2xl p-5 text-center transition-all duration-400 hover:-translate-y-2 hover:shadow-2xl glass-card border border-border/50 overflow-hidden ${
+                        className={`relative flex flex-col items-center justify-center rounded-2xl p-5 text-center transition-all duration-400 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-500/20 glass-card border border-border/50 overflow-hidden ${
                           isSelected ? "border-transparent" : ""
                         }`}
                       >

@@ -87,7 +87,7 @@ export default function PhotosGalleryPage() {
                   style={{ animationDelay: `${0.05 * index}s` }}
                   onClick={() => setSelectedPhoto(index)}
                 >
-                  <div className="relative rounded-2xl overflow-hidden glass-card shadow-sm transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+                  <div className="relative rounded-2xl overflow-hidden glass-card shadow-sm transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 border border-transparent hover:border-pink-500/30">
                     <img
                       src={`${API_BASE}/uploads/photos/${photo.filename}`}
                       alt=""
