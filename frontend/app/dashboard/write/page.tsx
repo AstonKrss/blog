@@ -404,19 +404,19 @@ function WritePostContent() {
             <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
               <button 
                 onClick={() => setViewMode('edit')}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'edit' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'edit' ? 'bg-white dark:bg-slate-700 shadow-sm text-rose-600 dark:text-rose-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
                 编辑
               </button>
               <button 
                 onClick={() => setViewMode('both')}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'both' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'both' ? 'bg-white dark:bg-slate-700 shadow-sm text-rose-600 dark:text-rose-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
                 分屏
               </button>
               <button 
                 onClick={() => setViewMode('preview')}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'preview' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'preview' ? 'bg-white dark:bg-slate-700 shadow-sm text-rose-600 dark:text-rose-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
                 预览
               </button>
@@ -434,7 +434,7 @@ function WritePostContent() {
             <button 
               onClick={() => handleSubmit('PUBLISHED')} 
               disabled={loading || !title}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:shadow-lg hover:shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-rose-500 to-orange-400 text-white hover:shadow-lg hover:shadow-rose-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               {loading ? (
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -450,7 +450,7 @@ function WritePostContent() {
             </button>
             <button 
               onClick={() => setShowSettings(!showSettings)}
-              className={`p-2 rounded-lg transition-colors ${showSettings ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500'}`}
+              className={`p-2 rounded-lg transition-colors ${showSettings ? 'bg-rose-100 dark:bg-indigo-900/30 text-rose-600' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500'}`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -613,11 +613,11 @@ function WritePostContent() {
                           <button
                             key={word}
                             onClick={() => { replaceCurrentWord(word); setShowSuggestions(false); }}
-                            className={`w-full px-4 py-2 text-left flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${i === selectedIndex ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}
+                            className={`w-full px-4 py-2 text-left flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${i === selectedIndex ? 'bg-rose-50 dark:bg-indigo-900/20' : ''}`}
                           >
                             <code className="font-mono text-sm text-slate-700 dark:text-slate-300">{word}</code>
                             {i === selectedIndex && (
-                              <span className="text-xs text-indigo-500 bg-indigo-100 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded">Tab</span>
+                              <span className="text-xs text-rose-500 bg-rose-100 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded">Tab</span>
                             )}
                           </button>
                         ))}
@@ -675,7 +675,7 @@ function WritePostContent() {
       {/* 设置侧边栏 - 精美的滑出面板 */}
       <div className={`fixed inset-y-0 right-0 w-96 z-50 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 shadow-2xl transform transition-transform duration-300 ${showSettings ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="h-full flex flex-col">
-          <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-gradient-to-r from-indigo-500/5 to-purple-500/5">
+          <div className="p-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-gradient-to-r from-rose-500/5 to-orange-400/5">
             <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">文章设置</h3>
             <button 
               onClick={() => setShowSettings(false)} 
@@ -691,7 +691,7 @@ function WritePostContent() {
             {/* 链接地址 */}
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                 </svg>
                 链接地址
@@ -701,14 +701,14 @@ function WritePostContent() {
                 value={slug} 
                 onChange={(e) => setSlug(e.target.value)} 
                 placeholder="article-slug"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" 
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all" 
               />
             </div>
             
             {/* 文章摘要 */}
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 文章摘要
@@ -718,14 +718,14 @@ function WritePostContent() {
                 onChange={(e) => setExcerpt(e.target.value)} 
                 placeholder="简短描述..."
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none" 
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all resize-none" 
               />
             </div>
             
             {/* 封面图 */}
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 封面图
@@ -735,7 +735,7 @@ function WritePostContent() {
                 value={coverImage} 
                 onChange={(e) => setCoverImage(e.target.value)} 
                 placeholder="https://..."
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" 
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all" 
               />
               {coverImage && (
                 <div className="mt-3 relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
@@ -755,7 +755,7 @@ function WritePostContent() {
             {/* 标签 */}
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
                 标签
@@ -767,11 +767,11 @@ function WritePostContent() {
                   onChange={(e) => setTagInput(e.target.value)} 
                   onKeyDown={(e) => e.key === 'Enter' && addTag()} 
                   placeholder="输入标签，按回车添加"
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" 
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all" 
                 />
                 <button 
                   onClick={addTag} 
-                  className="px-4 py-2.5 rounded-xl bg-indigo-500 text-white text-sm font-medium hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-500/20 transition-all"
+                  className="px-4 py-2.5 rounded-xl bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 hover:shadow-lg hover:shadow-rose-500/20 transition-all"
                 >
                   添加
                 </button>
@@ -780,7 +780,7 @@ function WritePostContent() {
                 {tags.map(tag => (
                   <span 
                     key={tag} 
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 px-3 py-1.5 text-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-700/50"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-rose-100 to-pink-100 dark:from-indigo-900/30 dark:to-purple-900/30 px-3 py-1.5 text-sm text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-indigo-700/50"
                   >
                     {tag}
                     <button 
@@ -826,7 +826,7 @@ export default function WritePostPage() {
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
           <span className="text-muted-foreground">加载中...</span>
         </div>
       </div>

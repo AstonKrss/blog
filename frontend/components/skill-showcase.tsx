@@ -40,7 +40,7 @@ const skillCategories = [
   {
     name: "DevOps",
     icon: Cloud,
-    color: "from-purple-500 to-pink-500",
+    color: "from-pink-500 to-pink-500",
     skills: [
       { name: "Docker", level: 85 },
       { name: "Kubernetes", level: 70 },
@@ -80,7 +80,7 @@ export function SkillShowcase() {
               className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 ${
                 activeCategory === index
                   ? `bg-gradient-to-r ${cat.color} text-white border-transparent shadow-lg`
-                  : "bg-card border-border hover:border-indigo-500/50 hover:shadow-md"
+                  : "bg-card border-border hover:border-rose-500/50 hover:shadow-md"
               }`}
             >
               <div className={`p-2 rounded-xl ${
@@ -115,7 +115,7 @@ export function SkillShowcase() {
               <div key={skill.name}>
                 <div className="flex justify-between mb-1.5">
                   <span className={`font-medium transition-colors ${
-                    hoveredSkill === skill.name ? "text-indigo-500" : ""
+                    hoveredSkill === skill.name ? "text-rose-500" : ""
                   }`}>
                     {skill.name}
                   </span>

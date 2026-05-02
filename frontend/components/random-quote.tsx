@@ -41,9 +41,12 @@ export function RandomQuote() {
   };
 
   return (
-    <div className={`relative bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl border p-8 transition-all duration-300 ${isAnimating ? "scale-95 opacity-50" : "scale-100 opacity-100"}`}>
+    <div className={`relative overflow-hidden bg-gradient-to-br from-rose-500/8 via-pink-500/8 to-orange-400/5 rounded-3xl border border-rose-200/30 dark:border-rose-800/20 p-8 transition-all duration-300 ${isAnimating ? "scale-95 opacity-50" : "scale-100 opacity-100"}`}>
+      {/* Decorative quote marks */}
+      <div className="absolute top-4 right-6 text-rose-500/10 font-black text-[120px] leading-none select-none">"</div>
+
       <div className="absolute -top-4 left-6">
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full p-3 shadow-lg">
+        <div className="bg-gradient-to-r from-rose-500 to-orange-400 rounded-full p-3 shadow-lg shadow-rose-500/30">
           <Quote className="h-5 w-5 text-white" />
         </div>
       </div>
@@ -56,10 +59,10 @@ export function RandomQuote() {
           <span className="text-sm text-muted-foreground">— {quote.author}</span>
           <button
             onClick={getNewQuote}
-            className="flex items-center gap-2 text-sm text-indigo-500 hover:text-indigo-600 transition-colors"
+            className="flex items-center gap-2 text-sm text-rose-500 hover:text-rose-600 transition-colors group"
           >
             <RefreshCw className={`h-4 w-4 ${isAnimating ? "animate-spin" : ""}`} />
-            换一条
+            <span className="transition-all group-hover:translate-x-1">换一条</span>
           </button>
         </div>
       </div>

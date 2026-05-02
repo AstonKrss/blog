@@ -6,6 +6,9 @@ import { ThemeClassHandler } from "@/components/theme-class-handler";
 import { AuthProvider } from "@/components/auth-context";
 import { MusicPlayer } from "@/components/music-player";
 import { BackToTop } from "@/components/back-to-top";
+import { ClickEffects } from "@/components/games/click-effects";
+import { MusicVisualizer } from "@/components/games/music-visualizer";
+import { ConsoleEasterEgg } from "@/components/games/console-easter-egg";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -70,6 +73,9 @@ export default function RootLayout({
               {children}
               <MusicPlayer />
               <BackToTop />
+              <ClickEffects />
+              <MusicVisualizer />
+              <ConsoleEasterEgg />
             </div>
           </AuthProvider>
         </ThemeProvider>

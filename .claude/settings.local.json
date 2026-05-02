@@ -1,7 +1,19 @@
 {
   "permissions": {
     "allow": [
-      "Bash(xargs wc *)"
+      "Bash(xargs wc *)",
+      "Bash(python3 \"C:/Users/32239/skills/ui-ux-pro-max/src/ui-ux-pro-max/scripts/search.py\" \"modern blog dashboard glassmorphism animated\" --stack nextjs --domain style -n 5)",
+      "Bash(python \"C:/Users/32239/skills/ui-ux-pro-max/src/ui-ux-pro-max/scripts/search.py\" \"modern blog glassmorphism\" --stack nextjs --domain style -n 5)",
+      "Bash(python src/ui-ux-pro-max/scripts/search.py \"glassmorphism\" --domain style -n 5)",
+      "Bash(python src/ui-ux-pro-max/scripts/search.py \"modern dark elegant\" --domain color -n 5)",
+      "Bash(python3 \"C:\\\\Users\\\\32239\\\\skills\\\\ui-ux-pro-max\\\\src\\\\scripts\\\\search.py\" \"blog portfolio modern glassmorphism\" --domain style -n 5)",
+      "Bash(python3 \"C:\\\\Users\\\\32239\\\\skills\\\\ui-ux-pro-max\\\\src\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"nextjs tailwind component library card\" --domain landing -n 5)",
+      "Bash(python3 *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Read(//d//**)",
+      "Bash(mvn compile *)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

@@ -21,10 +21,10 @@ function generateContributionData() {
 
 function getContributionLevel(count: number) {
   if (count === 0) return "bg-muted/30";
-  if (count <= 2) return "bg-indigo-500/20";
-  if (count <= 4) return "bg-indigo-500/40";
-  if (count <= 6) return "bg-indigo-500/60";
-  return "bg-indigo-500";
+  if (count <= 2) return "bg-rose-500/20";
+  if (count <= 4) return "bg-rose-500/40";
+  if (count <= 6) return "bg-rose-500/60";
+  return "bg-rose-500";
 }
 
 function getTooltipText(dateStr: string, count: number) {
@@ -78,7 +78,7 @@ export function ContributionGraph() {
     <div className="rounded-2xl border bg-card/80 backdrop-blur-sm p-6 shadow-sm glow-card">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-rose-500 to-orange-400">
             <svg className="h-4 w-4 text-white" viewBox="0 0 16 16" fill="currentColor">
               <path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25ZM1.75 1.5a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25ZM4.5 3.5a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 0 1.5h-5.5a.75.75 0 0 1-.75-.75ZM3.75 8a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1-.75-.75ZM4.5 12.5a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 0 1.5h-5.5a.75.75 0 0 1-.75-.75Z" />
             </svg>

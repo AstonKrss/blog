@@ -36,4 +36,13 @@ public interface AttackLogRepository extends JpaRepository<AttackLog, String> {
 
     // 获取最近的攻击日志
     List<AttackLog> findTop50ByOrderByCreatedAtDesc();
+
+    // 按攻击类型筛选最近记录
+    List<AttackLog> findTop50ByAttackTypeOrderByCreatedAtDesc(String attackType);
+
+    // 按IP筛选
+    List<AttackLog> findTop50ByIpOrderByCreatedAtDesc(String ip);
+
+    // 按IP和攻击类型筛选
+    List<AttackLog> findTop50ByIpAndAttackTypeOrderByCreatedAtDesc(String ip, String attackType);
 }

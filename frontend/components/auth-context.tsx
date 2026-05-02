@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // 如果 cookie 没有，尝试从会话存储获取（登录时后端通过 header 返回）
       if (!token) {
-        token = sessionStorage.getItem('auth_token');
+        token = sessionStorage.getItem('auth_token') ?? undefined;
       }
 
       if (!token) {

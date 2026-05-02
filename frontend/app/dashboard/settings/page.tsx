@@ -76,17 +76,17 @@ export default function SettingsPage() {
             <div>
               <label className="mb-1.5 block text-sm font-medium">站点标题</label>
               <input type="text" value={settings.site_title || ""} onChange={(e) => updateSetting("site_title", e.target.value)}
-                className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" />
+                className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all" />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium">站点描述</label>
               <input type="text" value={settings.site_description || ""} onChange={(e) => updateSetting("site_description", e.target.value)}
-                className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" />
+                className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all" />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium">每页文章数</label>
               <input type="number" value={settings.posts_per_page || "10"} onChange={(e) => updateSetting("posts_per_page", e.target.value)}
-                className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" />
+                className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all" />
             </div>
             <div className="flex items-center justify-between py-3 border-t">
               <div>
@@ -100,7 +100,7 @@ export default function SettingsPage() {
             </div>
             <div className="pt-4">
               <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50">
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-orange-400 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-rose-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50">
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" />保存设置</>}
               </button>
             </div>

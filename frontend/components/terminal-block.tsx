@@ -85,7 +85,7 @@ const commands = [
 ];
 
 const quickLinks = [
-  { icon: BookOpen, label: "博客", href: "/blog", color: "text-indigo-500" },
+  { icon: BookOpen, label: "博客", href: "/blog", color: "text-rose-500" },
   { icon: User, label: "关于", href: "/about", color: "text-emerald-500" },
   { icon: Folder, label: "项目", href: "/projects", color: "text-amber-500" },
   { icon: Heart, label: "友链", href: "/friends", color: "text-pink-500" },
@@ -201,7 +201,7 @@ export function TerminalBlock() {
       <div className="space-y-3">
         <div className="bg-card/80 backdrop-blur-sm rounded-2xl border p-4 shadow-lg">
           <div className="flex items-center gap-2 mb-4">
-            <Terminal className="h-5 w-5 text-indigo-500" />
+            <Terminal className="h-5 w-5 text-rose-500" />
             <span className="font-bold">快捷入口</span>
           </div>
           <div className="grid grid-cols-2 gap-2">

@@ -122,19 +122,19 @@ export default async function RssPage() {
         type="website"
       />
 
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-indigo-50/50 to-white dark:from-gray-900 dark:to-gray-900">
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-rose-50/50 to-white dark:from-gray-900 dark:to-gray-900">
         <Header />
 
         <main className="flex-1">
           {/* Hero Section */}
           <section className="relative overflow-hidden border-b bg-card/50">
             <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-indigo-400/10 blur-3xl" />
-              <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-purple-400/10 blur-3xl" />
+              <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-rose-400/10 blur-3xl" />
+              <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-pink-400/10 blur-3xl" />
             </div>
 
             <div className="relative mx-auto max-w-4xl px-4 py-16 text-center">
-              <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-lg">
+              <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-lg">
                 <Rss className="h-8 w-8" />
               </div>
 
@@ -183,7 +183,7 @@ export default async function RssPage() {
             <div className="grid gap-6 md:grid-cols-3">
               {/* Step 1 */}
               <div className="rounded-xl border bg-card p-6">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-rose-100 text-rose-600 dark:bg-indigo-900/30 dark:text-rose-400">
                   <span className="text-lg font-bold">1</span>
                 </div>
                 <h3 className="mb-2 font-semibold">选择阅读器</h3>
@@ -194,7 +194,7 @@ export default async function RssPage() {
 
               {/* Step 2 */}
               <div className="rounded-xl border bg-card p-6">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100 text-purple-600 dark:bg-purple-900/30 dark:text-pink-400">
                   <span className="text-lg font-bold">2</span>
                 </div>
                 <h3 className="mb-2 font-semibold">添加订阅源</h3>
@@ -253,7 +253,7 @@ export default async function RssPage() {
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="mb-2 text-lg font-semibold group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      <h3 className="mb-2 text-lg font-semibold group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
                         <Link href={item.link} className="line-clamp-2">
                           {item.title}
                         </Link>
@@ -281,7 +281,7 @@ export default async function RssPage() {
                             {item.category.slice(0, 3).map((cat) => (
                               <span
                                 key={cat}
-                                className="rounded-full bg-indigo-100 px-2 py-0.5 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400"
+                                className="rounded-full bg-rose-100 px-2 py-0.5 text-rose-600 dark:bg-indigo-900/30 dark:text-rose-400"
                               >
                                 {cat}
                               </span>
@@ -312,7 +312,7 @@ export default async function RssPage() {
             )}
 
             {/* Subscribe CTA */}
-            <div className="mt-8 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 p-6 text-white">
+            <div className="mt-8 rounded-xl bg-gradient-to-r from-rose-500 to-orange-400 p-6 text-white">
               <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between">
                 <div>
                   <h3 className="text-lg font-semibold">订阅 RSS，不错过任何更新</h3>

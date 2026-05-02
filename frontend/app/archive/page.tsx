@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Calendar, FileText, ChevronDown, ChevronRight, Eye } from "lucide-react";
+import { Calendar, FileText, ChevronDown, ChevronRight, Eye, ArrowUp, Loader2, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 
@@ -16,22 +16,21 @@ export default function ArchivePage() {
 function ArchiveContent() {
   const [archive, setArchive] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // 折叠状态
   const [collapsedYears, setCollapsedYears] = useState<Set<string>>(new Set());
   const [collapsedMonths, setCollapsedMonths] = useState<Set<string>>(new Set());
-  
-  // 当前查看的文章
   const [selectedPostSlug, setSelectedPostSlug] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [postContent, setPostContent] = useState<string>("");
   const [loadingContent, setLoadingContent] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("");
 
   useEffect(() => {
     fetch(`${API_BASE}/api/public/archive`)
       .then(r => r.json())
       .then(data => {
         if (data.code === 0 && data.data?.length > 0) {
+          setArchive(data.data || []);
+          // Auto select first post
           const firstYear = data.data[0];
           if (firstYear.months?.length > 0) {
             const firstMonth = firstYear.months[0];
@@ -39,24 +38,25 @@ function ArchiveContent() {
               loadPostContent(firstMonth.posts[0]);
             }
           }
-          setArchive(data.data || []);
         }
       })
       .finally(() => setLoading(false));
   }, []);
 
   const toggleYear = (year: string) => {
-    const newSet = new Set(collapsedYears);
-    if (newSet.has(year)) newSet.delete(year);
-    else newSet.add(year);
-    setCollapsedYears(newSet);
+    setCollapsedYears(prev => {
+      const next = new Set(prev);
+      next.has(year) ? next.delete(year) : next.add(year);
+      return next;
+    });
   };
 
   const toggleMonth = (key: string) => {
-    const newSet = new Set(collapsedMonths);
-    if (newSet.has(key)) newSet.delete(key);
-    else newSet.add(key);
-    setCollapsedMonths(newSet);
+    setCollapsedMonths(prev => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
   };
 
   const loadPostContent = async (post: any) => {
@@ -68,6 +68,7 @@ function ArchiveContent() {
       if (data.code === 0 && data.data) {
         setSelectedPost(data.data);
         setPostContent(data.data.content || "");
+        setActiveSection(post.slug);
       }
     } catch (e) {
       console.error(e);
@@ -76,12 +77,20 @@ function ArchiveContent() {
     }
   };
 
+  // Total post count
+  const totalPosts = archive.reduce(
+    (acc, y) => acc + y.months.reduce((a: number, m: any) => a + m.count, 0), 0
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="animate-pulse text-muted-foreground">加载中...</div>
+          <div className="flex flex-col items-center gap-4 animate-fade-in">
+            <Loader2 className="h-10 w-10 animate-spin text-rose-500" />
+            <p className="text-muted-foreground">加载归档中...</p>
+          </div>
         </main>
         <Footer />
       </div>
@@ -92,95 +101,121 @@ function ArchiveContent() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
+        {/* Decorative background */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="animate-float absolute -top-32 right-1/4 h-96 w-96 rounded-full bg-cyan-400/5 blur-3xl" />
-          <div className="animate-float-delayed absolute -bottom-32 left-1/4 h-96 w-96 rounded-full bg-teal-400/5 blur-3xl" />
+          <div className="animate-float -top-32 right-1/4 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-cyan-500/10 via-teal-500/5 to-emerald-500/5 blur-[100px]" />
+          <div className="animate-float-delayed -bottom-40 left-1/4 h-[400px] w-[400px] rounded-full bg-gradient-to-br from-rose-500/8 to-orange-400/5 blur-[80px]" />
         </div>
 
-        <div className="relative container mx-auto px-4 py-12">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-teal-500 shadow-lg">
-              <Calendar className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold">归档</h1>
-              <p className="text-sm text-muted-foreground">按时间浏览所有文章</p>
+        <div className="relative container mx-auto px-4 py-14">
+          {/* Page Header */}
+          <div className="mb-10 flex items-center justify-between animate-fade-in-up">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 via-teal-500 to-emerald-500 shadow-xl shadow-teal-500/20">
+                <Calendar className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-black">归档</h1>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  共 <span className="font-bold text-foreground">{totalPosts}</span> 篇文章，按时间整理
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* 左侧目录 */}
-            <aside className="w-full lg:w-64 shrink-0">
-              <div className="rounded-2xl border bg-card/80 backdrop-blur-sm p-5 sticky top-24 shadow-sm max-h-[calc(100vh-200px)] overflow-y-auto">
-                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-4">目录</h3>
-                
-                <nav className="space-y-2">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left: Table of Contents */}
+            <aside className="w-full lg:w-72 shrink-0 animate-fade-in-left">
+              <div className="rounded-2xl glass-card p-5 sticky top-24 max-h-[calc(100vh-180px)] overflow-y-auto space-y-4">
+                {/* TOC Header */}
+                <div className="flex items-center gap-2 pb-3 border-b border-border/30">
+                  <BookOpen className="h-4 w-4 text-cyan-500" />
+                  <span className="font-semibold text-sm">目录</span>
+                  <span className="ml-auto text-xs text-muted-foreground">{archive.length} 年</span>
+                </div>
+
+                {/* Year/Month/Post tree */}
+                <nav className="space-y-1">
                   {archive.map((yearData: any) => {
                     const yearKey = yearData.year.toString();
                     const isYearCollapsed = collapsedYears.has(yearKey);
-                    
+                    const yearCount = yearData.months.reduce((a: number, m: any) => a + m.count, 0);
+
                     return (
-                      <div key={yearData.year}>
+                      <div key={yearData.year} className="animate-fade-in-up">
+                        {/* Year button */}
                         <button
                           onClick={() => toggleYear(yearKey)}
-                          className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-bold hover:bg-muted transition-colors text-left"
+                          className="accordion-header w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group"
                         >
-                          {isYearCollapsed ? (
-                            <ChevronRight className="h-4 w-4 text-indigo-500" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4 text-indigo-500" />
-                          )}
+                          <ChevronDown
+                            className={`h-4 w-4 text-cyan-500 transition-transform duration-300 ${isYearCollapsed ? "-rotate-90" : ""}`}
+                          />
                           <span className="bg-gradient-to-r from-cyan-500 to-teal-500 bg-clip-text text-transparent">
                             {yearData.year}
                           </span>
-                          <span className="text-xs text-muted-foreground">
-                            ({yearData.months.reduce((acc: number, m: any) => acc + m.count, 0)})
+                          <span className="ml-auto text-xs text-muted-foreground font-normal">
+                            {yearCount}
                           </span>
                         </button>
-                        
-                        {!isYearCollapsed && (
-                          <div className="ml-4 mt-1 space-y-1">
+
+                        {/* Months (animated expand) */}
+                        <div
+                          className={`overflow-hidden transition-all duration-400 ease-out ${
+                            isYearCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
+                          }`}
+                        >
+                          <div className="ml-4 mt-1 space-y-0.5">
                             {yearData.months.map((month: any) => {
                               const monthKey = `${yearKey}-${month.month}`;
                               const isMonthCollapsed = collapsedMonths.has(monthKey);
-                              
+
                               return (
                                 <div key={month.month}>
+                                  {/* Month button */}
                                   <button
                                     onClick={() => toggleMonth(monthKey)}
-                                    className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded text-xs hover:bg-muted transition-colors text-left"
+                                    className="accordion-header w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all duration-150"
                                   >
-                                    {isMonthCollapsed ? (
-                                      <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                                    ) : (
-                                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                                    )}
-                                    <span className="text-muted-foreground">{month.month}月</span>
-                                    <span className="text-muted-foreground/50">({month.count})</span>
+                                    <ChevronDown
+                                      className={`h-3 w-3 text-muted-foreground transition-transform duration-200 ${isMonthCollapsed ? "-rotate-90" : ""}`}
+                                    />
+                                    <span className="text-muted-foreground font-medium">{month.month}月</span>
+                                    <span className="text-muted-foreground/50 text-[10px]">({month.count})</span>
                                   </button>
-                                  
-                                  {!isMonthCollapsed && (
-                                    <div className="ml-5 mt-0.5 space-y-0.5">
-                                      {month.posts.map((post: any) => (
-                                        <button
-                                          key={post.id}
-                                          onClick={() => loadPostContent(post)}
-                                          className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors truncate ${
-                                            selectedPostSlug === post.slug
-                                              ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium"
-                                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                                          }`}
-                                        >
-                                          {post.title}
-                                        </button>
-                                      ))}
+
+                                  {/* Posts */}
+                                  <div
+                                    className={`overflow-hidden transition-all duration-300 ease-out ${
+                                      isMonthCollapsed ? "max-h-0 opacity-0" : "max-h-[1000px] opacity-100"
+                                    }`}
+                                  >
+                                    <div className="ml-5 mt-0.5 space-y-0.5 pb-1">
+                                      {month.posts.map((post: any) => {
+                                        const isActive = selectedPostSlug === post.slug;
+                                        return (
+                                          <button
+                                            key={post.id}
+                                            onClick={() => loadPostContent(post)}
+                                            className={`w-full text-left px-2.5 py-2 rounded-lg text-xs transition-all duration-200 truncate ${
+                                              isActive
+                                                ? "bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-600 dark:text-cyan-400 font-semibold shadow-sm"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                                            }`}
+                                          >
+                                            <span className={`block truncate ${isActive ? "text-cyan-600 dark:text-cyan-400" : ""}`}>
+                                              {post.title}
+                                            </span>
+                                          </button>
+                                        );
+                                      })}
                                     </div>
-                                  )}
+                                  </div>
                                 </div>
                               );
                             })}
                           </div>
-                        )}
+                        </div>
                       </div>
                     );
                   })}
@@ -188,49 +223,74 @@ function ArchiveContent() {
               </div>
             </aside>
 
-            {/* 右侧文章内容 */}
+            {/* Right: Post Content */}
             <div className="flex-1 min-w-0">
               {loadingContent ? (
-                <div className="flex items-center justify-center py-20">
-                  <div className="animate-pulse text-muted-foreground">加载中...</div>
+                <div className="flex flex-col items-center justify-center py-24 animate-fade-in">
+                  <Loader2 className="h-10 w-10 animate-spin text-cyan-500 mb-4" />
+                  <p className="text-muted-foreground">加载文章...</p>
                 </div>
               ) : selectedPost ? (
-                <div className="rounded-2xl border bg-card/80 backdrop-blur-sm p-6 shadow-sm">
-                  <div className="mb-6 pb-4 border-b">
-                    <h1 className="text-3xl font-bold mb-4">{selectedPost.title}</h1>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      {selectedPost.publishedAt && (
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {new Date(selectedPost.publishedAt).toLocaleDateString("zh-CN")}
+                <div className="animate-fade-in-up rounded-2xl glass-card overflow-hidden shadow-lg">
+                  {/* Article header */}
+                  <div className="relative px-8 pt-8 pb-6 border-b border-border/30 bg-gradient-to-r from-cyan-500/5 via-teal-500/5 to-transparent">
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-500/10 to-transparent rounded-full blur-2xl" />
+                    <div className="relative">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 px-3 py-1 text-xs font-medium">
+                          <BookOpen className="h-3 w-3" />
+                          归档文章
                         </span>
-                      )}
-                      {selectedPost.viewCount !== undefined && (
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-4 w-4" />
-                          {selectedPost.viewCount} 阅读
-                        </span>
-                      )}
+                      </div>
+                      <h1 className="text-3xl md:text-4xl font-black mb-5 leading-tight">{selectedPost.title}</h1>
+                      <div className="flex items-center gap-5 text-sm text-muted-foreground">
+                        {selectedPost.publishedAt && (
+                          <span className="flex items-center gap-1.5">
+                            <Calendar className="h-4 w-4 text-cyan-500" />
+                            {new Date(selectedPost.publishedAt).toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" })}
+                          </span>
+                        )}
+                        {selectedPost.viewCount !== undefined && (
+                          <span className="flex items-center gap-1.5">
+                            <Eye className="h-4 w-4 text-emerald-500" />
+                            {selectedPost.viewCount} 阅读
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <div className="prose prose-lg dark:prose-invert max-w-none">
-                    <MarkdownRenderer content={postContent} />
-                  </div>
-                  <div className="mt-8 pt-4 border-t">
-                    <Link
-                      href={`/blog/${selectedPost.slug}`}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-sm hover:shadow-lg transition-all"
-                    >
-                      在新页面查看
-                    </Link>
+
+                  {/* Article body */}
+                  <div className="p-8 md:p-10">
+                    <div className="prose prose-lg dark:prose-invert max-w-none animate-fade-in-up delay-100">
+                      <MarkdownRenderer content={postContent} />
+                    </div>
+
+                    {/* Footer */}
+                    <div className="mt-10 pt-6 border-t border-border/30 flex items-center justify-between animate-fade-in-up delay-200">
+                      <Link
+                        href={`/blog/${selectedPost.slug}`}
+                        className="inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-cyan-500/20 transition-all hover:shadow-xl hover:shadow-cyan-500/30 hover:-translate-y-0.5"
+                      >
+                        <FileText className="h-4 w-4" />
+                        在新页面查看
+                      </Link>
+                      <button
+                        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                        返回顶部
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : (
-                <div className="rounded-2xl border bg-card py-20 text-center">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-500/10">
+                <div className="flex flex-col items-center justify-center rounded-2xl glass-card py-24 text-center animate-fade-in">
+                  <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20">
                     <Calendar className="h-8 w-8 text-cyan-500" />
                   </div>
-                  <h3 className="mb-2 text-lg font-semibold">暂无归档</h3>
+                  <h3 className="mb-3 text-xl font-bold">暂无归档</h3>
                   <p className="text-muted-foreground">文章归档将会在这里显示</p>
                 </div>
               )}

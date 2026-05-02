@@ -82,7 +82,7 @@ export default function FriendsPage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
       </div>
     );
   }
@@ -101,7 +101,7 @@ export default function FriendsPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-8">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-orange-400 shadow-lg">
             <Link2 className="h-5 w-5 text-white" />
           </div>
           <div>
@@ -112,8 +112,8 @@ export default function FriendsPage() {
 
         {pendingFriends.length === 0 ? (
           <div className="rounded-2xl border bg-card p-12 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10">
-              <Link2 className="h-8 w-8 text-indigo-500" />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10">
+              <Link2 className="h-8 w-8 text-rose-500" />
             </div>
             <h3 className="mb-2 text-lg font-semibold">暂无待审核的友链</h3>
             <p className="text-muted-foreground">申请友链的用户将会在这里显示</p>
@@ -127,13 +127,13 @@ export default function FriendsPage() {
                     {friend.avatar ? (
                       <img src={friend.avatar} alt={friend.name} className="w-12 h-12 rounded-full" />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center">
-                        <Link2 className="h-6 w-6 text-indigo-500" />
+                      <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center">
+                        <Link2 className="h-6 w-6 text-rose-500" />
                       </div>
                     )}
                     <div>
                       <h3 className="font-semibold">{friend.name}</h3>
-                      <a href={friend.url} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-500 hover:underline">
+                      <a href={friend.url} target="_blank" rel="noopener noreferrer" className="text-sm text-rose-500 hover:underline">
                         {friend.url}
                       </a>
                       {friend.description && (

@@ -62,8 +62,8 @@ export default function DashboardPage() {
   const isAuthor = user.role === "ADMIN" || user.role === "AUTHOR";
 
   const quickActions = [
-    ...(isAuthor ? [{ href: "/dashboard/write", icon: PenTool, label: "写文章", desc: "创作新的技术文章", gradient: "from-indigo-500 to-blue-500" }] : []),
-    ...(isAuthor ? [{ href: "/dashboard/posts", icon: FileText, label: "文章管理", desc: "管理所有已发布的文章", gradient: "from-purple-500 to-pink-500" }] : []),
+    ...(isAuthor ? [{ href: "/dashboard/write", icon: PenTool, label: "写文章", desc: "创作新的技术文章", gradient: "from-rose-500 to-blue-500" }] : []),
+    ...(isAuthor ? [{ href: "/dashboard/posts", icon: FileText, label: "文章管理", desc: "管理所有已发布的文章", gradient: "from-pink-500 to-pink-500" }] : []),
     ...(isAdmin ? [{ href: "/dashboard/projects", icon: Code, label: "项目管理", desc: "管理作品集项目", gradient: "from-emerald-500 to-teal-500" }] : []),
     ...(isAdmin ? [{ href: "/dashboard/photos", icon: Image, label: "照片管理", desc: "上传和管理照片", gradient: "from-pink-500 to-rose-500" }] : []),
     ...(isAdmin ? [{ href: "/dashboard/friends", icon: Link2, label: "友链管理", desc: "审核友链申请", gradient: "from-cyan-500 to-teal-500" }] : []),
@@ -77,13 +77,13 @@ export default function DashboardPage() {
       <main className="flex-1">
         {/* Decorative background */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="animate-float absolute -top-32 -right-32 h-96 w-96 rounded-full bg-indigo-400/10 blur-3xl" />
-          <div className="animate-float-delayed absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-purple-400/10 blur-3xl" />
+          <div className="animate-float absolute -top-32 -right-32 h-96 w-96 rounded-full bg-rose-400/10 blur-3xl" />
+          <div className="animate-float-delayed absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-pink-400/10 blur-3xl" />
         </div>
 
         <div className="relative mx-auto max-w-5xl px-4 py-8">
           {/* Welcome Section */}
-          <div className="relative overflow-hidden mb-8 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-8 text-white shadow-xl glow-card">
+          <div className="relative overflow-hidden mb-8 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-orange-400 p-8 text-white shadow-xl glow-card">
             <div className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
             <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-white/5 blur-2xl" />
             <div className="relative flex items-center justify-between">
@@ -118,7 +118,7 @@ export default function DashboardPage() {
                   <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${action.gradient} shadow-lg`}>
                     <Icon className="h-6 w-6 text-white" />
                   </div>
-                  <h3 className="font-semibold mb-1 group-hover:text-indigo-500 transition-colors">{action.label}</h3>
+                  <h3 className="font-semibold mb-1 group-hover:text-rose-500 transition-colors">{action.label}</h3>
                   <p className="text-sm text-muted-foreground">{action.desc}</p>
                 </Link>
               );
@@ -136,7 +136,7 @@ export default function DashboardPage() {
             ) : (
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { label: "文章", value: stats.posts, gradient: "from-indigo-500 to-blue-500", icon: FileText },
+                  { label: "文章", value: stats.posts, gradient: "from-rose-500 to-blue-500", icon: FileText },
                   { label: "评论", value: stats.comments, gradient: "from-emerald-500 to-teal-500", icon: MessageSquare },
                   { label: "阅读", value: stats.views, gradient: "from-orange-500 to-amber-500", icon: Eye },
                 ].map((stat, i) => {

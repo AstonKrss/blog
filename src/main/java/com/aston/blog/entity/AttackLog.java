@@ -2,6 +2,7 @@ package com.aston.blog.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,10 +21,7 @@ public class AttackLog {
     private String userAgent; // 浏览器标识
     private String queryParams; // URL 查询参数
     private Integer riskLevel;
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 }

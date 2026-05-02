@@ -1,6 +1,6 @@
 package com.aston.blog.Service;
 
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 import com.aston.blog.vo.security.SecurityStatsVO;
@@ -18,4 +18,6 @@ public interface AttackLogService {
             String queryParams);
 
     SecurityStatsVO getSecurityStats();
+
+    List<Map<String, Object>> getRecentLogsByType(String attackType, String ip, int limit);
 }

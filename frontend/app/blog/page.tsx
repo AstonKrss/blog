@@ -1,14 +1,15 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { PostCard } from "@/components/post-card";
-import { BookOpen, Calendar, Search, Sparkles } from "lucide-react";
+import { BlogClientWrapper } from "@/components/blog-client-wrapper";
+import { BookOpen, Search, Filter, X } from "lucide-react";
 import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 async function getPosts(page = 1, tag = "") {
   try {
-    let url = `${API_BASE}/api/public/posts?page=${page}&limit=12`;
+    // Request content for preview text generation
+    let url = `${API_BASE}/api/public/posts?page=${page}&limit=12&content=1`;
     if (tag) url += `&tag=${tag}`;
     const res = await fetch(url, { next: { revalidate: 60 } });
     const data = await res.json();
@@ -27,15 +28,17 @@ async function getTags() {
   } catch { return []; }
 }
 
-const tagColors = [
-  "from-indigo-500 to-blue-500",
-  "from-purple-500 to-pink-500",
+const tagGradients = [
+  "from-rose-500 to-blue-500",
+  "from-pink-500 to-pink-500",
   "from-emerald-500 to-teal-500",
   "from-orange-500 to-amber-500",
   "from-cyan-500 to-blue-500",
   "from-rose-500 to-pink-500",
-  "from-violet-500 to-purple-500",
+  "from-violet-500 to-orange-400",
   "from-teal-500 to-green-500",
+  "from-fuchsia-500 to-pink-500",
+  "from-amber-500 to-yellow-500",
 ];
 
 export default async function BlogPage({ searchParams }: { searchParams: Promise<{ page?: string; tag?: string }> }) {
@@ -51,54 +54,66 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
       <main className="flex-1">
         {/* Decorative background */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="animate-float absolute -top-32 right-1/4 h-96 w-96 rounded-full bg-indigo-400/5 blur-3xl" />
-          <div className="animate-float-delayed absolute -bottom-32 left-1/4 h-96 w-96 rounded-full bg-purple-400/5 blur-3xl" />
+          <div className="animate-float -top-32 right-1/4 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-rose-500/10 via-pink-500/5 to-pink-500/5 blur-[100px]" />
+          <div className="animate-float-delayed -bottom-40 left-1/4 h-[400px] w-[400px] rounded-full bg-gradient-to-br from-cyan-500/8 to-teal-500/5 blur-[80px]" />
         </div>
 
-        <div className="relative container mx-auto px-4 py-12">
+        <div className="relative container mx-auto px-4 py-14">
           {/* Page Header */}
-          <div className="mb-10">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg">
-                  <BookOpen className="h-5 w-5 text-white" />
+          <div className="mb-12 animate-fade-in-up">
+            <div className="flex items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 shadow-xl shadow-rose-500/20">
+                  <BookOpen className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold">博客</h1>
-                  <p className="text-muted-foreground text-sm">分享技术实践与思考</p>
+                  <h1 className="text-4xl font-black">博客</h1>
+                  <p className="text-sm text-muted-foreground mt-0.5">分享技术实践与思考</p>
                 </div>
               </div>
-              
-              {/* 搜索框 */}
-              <form action="/search" method="GET" className="hidden sm:block">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+
+              {/* Search */}
+              <form action="/search" method="GET" className="hidden sm:block animate-fade-in-up delay-100">
+                <div className="relative group">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-rose-500" />
                   <input
                     type="text"
                     name="q"
                     placeholder="搜索文章..."
-                    className="w-64 pl-10 pr-4 py-2 rounded-xl border bg-card/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                    className="w-72 pl-11 pr-4 py-3 rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500/50 transition-all text-sm shadow-sm"
                   />
                 </div>
               </form>
             </div>
           </div>
 
+          {/* Main layout: sidebar + content */}
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar */}
-            <aside className="w-full lg:w-72 shrink-0">
-              <div className="rounded-2xl border bg-card/80 backdrop-blur-sm p-6 sticky top-24 shadow-sm">
-                <div className="flex items-center gap-2 mb-5">
-                  <Search className="h-4 w-4 text-muted-foreground" />
-                  <h3 className="font-semibold">标签筛选</h3>
+            <aside className="w-full lg:w-64 shrink-0 animate-fade-in-left">
+              <div className="rounded-2xl glass-card p-5 sticky top-24 space-y-5">
+                {/* Filter header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    <Filter className="h-4 w-4 text-rose-500" />
+                    标签筛选
+                  </div>
+                  {tag && (
+                    <Link href="/blog" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                      <X className="h-3 w-3" />
+                      清除
+                    </Link>
+                  )}
                 </div>
+
+                {/* Tags */}
                 <div className="flex flex-wrap gap-2">
                   <Link
                     href="/blog"
-                    className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+                    className={`tag-pill rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
                       !tag
-                        ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md"
-                        : "bg-muted text-muted-foreground hover:text-foreground"
+                        ? "bg-gradient-to-r from-rose-500 to-orange-400 text-white shadow-md shadow-rose-500/20"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
                     }`}
                   >
                     全部
@@ -107,78 +122,29 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
                     <Link
                       key={t.slug}
                       href={`/blog?tag=${t.slug}`}
-                      className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+                      className={`tag-pill rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
                         tag === t.slug
-                          ? `bg-gradient-to-r ${tagColors[i % tagColors.length]} text-white shadow-md`
-                          : "bg-muted text-muted-foreground hover:text-foreground"
+                          ? `bg-gradient-to-r ${tagGradients[i % tagGradients.length]} text-white shadow-md`
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
                       }`}
                     >
                       {t.name}
                     </Link>
                   ))}
                 </div>
+
+                {/* Stats mini card */}
+                <div className="rounded-xl bg-gradient-to-br from-rose-500/5 to-orange-400/5 p-4 border border-rose-500/10">
+                  <div className="text-xs text-muted-foreground mb-1">当前共</div>
+                  <div className="text-2xl font-black gradient-text">{pagination.total || 0}</div>
+                  <div className="text-xs text-muted-foreground">篇文章</div>
+                </div>
               </div>
             </aside>
 
-            {/* Posts */}
-            <div className="flex-1">
-              {tag && (
-                <div className="mb-6 flex items-center gap-2 text-sm animate-fade-in">
-                  <span className="text-muted-foreground">标签:</span>
-                  <span className="rounded-full bg-gradient-to-r from-indigo-500/10 to-purple-500/10 px-3 py-1 text-indigo-500 font-medium">{tag}</span>
-                  <Link href="/blog" className="text-muted-foreground hover:text-foreground ml-2 transition-colors">清除</Link>
-                </div>
-              )}
-
-              {posts.length > 0 ? (
-                <>
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {posts.map((post: any) => (
-                      <PostCard key={post.id} post={post} />
-                    ))}
-                  </div>
-                  {pagination.totalPages > 1 && (
-                    <div className="mt-10 flex justify-center gap-2">
-                      {page > 1 && (
-                        <Link href={`/blog?page=${page - 1}${tag ? `&tag=${tag}` : ""}`}
-                          className="rounded-xl border bg-card px-4 py-2.5 text-sm hover:bg-muted transition-all hover:-translate-y-0.5 hover:shadow-sm">
-                          上一页
-                        </Link>
-                      )}
-                      {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
-                        <Link key={p} href={`/blog?page=${p}${tag ? `&tag=${tag}` : ""}`}
-                          className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all hover:-translate-y-0.5 ${
-                            p === page
-                              ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md"
-                              : "border bg-card hover:bg-muted hover:shadow-sm"
-                          }`}>
-                          {p}
-                        </Link>
-                      ))}
-                      {page < pagination.totalPages && (
-                        <Link href={`/blog?page=${page + 1}${tag ? `&tag=${tag}` : ""}`}
-                          className="rounded-xl border bg-card px-4 py-2.5 text-sm hover:bg-muted transition-all hover:-translate-y-0.5 hover:shadow-sm">
-                          下一页
-                        </Link>
-                      )}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="relative overflow-hidden rounded-2xl border bg-card py-20 text-center shadow-sm glow-card">
-                  <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                    <div className="animate-float absolute -top-16 -right-16 h-48 w-48 rounded-full bg-indigo-400/10 blur-2xl" />
-                    <div className="animate-float-delayed absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-purple-400/10 blur-2xl" />
-                  </div>
-                  <div className="relative">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10">
-                      <Calendar className="h-8 w-8 text-indigo-500" />
-                    </div>
-                    <h3 className="mb-2 text-lg font-semibold">暂无文章</h3>
-                    <p className="text-muted-foreground">博主正在努力写作中，敬请期待...</p>
-                  </div>
-                </div>
-              )}
+            {/* Posts content — Archive TOC layout */}
+            <div className="flex-1 min-w-0">
+              <BlogClientWrapper posts={posts} tags={tags} />
             </div>
           </div>
         </div>

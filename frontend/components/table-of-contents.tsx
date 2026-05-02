@@ -96,7 +96,7 @@ export function TableOfContents({ items, className = "" }: TableOfContentsProps)
             ${isChild ? "pl-2" : ""}
             ${item.level === 1 ? "font-medium" : "font-normal"}
             ${isActive
-              ? "text-indigo-600 dark:text-indigo-400 font-medium"
+              ? "text-rose-600 dark:text-rose-400 font-medium"
               : "text-muted-foreground hover:text-foreground"
             }
           `}
@@ -127,7 +127,7 @@ export function TableOfContents({ items, className = "" }: TableOfContentsProps)
             }}
             className={`
               flex-1 hover:underline underline-offset-2
-              ${isActive ? "text-indigo-600 dark:text-indigo-400" : ""}
+              ${isActive ? "text-rose-600 dark:text-rose-400" : ""}
               line-clamp-2
             `}
             style={{
@@ -139,7 +139,7 @@ export function TableOfContents({ items, className = "" }: TableOfContentsProps)
 
           {/* Active indicator */}
           {isActive && (
-            <span className="absolute left-0 w-0.5 h-5 bg-indigo-600 dark:bg-indigo-400 rounded-r" />
+            <span className="absolute left-0 w-0.5 h-5 bg-rose-600 dark:bg-rose-400 rounded-r" />
           )}
         </div>
 
@@ -157,7 +157,7 @@ export function TableOfContents({ items, className = "" }: TableOfContentsProps)
     <nav className={`relative ${className}`}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
-        <List className="h-4 w-4 text-indigo-500" />
+        <List className="h-4 w-4 text-rose-500" />
         <span className="text-sm font-medium">目录</span>
       </div>
 

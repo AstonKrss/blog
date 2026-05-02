@@ -17,6 +17,8 @@ public class PostSummaryVO {
     private String slug;
     private String title;
     private String excerpt;
+    private String content;
+    private String createdAt;
     private String coverImage;
     private String publishedAt;
     private Integer readingTime;

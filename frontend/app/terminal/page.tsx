@@ -98,9 +98,15 @@ export default function TerminalPage() {
     setIsEmbedded(window.self !== window.top);
   }, []);
 
+  // Only scroll when user sends a command — not on initial mount.
+  // Initial history[] set from useEffect is NOT a command, it's the welcome message.
+  const previousHistoryLength = useRef(0);
   useEffect(() => {
-    scrollToBottom();
-  }, [history, scrollToBottom, isEmbedded]);
+    if (history.length > previousHistoryLength.current) {
+      scrollToBottom();
+      previousHistoryLength.current = history.length;
+    }
+  }, [history.length, scrollToBottom]);
 
   useEffect(() => {
     if (isVimMode && vimInputRef.current && !isEmbedded) {
@@ -995,23 +1001,23 @@ export default function TerminalPage() {
             <div className="border-b border-gray-700 pb-2 mb-2">
               <div className="text-green-400 font-bold">1. 基础结构</div>
               <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
-                <div><span className="text-purple-400">FROM</span> openjdk:21-jdk-alpine</div>
-                <div><span className="text-purple-400">WORKDIR</span> /app</div>
-                <div><span className="text-purple-400">COPY</span> target/*.jar app.jar</div>
-                <div><span className="text-purple-400">EXPOSE</span> 8080</div>
-                <div><span className="text-purple-400">ENTRYPOINT</span> ["java", "-jar", "app.jar"]</div>
+                <div><span className="text-pink-400">FROM</span> openjdk:21-jdk-alpine</div>
+                <div><span className="text-pink-400">WORKDIR</span> /app</div>
+                <div><span className="text-pink-400">COPY</span> target/*.jar app.jar</div>
+                <div><span className="text-pink-400">EXPOSE</span> 8080</div>
+                <div><span className="text-pink-400">ENTRYPOINT</span> ["java", "-jar", "app.jar"]</div>
               </div>
             </div>
             <div className="border-b border-gray-700 pb-2 mb-2">
               <div className="text-green-400 font-bold">2. 常用指令</div>
               <div className="text-gray-400 mt-1 space-y-1">
-                <div>• <span className="text-purple-400">FROM</span> - 指定基础镜像</div>
-                <div>• <span className="text-purple-400">RUN</span> - 执行命令 (构建时)</div>
-                <div>• <span className="text-purple-400">COPY</span> - 复制文件到容器</div>
-                <div>• <span className="text-purple-400">CMD</span> - 容器启动命令</div>
-                <div>• <span className="text-purple-400">ENV</span> - 设置环境变量</div>
-                <div>• <span className="text-purple-400">EXPOSE</span> - 声明端口</div>
-                <div>• <span className="text-purple-400">WORKDIR</span> - 设置工作目录</div>
+                <div>• <span className="text-pink-400">FROM</span> - 指定基础镜像</div>
+                <div>• <span className="text-pink-400">RUN</span> - 执行命令 (构建时)</div>
+                <div>• <span className="text-pink-400">COPY</span> - 复制文件到容器</div>
+                <div>• <span className="text-pink-400">CMD</span> - 容器启动命令</div>
+                <div>• <span className="text-pink-400">ENV</span> - 设置环境变量</div>
+                <div>• <span className="text-pink-400">EXPOSE</span> - 声明端口</div>
+                <div>• <span className="text-pink-400">WORKDIR</span> - 设置工作目录</div>
               </div>
             </div>
             <div className="text-yellow-400 text-sm">💡 继续学习: <span className="text-green-400">learn dockercompose</span></div>
@@ -1033,14 +1039,14 @@ export default function TerminalPage() {
             <div className="border-b border-gray-700 pb-2 mb-2">
               <div className="text-green-400 font-bold">2. compose.yaml 示例</div>
               <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
-                <div><span className="text-purple-400">services</span>:</div>
+                <div><span className="text-pink-400">services</span>:</div>
                 <div>&nbsp;&nbsp;<span className="text-blue-400">web</span>:</div>
-                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">image</span>: nginx</div>
-                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">ports</span>:</div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-pink-400">image</span>: nginx</div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-pink-400">ports</span>:</div>
                 <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- "80:80"</div>
                 <div>&nbsp;&nbsp;<span className="text-blue-400">db</span>:</div>
-                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">image</span>: mysql:8</div>
-                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-purple-400">environment</span>:</div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-pink-400">image</span>: mysql:8</div>
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-pink-400">environment</span>:</div>
                 <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MYSQL_ROOT_PASSWORD: secret</div>
               </div>
             </div>
@@ -1190,7 +1196,7 @@ export default function TerminalPage() {
             <div className="border-b border-gray-700 pb-2 mb-2">
               <div className="text-green-400 font-bold">2. nginx.conf 示例</div>
               <div className="text-gray-300 font-mono mt-2 space-y-1 bg-black/30 p-3 rounded">
-                <div><span className="text-purple-400">server</span> {'{'}</div>
+                <div><span className="text-pink-400">server</span> {'{'}</div>
                 <div>&nbsp;&nbsp;<span className="text-blue-400">listen</span> 80;</div>
                 <div>&nbsp;&nbsp;<span className="text-blue-400">server_name</span> example.com;</div>
                 <div>&nbsp;&nbsp;<span className="text-blue-400">location</span> / {'{'}</div>
@@ -1675,9 +1681,9 @@ export default function TerminalPage() {
                 <p className="text-sm text-gray-400">完整的 vim 操作体验：Normal/Insert/Command 模式切换</p>
               </div>
 
-              <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6 hover:border-purple-500/30 transition-colors">
+              <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6 hover:border-pink-500/30 transition-colors">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/20 text-purple-400">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-500/20 text-pink-400">
                     <Lock className="h-5 w-5" />
                   </div>
                   <h3 className="font-semibold">权限控制</h3>

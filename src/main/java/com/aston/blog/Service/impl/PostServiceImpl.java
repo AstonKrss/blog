@@ -283,6 +283,8 @@ public class PostServiceImpl implements PostService {
         vo.setSlug(post.getSlug());
         vo.setTitle(post.getTitle());
         vo.setExcerpt(post.getExcerpt());
+        vo.setContent(post.getContent());
+        vo.setCreatedAt(post.getCreatedAt() != null ? post.getCreatedAt().toString() : null);
         vo.setCoverImage(post.getCoverImage());
         vo.setPublishedAt(post.getPublishedAt() != null ? post.getPublishedAt().toString() : null);
         vo.setViewCount(Long.valueOf(post.getViewCount()));

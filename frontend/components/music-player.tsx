@@ -78,17 +78,21 @@ export function MusicPlayer() {
     } else {
       await audioRef.current.play();
     }
-    setIsPlaying(!isPlaying);
+    const next = !isPlaying;
+    setIsPlaying(next);
+    localStorage.setItem("musicPlaying", next ? "true" : "false");
   };
 
   const nextTrack = () => {
     setCurrentTrack((prev) => (prev + 1) % playlist.length);
     setIsPlaying(true);
+    localStorage.setItem("musicPlaying", "true");
   };
 
   const prevTrack = () => {
     setCurrentTrack((prev) => (prev - 1 + playlist.length) % playlist.length);
     setIsPlaying(true);
+    localStorage.setItem("musicPlaying", "true");
   };
 
   const toggleMute = () => setIsMuted(!isMuted);
@@ -110,10 +114,10 @@ export function MusicPlayer() {
         {isExpanded && (
           <div className="mb-2 w-80 rounded-2xl border bg-card/90 backdrop-blur-xl shadow-2xl overflow-hidden animate-scale-in glow-card">
             {/* Track Info */}
-            <div className="p-4 bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
+            <div className="p-4 bg-gradient-to-r from-rose-500/10 to-orange-400/10">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className={`h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg ${isPlaying ? "animate-spin" : ""}`} style={{ animationDuration: "3s" }}>
+                  <div className={`h-12 w-12 rounded-xl bg-gradient-to-br from-rose-500 to-orange-400 flex items-center justify-center shadow-lg ${isPlaying ? "animate-spin" : ""}`} style={{ animationDuration: "3s" }}>
                     <Music className="h-6 w-6 text-white" />
                   </div>
                 </div>
@@ -131,7 +135,7 @@ export function MusicPlayer() {
                 </div>
                 <div className="h-1 rounded-full bg-muted overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all"
+                    className="h-full rounded-full bg-gradient-to-r from-rose-500 to-orange-400 transition-all"
                     style={{ width: `${duration ? (progress / duration) * 100 : 0}%` }}
                   />
                 </div>
@@ -145,7 +149,7 @@ export function MusicPlayer() {
               </button>
               <button
                 onClick={togglePlay}
-                className="p-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+                className="p-3 rounded-full bg-gradient-to-r from-rose-500 to-orange-400 text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
               >
                 {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
               </button>
@@ -166,7 +170,7 @@ export function MusicPlayer() {
                 step="0.01"
                 value={isMuted ? 0 : volume}
                 onChange={(e) => { setVolume(parseFloat(e.target.value)); setIsMuted(false); }}
-                className="flex-1 h-1 rounded-full appearance-none bg-muted accent-indigo-500"
+                className="flex-1 h-1 rounded-full appearance-none bg-muted accent-rose-500"
               />
             </div>
           </div>
@@ -177,7 +181,7 @@ export function MusicPlayer() {
           onClick={() => setIsExpanded(!isExpanded)}
           className={`relative flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl ${
             isPlaying
-              ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white animate-glow"
+              ? "bg-gradient-to-r from-rose-500 to-orange-400 text-white animate-glow"
               : "bg-card/90 backdrop-blur-xl border text-muted-foreground"
           }`}
         >

@@ -51,13 +51,13 @@ export default function PostsManagePage() {
       <Header />
       <main className="flex-1">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="animate-float absolute -top-32 right-1/4 h-96 w-96 rounded-full bg-indigo-400/5 blur-3xl" />
+          <div className="animate-float absolute -top-32 right-1/4 h-96 w-96 rounded-full bg-rose-400/5 blur-3xl" />
         </div>
 
         <div className="relative mx-auto max-w-5xl px-4 py-8">
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-orange-400 shadow-lg">
                 <FileText className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -66,7 +66,7 @@ export default function PostsManagePage() {
               </div>
             </div>
             <Link href="/dashboard/write"
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all">
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-orange-400 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-rose-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all">
               <Plus className="h-4 w-4" /> 写文章
             </Link>
           </div>
@@ -128,12 +128,12 @@ export default function PostsManagePage() {
               </div>
             ) : (
               <div className="py-16 text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10">
-                  <FileText className="h-8 w-8 text-indigo-500" />
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10">
+                  <FileText className="h-8 w-8 text-rose-500" />
                 </div>
                 <h3 className="mb-2 font-medium">暂无文章</h3>
                 <p className="text-sm text-muted-foreground mb-4">开始创作你的第一篇文章吧</p>
-                <Link href="/dashboard/write" className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all">
+                <Link href="/dashboard/write" className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-orange-400 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-rose-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all">
                   <Plus className="h-4 w-4" /> 写文章
                 </Link>
               </div>

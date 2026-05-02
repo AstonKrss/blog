@@ -44,7 +44,7 @@ export function Typewriter() {
 
   return (
     <span className="inline-block">
-      <span className="text-indigo-500">{displayText}</span>
+      <span className="text-rose-500">{displayText}</span>
       <span className="animate-pulse">|</span>
     </span>
   );

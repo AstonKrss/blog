@@ -10,7 +10,9 @@ import com.aston.blog.vo.security.SecurityStatsVO;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -118,7 +120,7 @@ public class AttackLogServiceImpl implements AttackLogService {
                     map.put("count", record[1]);
                     map.put("lastAttack", record[2]);
                     return map;
-                }).toList();
+                }).collect(Collectors.toList());
         stats.setTopAttackers(topAttackers);
 
         List<Map<String, Object>> topAttackPaths = attackLogRepository.findTopAttackPaths().stream()
@@ -128,7 +130,7 @@ public class AttackLogServiceImpl implements AttackLogService {
                     map.put("path", record[0]);
                     map.put("count", record[1]);
                     return map;
-                }).toList();
+                }).collect(Collectors.toList());
         stats.setTopAttackPaths(topAttackPaths);
 
         LocalDateTime startOfWeek = LocalDateTime.now().minusDays(7);
@@ -138,7 +140,7 @@ public class AttackLogServiceImpl implements AttackLogService {
                     map.put("date", row[0].toString());
                     map.put("count", ((Number) row[1]).longValue());
                     return map;
-                }).toList();
+                }).collect(Collectors.toList());
         stats.setAttackTrend(trend);
 
         // 最近日志
@@ -154,9 +156,37 @@ public class AttackLogServiceImpl implements AttackLogService {
                     map.put("userAgent", log.getUserAgent());
                     map.put("createdAt", log.getCreatedAt() != null ? log.getCreatedAt().toString() : null);
                     return map;
-                }).toList();
+                }).collect(Collectors.toList());
         stats.setRecentLogs(recentLogs);
         return stats;
+    }
+
+    @Override
+    public List<Map<String, Object>> getRecentLogsByType(String attackType, String ip, int limit) {
+        List<AttackLog> logs;
+        if (attackType != null && !attackType.isEmpty() && ip != null && !ip.isEmpty()) {
+            logs = attackLogRepository.findTop50ByIpAndAttackTypeOrderByCreatedAtDesc(ip, attackType);
+        } else if (attackType != null && !attackType.isEmpty()) {
+            logs = attackLogRepository.findTop50ByAttackTypeOrderByCreatedAtDesc(attackType);
+        } else if (ip != null && !ip.isEmpty()) {
+            logs = attackLogRepository.findTop50ByIpOrderByCreatedAtDesc(ip);
+        } else {
+            logs = attackLogRepository.findTop50ByOrderByCreatedAtDesc();
+        }
+        return logs.stream().limit(limit).map(log -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", log.getId());
+            map.put("ip", log.getIp());
+            map.put("path", log.getPath());
+            map.put("method", log.getMethod());
+            map.put("payload", log.getPayload());
+            map.put("attackType", log.getAttackType());
+            map.put("userAgent", log.getUserAgent());
+            map.put("queryParams", log.getQueryParams());
+            map.put("riskLevel", log.getRiskLevel());
+            map.put("createdAt", log.getCreatedAt() != null ? log.getCreatedAt().toString() : null);
+            return map;
+        }).collect(Collectors.toList());
     }
 
 }

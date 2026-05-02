@@ -48,7 +48,7 @@ export function VisitorInteraction() {
       {/* Random Article */}
       <div className="bg-card/80 backdrop-blur-sm rounded-3xl border p-6 shadow-lg hover:shadow-xl transition-shadow">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-rose-500 to-orange-400">
             <Shuffle className="h-5 w-5 text-white" />
           </div>
           <div>
@@ -61,7 +61,7 @@ export function VisitorInteraction() {
           <div className="h-24 bg-muted/50 rounded-xl animate-pulse" />
         ) : randomPost ? (
           <div className="space-y-3">
-            <h4 className="font-medium line-clamp-2 hover:text-indigo-500 transition-colors cursor-pointer">
+            <h4 className="font-medium line-clamp-2 hover:text-rose-500 transition-colors cursor-pointer">
               {randomPost.title}
             </h4>
             <p className="text-sm text-muted-foreground line-clamp-2">
@@ -69,7 +69,7 @@ export function VisitorInteraction() {
             </p>
             <Link
               href={`/blog/${randomPost.slug}`}
-              className="inline-flex items-center gap-1 text-sm text-indigo-500 hover:text-indigo-600"
+              className="inline-flex items-center gap-1 text-sm text-rose-500 hover:text-rose-600"
             >
               阅读全文
               <ArrowRight className="h-4 w-4" />
@@ -94,7 +94,7 @@ export function VisitorInteraction() {
 
         {voted ? (
           <div className="space-y-3">
-            <p className="text-sm text-indigo-500 font-medium">感谢你的投票！</p>
+            <p className="text-sm text-rose-500 font-medium">感谢你的投票！</p>
             <div className="space-y-2">
               {moods.map((mood, index) => {
                 const Icon = mood.icon;

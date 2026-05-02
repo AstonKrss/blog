@@ -57,11 +57,11 @@ export function MarkdownRenderer({ content }: { content: string }) {
         prose-headings:font-bold prose-headings:text-foreground dark:prose-headings:text-white
         prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-h1:scroll-mt-24 prose-h2:scroll-mt-24 prose-h3:scroll-mt-24
         prose-p:text-foreground dark:prose-p:text-gray-200
-        prose-a:text-indigo-500 dark:prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:underline
+        prose-a:text-rose-500 dark:prose-a:text-rose-400 prose-a:no-underline hover:prose-a:underline
         prose-code:text-gray-700 dark:prose-code:text-gray-200 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-sm prose-code:whitespace-pre
         prose-pre:bg-gray-900 dark:prose-pre:bg-[#1a1a1e] prose-pre:rounded-xl prose-pre:overflow-x-auto prose-pre:text-gray-100 prose-pre:leading-relaxed
         prose-img:rounded-xl prose-img:shadow-md
-        prose-blockquote:border-l-indigo-500 prose-blockquote:bg-muted dark:prose-blockquote:bg-gray-800 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:rounded-r-xl
+        prose-blockquote:border-l-rose-500 prose-blockquote:bg-muted dark:prose-blockquote:bg-gray-800 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:rounded-r-xl
         prose-hr:border-border
         prose-strong:text-foreground dark:prose-strong:text-white
         prose-li:text-foreground dark:prose-li:text-gray-200

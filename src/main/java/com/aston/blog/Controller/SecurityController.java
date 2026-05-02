@@ -32,6 +32,18 @@ public class SecurityController {
         return Result.success(attackLogService.getSecurityStats());
     }
 
+    @GetMapping("/logs")
+    public Result<?> getAttackLogs(
+            @RequestParam(required = false) String attackType,
+            @RequestParam(required = false) String ip,
+            @RequestParam(defaultValue = "50") int limit) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return Result.error(401, "未认证");
+        String role = getRoleFromAuth(auth);
+        if (!"ADMIN".equals(role)) return Result.error(403, "无权限访问");
+        return Result.success(attackLogService.getRecentLogsByType(attackType, ip, limit));
+    }
+
     private String getRoleFromAuth(Authentication auth) {
         if (auth.getAuthorities() != null && auth.getAuthorities().iterator().hasNext()) {
             return auth.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");

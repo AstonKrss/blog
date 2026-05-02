@@ -47,7 +47,7 @@ function VerifyContent() {
         {/* Loading 状态 */}
         {status === "loading" && (
           <>
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 shadow-lg">
               <Loader2 className="h-8 w-8 text-white animate-spin" />
             </div>
             <h1 className="text-2xl font-bold mb-2">验证中...</h1>
@@ -92,7 +92,7 @@ function VerifyContent() {
             <div className="flex flex-col gap-3">
               <Link
                 href="/login"
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-3 text-sm font-medium text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-orange-400 px-4 py-3 text-sm font-medium text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
               >
                 返回登录页
               </Link>
@@ -111,7 +111,7 @@ function VerifyLoading() {
   return (
     <div className="relative w-full max-w-md">
       <div className="rounded-2xl border bg-card/80 backdrop-blur-xl p-8 shadow-lg glow-card text-center">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 shadow-lg">
           <Loader2 className="h-8 w-8 text-white animate-spin" />
         </div>
         <h1 className="text-2xl font-bold mb-2">加载中...</h1>
@@ -127,8 +127,8 @@ export default function VerifyPage() {
       <Header />
       <main className="flex-1 flex items-center justify-center px-4 py-12 relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="animate-float absolute -top-32 -right-32 h-96 w-96 rounded-full bg-indigo-400/10 blur-3xl" />
-          <div className="animate-float-delayed absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-purple-400/10 blur-3xl" />
+          <div className="animate-float absolute -top-32 -right-32 h-96 w-96 rounded-full bg-rose-400/10 blur-3xl" />
+          <div className="animate-float-delayed absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-pink-400/10 blur-3xl" />
         </div>
 
         <Suspense fallback={<VerifyLoading />}>

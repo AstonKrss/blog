@@ -165,7 +165,7 @@ export default function ProfilePage() {
                     }}
                   />
                 ) : null}
-                <div className={`h-20 w-20 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-2xl font-bold text-white shadow-xl ${avatarUrl ? 'hidden' : ''}`}>
+                <div className={`h-20 w-20 rounded-full bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 flex items-center justify-center text-2xl font-bold text-white shadow-xl ${avatarUrl ? 'hidden' : ''}`}>
                   {avatarLetter}
                 </div>
                 <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-green-500 border-4 border-card flex items-center justify-center">
@@ -175,7 +175,7 @@ export default function ProfilePage() {
               <div>
                 <h2 className="text-xl font-semibold">{user.username}</h2>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
-                <span className="inline-block mt-1 rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs font-medium text-indigo-500">
+                <span className="inline-block mt-1 rounded-full bg-rose-500/10 px-2.5 py-0.5 text-xs font-medium text-rose-500">
                   {user.role === "ADMIN" ? "管理员" : user.role === "AUTHOR" ? "作者" : "读者"}
                 </span>
               </div>
@@ -185,7 +185,7 @@ export default function ProfilePage() {
               <div>
                 <label className="mb-1.5 block text-sm font-medium">显示名称</label>
                 <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
                   placeholder="你的显示名称" />
               </div>
               <div>
@@ -202,7 +202,7 @@ export default function ProfilePage() {
                             className="h-20 w-20 rounded-full object-cover shadow-xl"
                           />
                         ) : (
-                          <div className="h-20 w-20 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-2xl font-bold text-white shadow-xl">
+                          <div className="h-20 w-20 rounded-full bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 flex items-center justify-center text-2xl font-bold text-white shadow-xl">
                             {avatarLetter}
                           </div>
                         )}
@@ -225,12 +225,12 @@ export default function ProfilePage() {
               <div>
                 <label className="mb-1.5 block text-sm font-medium">个人简介</label>
                 <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4}
-                  className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
                   placeholder="介绍一下自己..." />
               </div>
               <div className="pt-4 flex items-center gap-4">
                 <button onClick={handleSave} disabled={saving}
-                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50">
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-orange-400 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-rose-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" />保存修改</>}
                 </button>
                 <button onClick={() => setShowPasswordModal(true)}
@@ -258,7 +258,7 @@ export default function ProfilePage() {
                 <label className="mb-1.5 block text-sm font-medium">当前密码</label>
                 <div className="relative">
                   <input type={showPassword ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                    className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
                     placeholder="输入当前密码" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -268,13 +268,13 @@ export default function ProfilePage() {
               <div>
                 <label className="mb-1.5 block text-sm font-medium">新密码</label>
                 <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
                   placeholder="输入新密码（至少6位）" />
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium">确认新密码</label>
                 <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
                   placeholder="再次输入新密码" />
               </div>
               <button onClick={handleChangePassword} disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
