@@ -2,11 +2,28 @@
 
 全栈博客系统，前端 **Next.js 15 (App Router)** + 后端 **Spring Boot 4.0 (Java 21)**，数据库 **MySQL 8.0**。
 
-## 🆕 新增功能：终端学习中心
+## 🆕 新增功能
+
+### Command Palette (`⌘K`)
+按 `⌘K` 或 `/` 打开快捷命令面板，搜索页面、切换主题、快速计算。
+
+内置工具：
+- 计算器 — 输入数学表达式
+- Base64 编解码
+- 颜色转换 — HEX ↔ RGB ↔ HSL
+- Slug 生成器 — 中文转 URL-safe 格式
+- UUID 生成器
+- 密码生成器
+
+### 阅读进度条
+博客文章顶部显示玫瑰色进度条，阅读超过 10% 后右上角弹出"剩余 X 分钟"提示。
+
+### 实时在线人数
+左下角显示"当前 X 人在浏览"，基于过去 5 分钟独立 IP 统计。
+
+### 终端学习中心
 
 博客内置交互式 Linux 终端，支持 **learn** 命令学习 DevOps 技能！
-
-### 🎓 可学习主题
 
 | 命令 | 内容 |
 |------|------|
@@ -17,11 +34,6 @@
 | `learn linux` | Linux 命令行基础 |
 | `learn git` | Git 版本控制 |
 | `learn nginx` | Nginx Web 服务器 |
-
-### 终端入口
-
-- 首页嵌入式终端：`/`
-- 完整终端页面：`/terminal`
 
 ## 🚀 快速开始
 
@@ -53,23 +65,24 @@ npm run dev
 blog/
 ├── src/main/java/com/aston/blog/
 │   ├── Controller/          # REST 控制器
-│   ├── Service/impl/       # 业务逻辑
-│   ├── dto/                # 请求 DTO
-│   ├── vo/                 # 响应 VO
-│   ├── entity/             # JPA 实体
-│   └── repository/         # 数据仓库
+│   ├── Service/impl/        # 业务逻辑
+│   ├── dto/                 # 请求 DTO
+│   ├── vo/                  # 响应 VO
+│   ├── entity/              # JPA 实体
+│   └── repository/          # 数据仓库
 ├── frontend/                # Next.js 15
-│   └── app/                # 页面路由
+│   └── app/                 # 页面路由
+│       └── components/      # 组件
 ├── compose.yaml             # Docker Compose
-└── docs/                   # 文档
+└── docs/                    # 文档
 ```
 
 ## 🛠️ 技术栈
 
 | 层级 | 技术 |
 |------|------|
-| 前端 | Next.js 15, React, TypeScript, TailwindCSS |
-| 后端 | Spring Boot 4.0, Java 21, Spring Security |
+| 前端 | Next.js 15, React, TypeScript, TailwindCSS, next-themes |
+| 后端 | Spring Boot 4.0, Java 21, Spring Security, JPA |
 | 数据库 | MySQL 8.0 |
 | 部署 | Docker, Docker Compose, GitHub Actions |
 
@@ -87,7 +100,7 @@ free -h     # 内存使用
 df -h       # 磁盘使用
 neofetch    # 系统信息
 matrix      # 黑客帝国效果
-learn       # 学习中心 ⭐
+learn       # 学习中心
 ```
 
 ## 🔐 登录命令
@@ -104,11 +117,21 @@ login username -p password
 | `/api/auth/register` | POST | 注册 (需验证码) |
 | `/api/auth/send-code` | POST | 发送注册验证码 |
 | `/api/public/posts` | GET | 公开文章列表 |
+| `/api/public/online` | GET | 实时在线人数 |
 | `/api/footprints` | GET/POST/DELETE | 旅行足迹 |
+
+## 🌈 主题系统
+
+三个主题：深色 / 浅色 / 背景图
+
+按路由自动切换：
+- 首页 `/` — 深色
+- 博客 `/blog` — 浅色
+- 用户可随时通过顶部切换器覆盖
 
 ## 🗄️ 数据库
 
-- **DDL 策略**: `spring.jpa.hibernate.ddl-auto=none`
+- **DDL 策略**: `spring.jpa.hibernate.ddl-auto=update`
 - **连接配置**: 环境变量 `SPRING_DATASOURCE_URL/USER/PASSWORD`
 
 ## 🌐 部署

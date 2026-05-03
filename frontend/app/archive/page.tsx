@@ -107,7 +107,7 @@ function ArchiveContent() {
           <div className="animate-float-delayed -bottom-40 left-1/4 h-[400px] w-[400px] rounded-full bg-gradient-to-br from-rose-500/8 to-orange-400/5 blur-[80px]" />
         </div>
 
-        <div className="relative container mx-auto px-4 py-14">
+        <div className="relative w-full px-4 py-14">
           {/* Page Header */}
           <div className="mb-10 flex items-center justify-between animate-fade-in-up">
             <div className="flex items-center gap-4">

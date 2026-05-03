@@ -25,7 +25,18 @@
       "Bash(ls D:/Users/32239/java_code/blog/mvnw*)",
       "Bash(curl -s http://localhost:3000)",
       "Bash(curl -s http://localhost:8080)",
-      "Bash(curl -s http://localhost:8080/api/public/online)"
+      "Bash(curl -s http://localhost:8080/api/public/online)",
+      "Bash(node -e ' *)",
+      "Bash(node *)",
+      "Read(//c/Users/32239/.claude/skills/ui-ux-pro-max/**)",
+      "Bash(python src/ui-ux-pro-max/scripts/search.py \"social feed microblog timeline cards\" --domain style -n 5)",
+      "Bash(python src/ui-ux-pro-max/scripts/search.py \"social feed microblog timeline cards\" --domain ux -n 5)",
+      "Bash(python src/ui-ux-pro-max/scripts/search.py \"social media user profile feed\" --domain product -n 5)",
+      "Bash(python src/ui-ux-pro-max/scripts/search.py \"social media post card\" --stack nextjs -n 5)",
+      "Bash(curl -s \"http://localhost:8080/api/public/posts?page=0&limit=6\")",
+      "Bash(curl -s \"http://localhost:8080/api/blog\")",
+      "Bash(curl -s \"http://localhost:8080/api/blog/posts?page=0&limit=6\")",
+      "Bash(curl -s \"http://localhost:8080/api/posts?page=0&limit=6\")"
     ]
   }
 }

@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Shield, Code, Globe, Lock, Hash, Search, Zap, ArrowLeft, Copy, Check, Upload, FileText, QrCode, Clock, Key, Binary, FileJson, Type, Image, RefreshCw, ArrowRight, Gamepad2, Brain, Keyboard, LockKeyhole, MessageSquare } from "lucide-react";
+import { Shield, Code, Globe, Lock, Hash, Search, Zap, ArrowLeft, Copy, Check, Upload, FileText, QrCode, Clock, Key, Binary, FileJson, Type, Image, RefreshCw, ArrowRight, Gamepad2, Brain, Keyboard, LockKeyhole, MessageSquare, Send, BookOpen, ExternalLink } from "lucide-react";
 import { Game2048 } from "@/components/games/game-2048";
 import { SnakeGame } from "@/components/games/snake-game";
 import { TypingRunner } from "@/components/games/typing-runner";
@@ -13,6 +13,7 @@ import { GitmojiGenerator } from "@/components/games/gitmoji-generator";
 import { RetroConsole } from "@/components/games/retro-console";
 import { DailyQuestion } from "@/components/games/daily-question";
 import { MessageWall } from "@/components/games/message-wall";
+import { ApiTester } from "@/components/games/api-tester";
 
 type ToolCategory = {
   name: string;
@@ -142,29 +143,58 @@ function QrCodeTool() {
 }
 
 const toolCategories: ToolCategory[] = [
+  { name: "实用资源", icon: BookOpen, gradient: "from-blue-500 to-cyan-500", color: "text-blue-500", tools: [] }, // filled from resources data below
+  { name: "开发工具", icon: Send, gradient: "from-violet-500 to-purple-600", color: "text-violet-500", tools: [
+    { name: "API 测试器", desc: "发送 HTTP 请求，查看格式化响应", component: <ApiTester /> },
+  ] },
   { name: "编码解码", icon: Code, gradient: "from-blue-500 to-cyan-500", color: "text-blue-500", tools: [{ name: "Base64", desc: "Base64 编码/解码", component: <Base64Tool /> }, { name: "URL", desc: "URL 编码/解码", component: <UrlTool /> }, { name: "HTML", desc: "HTML 实体编码/解码", component: <HtmlTool /> }, { name: "Unicode", desc: "Unicode 编码/解码", component: <UnicodeTool /> }, { name: "Hex", desc: "十六进制转换", component: <HexTool /> }, { name: "二进制", desc: "二进制转换", component: <BinaryTool /> }, { name: "ROT13", desc: "ROT13 加密/解密", component: <Rot13Tool /> }] },
   { name: "哈希与密码", icon: Hash, gradient: "from-emerald-500 to-teal-500", color: "text-emerald-500", tools: [{ name: "SHA-256", desc: "SHA-256 哈希计算", component: <HashTool algorithm="sha256" /> }, { name: "SHA-512", desc: "SHA-512 哈希计算", component: <HashTool algorithm="sha512" /> }, { name: "密码生成", desc: "随机密码生成器", component: <PasswordGenerator /> }, { name: "文件哈希", desc: "计算文件哈希值", component: <FileHashTool /> }] },
   { name: "JWT & 正则", icon: Key, gradient: "from-pink-500 to-pink-500", color: "text-pink-500", tools: [{ name: "JWT 解析", desc: "解析 JWT Token", component: <JwtTool /> }, { name: "正则测试", desc: "正则表达式测试器", component: <RegexTool /> }] },
   { name: "格式化工具", icon: FileJson, gradient: "from-orange-500 to-amber-500", color: "text-orange-500", tools: [{ name: "JSON", desc: "JSON 格式化/压缩", component: <JsonTool /> }, { name: "时间戳", desc: "Unix 时间戳转换", component: <TimestampTool /> }, { name: "UUID", desc: "UUID 生成器", component: <UuidTool /> }] },
   { name: "其他工具", icon: Globe, gradient: "from-cyan-500 to-blue-500", color: "text-cyan-500", tools: [{ name: "User-Agent", desc: "查看浏览器信息", component: <UaTool /> }, { name: "二维码", desc: "生成二维码", component: <QrCodeTool /> }] },
-  { name: "趣味游戏", icon: Gamepad2, gradient: "from-rose-500 to-pink-500", color: "text-rose-500", tools: [
-    { name: "打字测速", desc: "测试你的打字速度", component: <TypeSpeedTest /> },
-    { name: "Gitmoji", desc: "Gitmoji 生成器", component: <GitmojiGenerator /> },
-    { name: "2048", desc: "数字合并游戏", component: <Game2048 /> },
-    { name: "贪吃蛇", desc: "经典贪吃蛇", component: <SnakeGame /> },
-    { name: "打字跑酷", desc: "打字速度跑酷挑战", component: <TypingRunner /> },
-    { name: "密码闯关", desc: "密码强度挑战", component: <PasswordStrengthGame /> },
-    { name: "每日一题", desc: "每日技术问答", component: <DailyQuestion /> },
-    { name: "小霸王", desc: "经典游戏合集", component: <RetroConsole /> },
-  ] },
-  { name: "互动留言", icon: MessageSquare, gradient: "from-orange-500 to-amber-400", color: "text-orange-500", tools: [
-    { name: "留言墙", desc: "访客留言板", component: <MessageWall /> },
-  ] },
+  { name: "互动留言", icon: MessageSquare, gradient: "from-orange-500 to-amber-400", color: "text-orange-500", tools: [{ name: "留言墙", desc: "访客留言板", component: <MessageWall /> }] },
 ];
 
+// Resources data (merged from /resources page)
+const resourceData = [
+  { name: "freeCodeCamp", desc: "免费编程学习平台", url: "https://www.freecodecamp.org/" },
+  { name: "Coursera", desc: "全球顶尖在线课程", url: "https://www.coursera.org/" },
+  { name: "MDN Web Docs", desc: "Mozilla 开发者文档", url: "https://developer.mozilla.org/" },
+  { name: "LeetCode", desc: "算法刷题平台", url: "https://leetcode.cn/" },
+  { name: "GitHub", desc: "全球最大的代码托管平台", url: "https://github.com/" },
+  { name: "Stack Overflow", desc: "开发者问答社区", url: "https://stackoverflow.com/" },
+  { name: "PortSwigger Academy", desc: "Web 安全免费课程", url: "https://portswigger.net/web-security" },
+  { name: "HackTheBox", desc: "在线渗透测试平台", url: "https://www.hackthebox.com/" },
+  { name: "OWASP", desc: "Web 应用安全指南", url: "https://owasp.org/" },
+  { name: "ChatGPT", desc: "OpenAI 对话 AI", url: "https://chat.openai.com/" },
+  { name: "Claude", desc: "Anthropic AI 助手", url: "https://claude.ai/" },
+  { name: "Spring Boot 文档", desc: "官方文档", url: "https://docs.spring.io/spring-boot/" },
+  { name: "Excalidraw", desc: "手绘风格白板", url: "https://excalidraw.com/" },
+  { name: "REGEX101", desc: "正则表达式测试", url: "https://regex101.com/" },
+];
+
+function ResourceCard({ name, desc, url }: { name: string; desc: string; url: string }) {
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer"
+      className="group relative overflow-hidden rounded-2xl glass-card p-5 text-left transition-all duration-400 hover:-translate-y-1 hover:shadow-xl border border-transparent hover:border-blue-500/20">
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="font-bold text-sm mb-1 group-hover:text-blue-400 transition-colors">{name}</div>
+          <div className="text-xs text-muted-foreground">{desc}</div>
+        </div>
+        <ExternalLink className="h-4 w-4 text-muted-foreground/40 shrink-0 mt-0.5 group-hover:text-blue-400 transition-colors" />
+      </div>
+    </a>
+  );
+}
+
 export default function ToolsPage() {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("实用资源");
   const [activeTool, setActiveTool] = useState<{ name: string; component: React.ReactNode } | null>(null);
+
+  const currentCat = toolCategories.find(c => c.name === activeCategory) || toolCategories[0];
+  const isResource = activeCategory === "实用资源";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -175,19 +205,19 @@ export default function ToolsPage() {
           <div className="animate-float-delayed -bottom-40 left-1/4 h-[400px] w-[400px] rounded-full bg-pink-500/8 blur-[80px]" />
         </div>
 
-        <div className="relative mx-auto max-w-6xl px-4 py-14">
+        <div className="relative w-full px-4 py-10">
           {activeTool ? (
-            <div className="mx-auto max-w-3xl animate-fade-in-up">
+            <div className="max-w-4xl animate-fade-in-up">
               <button onClick={() => setActiveTool(null)} className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-all group">
                 <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                 返回工具列表
               </button>
               <div className="rounded-2xl glass-card overflow-hidden shadow-xl">
-                <div className={`h-1 bg-gradient-to-r ${activeCategory ? toolCategories.find(c => c.name === activeCategory)?.gradient : "from-rose-500 to-orange-400"}`} />
+                <div className={`h-1 bg-gradient-to-r ${currentCat.gradient}`} />
                 <div className="p-8">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${activeCategory ? toolCategories.find(c => c.name === activeCategory)?.gradient : "from-rose-500 to-orange-400"} shadow-lg`}>
-                      <Shield className="h-5 w-5 text-white" />
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${currentCat.gradient} shadow-lg`}>
+                      <currentCat.icon className="h-5 w-5 text-white" />
                     </div>
                     <h2 className="text-2xl font-black">{activeTool.name}</h2>
                   </div>
@@ -196,57 +226,63 @@ export default function ToolsPage() {
               </div>
             </div>
           ) : (
-            <>
-              {/* Header */}
-              <div className="mb-14 text-center animate-fade-in-up">
-                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 shadow-xl shadow-rose-500/30">
-                  <Shield className="h-8 w-8 text-white" />
+            <div className="flex gap-8">
+              {/* Left sidebar */}
+              <aside className="w-48 shrink-0">
+                <div className="rounded-2xl glass-card p-4 sticky top-24 space-y-1">
+                  {toolCategories.map(cat => {
+                    const Icon = cat.icon;
+                    return (
+                      <button key={cat.name} onClick={() => setActiveCategory(cat.name)}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                          activeCategory === cat.name
+                            ? `bg-gradient-to-r ${cat.gradient} text-white shadow-md`
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        }`}>
+                        <Icon className="h-4 w-4 shrink-0" />
+                        {cat.name}
+                      </button>
+                    );
+                  })}
                 </div>
-                <h1 className="mb-4 text-4xl md:text-5xl font-black tracking-tight">
-                  <span className="bg-gradient-to-r from-rose-500 via-pink-500 to-orange-400 bg-clip-text text-transparent">安全工具箱</span>
-                </h1>
-                <p className="mx-auto max-w-2xl text-base text-muted-foreground">
-                  网络安全从业者常用的编码、加密、哈希、信息收集工具
-                </p>
-              </div>
+              </aside>
 
-              {/* Tool categories */}
-              <div className="space-y-14">
-                {toolCategories.map((category, ci) => {
-                  const Icon = category.icon;
-                  return (
-                    <div key={category.name} className="animate-fade-in-up" style={{ animationDelay: `${0.1 * ci}s` }}>
-                      <div className="mb-6 flex items-center gap-4">
-                        <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${category.gradient} shadow-lg transition-transform duration-300 hover:scale-110`}>
-                          <Icon className="h-5 w-5 text-white" />
+              {/* Right content */}
+              <div className="flex-1 min-w-0">
+                {/* Category header */}
+                <div className="mb-8 flex items-center gap-4">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${currentCat.gradient} shadow-lg`}>
+                    <currentCat.icon className="h-5 w-5 text-white" />
+                  </div>
+                  <h1 className="text-2xl font-black">{activeCategory}</h1>
+                </div>
+
+                {/* Tool grid */}
+                {isResource ? (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {resourceData.map(r => <ResourceCard key={r.name} {...r} />)}
+                  </div>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {currentCat.tools.map(tool => (
+                      <button key={tool.name}
+                        onClick={() => setActiveTool({ name: tool.name, component: tool.component })}
+                        className="group relative overflow-hidden rounded-2xl glass-card p-6 text-left transition-all duration-400 hover:-translate-y-2 hover:shadow-2xl border border-transparent hover:border-rose-500/20">
+                        <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${currentCat.gradient} scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`} />
+                        <div className={`relative mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${currentCat.gradient} shadow-md transition-transform duration-300 group-hover:scale-110`}>
+                          <currentCat.icon className="h-5 w-5 text-white" />
                         </div>
-                        <h2 className="text-2xl font-black">{category.name}</h2>
-                      </div>
-                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 stagger-container">
-                        {category.tools.map((tool, ti) => (
-                          <button
-                            key={tool.name}
-                            onClick={() => { setActiveTool({ name: tool.name, component: tool.component }); setActiveCategory(category.name); }}
-                            className="group relative overflow-hidden rounded-2xl glass-card p-6 text-left transition-all duration-400 hover:-translate-y-2 hover:shadow-2xl border border-transparent hover:border-rose-500/20"
-                            style={{ animationDelay: `${0.05 * ti}s` }}
-                          >
-                            <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${category.gradient} scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`} />
-                            <div className={`relative mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${category.gradient} shadow-md transition-transform duration-300 group-hover:scale-110`}>
-                              <Icon className="h-5 w-5 text-white" />
-                            </div>
-                            <h3 className="relative mb-2 text-base font-bold group-hover:text-[var(--color-primary)] transition-colors">{tool.name}</h3>
-                            <p className="relative text-sm text-muted-foreground">{tool.desc}</p>
-                            <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
-                              <ArrowRight className={`h-5 w-5 ${category.color}`} />
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+                        <h3 className="relative mb-2 text-base font-bold group-hover:text-rose-400 transition-colors">{tool.name}</h3>
+                        <p className="relative text-sm text-muted-foreground">{tool.desc}</p>
+                        <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+                          <ArrowRight className={`h-5 w-5 ${currentCat.color}`} />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            </>
+            </div>
           )}
         </div>
       </main>

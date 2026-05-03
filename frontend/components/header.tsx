@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "./auth-context";
-import { Menu, X, User, LogOut, LayoutDashboard, Rss, ChevronDown } from "lucide-react";
+import { Menu, X, User, LogOut, LayoutDashboard, Rss, ChevronDown, Gamepad2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export function Header() {
@@ -29,15 +29,18 @@ export function Header() {
     { href: "/friends", label: "友链" },
     { href: "/projects", label: "项目" },
     { href: "/tools", label: "工具箱" },
+    { href: "/notes", label: "碎碎念" },
   ];
 
   const moreLinks = [
     { href: "/tree/", label: "圣诞树" },
     { href: "/about", label: "关于" },
-    { href: "/timeline", label: "时间线" },
-    { href: "/resources", label: "资源" },
     { href: "/travel", label: "旅行" },
     { href: "/photos", label: "相册" },
+  ];
+
+  const gameLinks = [
+    { href: "/games", label: "趣味游戏" },
   ];
 
   return (
@@ -82,7 +85,7 @@ export function Header() {
             </Link>
           ))}
 
-          {/* More dropdown — native details/summary */}
+          {/* More dropdown */}
           <details className="relative">
             <summary
               className="flex items-center gap-1 px-3.5 py-2 text-sm font-medium text-muted-foreground rounded-xl hover:text-foreground hover:bg-muted/30 transition-colors cursor-pointer list-none"
@@ -90,7 +93,7 @@ export function Header() {
               更多
               <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 [&_details[open]_&]:rotate-180" />
             </summary>
-            <div className="absolute top-full right-0 mt-2 w-52 rounded-2xl glass-card shadow-2xl border border-white/10 overflow-hidden z-50">
+            <div className="absolute top-full right-0 mt-2 w-60 rounded-2xl glass-card shadow-2xl border border-white/10 overflow-hidden z-50">
               <div className="p-1.5 space-y-0.5">
                 {moreLinks.map((link) => (
                   <Link
@@ -102,6 +105,18 @@ export function Header() {
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
                     }`}
                   >
+                    {link.label}
+                  </Link>
+                ))}
+                <div className="my-1.5 border-t border-border/20" />
+                <div className="px-3 py-1.5 text-xs font-bold text-muted-foreground/50 uppercase tracking-wider">趣味游戏</div>
+                {gameLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all duration-150"
+                  >
+                    <Gamepad2 className="w-3.5 h-3.5 text-rose-400/60" />
                     {link.label}
                   </Link>
                 ))}

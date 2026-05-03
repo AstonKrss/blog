@@ -7,7 +7,8 @@ import {
   Search, Home, BookOpen, Shield, User, Compass, Layers,
   Sun, Moon, Image, Clock, Terminal, Code2, Calculator,
   Sparkles, ArrowRight, FileText, Tag, Archive, Rss,
-  FolderOpen, Link2, Zap, ChevronRight, Hash, Star, MessageSquare
+  FolderOpen, Link2, Zap, ChevronRight, Hash, Star, MessageSquare, Send,
+  Gamepad2
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -52,12 +53,30 @@ const buildCommands = (
   },
   {
     id: "nav-tools",
-    label: "安全工具箱",
+    label: "工具箱",
     description: "在线开发者工具",
     icon: Shield,
     category: "导航",
     keywords: ["tools", "工具箱", "工具", "security", "devtools"],
     shortcut: "G → T",
+    action: () => router.push("/tools"),
+  },
+  {
+    id: "nav-games",
+    label: "趣味游戏",
+    description: "打字测速、2048、贪吃蛇等趣味游戏",
+    icon: Gamepad2,
+    category: "导航",
+    keywords: ["games", "游戏", "趣味", "play", "typing", "2048", "snake", "贪吃蛇", "打字测速"],
+    action: () => router.push("/games"),
+  },
+  {
+    id: "nav-api-tester",
+    label: "API 测试器",
+    description: "HTTP 请求测试工具",
+    icon: Send,
+    category: "导航",
+    keywords: ["api", "http", "rest", "test", "请求", "调试", "api tester"],
     action: () => router.push("/tools"),
   },
   {
@@ -106,6 +125,15 @@ const buildCommands = (
     action: () => router.push("/guestbook"),
   },
   {
+    id: "nav-notes",
+    label: "碎碎念",
+    description: "生活动态和分享",
+    icon: Compass,
+    category: "导航",
+    keywords: ["notes", "碎碎念", "动态", "生活", "moment", "feed"],
+    action: () => router.push("/notes"),
+  },
+  {
     id: "nav-friends",
     label: "友情链接",
     description: "博主的好友链接",
@@ -121,7 +149,7 @@ const buildCommands = (
     icon: Clock,
     category: "导航",
     keywords: ["timeline", "时间线", "history"],
-    action: () => router.push("/timeline"),
+    action: () => router.push("/about?tab=timeline"),
   },
   {
     id: "nav-search",

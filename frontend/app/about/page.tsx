@@ -6,7 +6,8 @@ import { Footer } from "@/components/footer";
 import { useAuth } from "@/components/auth-context";
 import {
   Github, Mail, Code, Shield, Terminal, Heart, Sparkles,
-  Camera, Save, Loader2, Globe, ArrowRight, MapPin, GraduationCap
+  Camera, Save, Loader2, Globe, ArrowRight, MapPin, GraduationCap,
+  ChevronDown, Calendar, BookOpen
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -71,7 +72,19 @@ function AboutContent() {
     }
   };
 
-  const isAdmin = currentUser?.role === "ADMIN";
+  const isAdmin: boolean = currentUser?.role === "ADMIN";
+  const [activeTab, setActiveTab] = useState<"about" | "timeline">("about");
+  const [expandedYear, setExpandedYear] = useState<string | null>("2026");
+  const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
+
+  const toggleYear = (year: string) => setExpandedYear(expandedYear === year ? null : year);
+  const toggleSkill = (category: string) => setExpandedSkill(expandedSkill === category ? null : category);
+
+  // Sync tab from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "timeline") setActiveTab("timeline");
+  }, []);
   const displayName = admin?.displayName || admin?.username || "Aston";
   const bio = admin?.bio || "佛山大学计算机专业学生";
   const description = admin?.bio ? admin.bio : "热爱技术，专注于 DevSecOps 实践。这个博客是我分享技术学习心得、项目实践和安全研究的地方。";
@@ -113,7 +126,21 @@ function AboutContent() {
           <div className="animate-float-delayed -bottom-40 left-1/4 h-[400px] w-[400px] rounded-full bg-gradient-to-br from-cyan-500/8 to-teal-500/5 blur-[80px]" />
         </div>
 
-        <div className="relative mx-auto max-w-4xl px-4 py-14">
+        <div className="relative w-full px-4 py-14">
+          {/* Tab switcher */}
+          <div className="flex gap-1 mb-10 border-b border-border/30">
+            <button onClick={() => setActiveTab("about")}
+              className={`px-6 py-3 text-sm font-bold border-b-2 transition-all ${activeTab === "about" ? "border-rose-500 text-rose-500" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+              关于我
+            </button>
+            <button onClick={() => setActiveTab("timeline")}
+              className={`px-6 py-3 text-sm font-bold border-b-2 transition-all ${activeTab === "timeline" ? "border-rose-500 text-rose-500" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+              时间线
+            </button>
+          </div>
+
+          {activeTab === "about" ? (
+          <>
           {/* Profile card */}
           <div className="mb-12 relative overflow-hidden rounded-2xl glass-card shadow-xl animate-fade-in-up border-rose-500/10 hover:shadow-2xl hover:shadow-rose-500/10 transition-all duration-500 hover:-translate-y-1">
             {/* Gradient top */}
@@ -288,6 +315,78 @@ function AboutContent() {
               用 <Heart className="h-4 w-4 text-red-500 animate-pulse" /> 和代码构建
             </p>
           </div>
+          </>
+          ) : (
+          /* Timeline tab */
+          <div className="animate-fade-in">
+            <div className="mb-16 animate-fade-in-up">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-orange-400 shadow-lg">
+                  <Sparkles className="h-4 w-4 text-white" />
+                </div>
+                <h2 className="text-2xl font-black">成长轨迹</h2>
+              </div>
+              <div className="relative">
+                <div className="absolute left-6 top-0 bottom-0 w-px bg-gradient-to-b from-rose-500 via-pink-500 to-orange-400" />
+                <div className="space-y-6">
+                  {[
+                    { year: "2026", gradient: "from-rose-500 to-orange-400", icon: Code, events: [
+                      { date: "4月", title: "个人博客上线", desc: "使用 Next.js + Spring Boot 搭建全栈博客系统", tags: ["Next.js", "Spring Boot"] },
+                      { date: "3月", title: "DevSecOps 实践", desc: "学习 CI/CD 流水线与安全集成", tags: ["DevOps", "安全"] },
+                    ]},
+                    { year: "2025", gradient: "from-emerald-500 to-teal-500", icon: GraduationCap, events: [
+                      { date: "9月", title: "进入佛山大学", desc: "计算机科学与技术专业", tags: ["大学"] },
+                      { date: "7月", title: "第一个全栈项目", desc: "完成了一个完整的前后端分离项目", tags: ["React", "Java"] },
+                    ]},
+                    { year: "2024", gradient: "from-orange-500 to-amber-500", icon: Terminal, events: [
+                      { date: "12月", title: "学习 Linux", desc: "开始使用 Linux 作为日常开发系统", tags: ["Linux"] },
+                    ]},
+                  ].map((yearData: any, yi: number) => {
+                    const Icon = yearData.icon;
+                    const isExpanded = expandedYear === yearData.year;
+                    return (
+                      <div key={yearData.year} className="relative ml-14 animate-fade-in-up" style={{ animationDelay: `${0.1 * yi}s` }}>
+                        <div className={`absolute -left-14 top-0 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br ${yearData.gradient} shadow-lg ring-4 ring-background transition-transform duration-300 ${isExpanded ? "scale-110" : ""}`}>
+                          <Icon className="h-4 w-4 text-white" />
+                        </div>
+                        <div className="rounded-2xl glass-card overflow-hidden shadow-sm transition-all duration-400 hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-rose-500/20">
+                          <button onClick={() => toggleYear(yearData.year)} className="accordion-header w-full flex items-center justify-between p-5">
+                            <div className="flex items-center gap-3">
+                              <span className="text-xl font-black bg-gradient-to-r from-rose-500 to-orange-400 bg-clip-text text-transparent">{yearData.year}</span>
+                              <span className="text-sm text-muted-foreground bg-muted px-2.5 py-0.5 rounded-full">{yearData.events.length} 个事件</span>
+                            </div>
+                            <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
+                          </button>
+                          <div className={`overflow-hidden transition-all duration-400 ease-out ${isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"}`}>
+                            <div className="border-t border-border/30 px-5 py-5 space-y-5">
+                              {yearData.events.map((event: any, ei: number) => (
+                                <div key={ei} className="flex gap-5 animate-fade-in-up" style={{ animationDelay: `${0.1 * ei}s` }}>
+                                  <div className="shrink-0 w-14 text-sm font-semibold text-muted-foreground pt-1 text-right">{event.date}</div>
+                                  <div className="relative flex-1">
+                                    <div className="absolute left-0 top-3 w-2 h-2 rounded-full bg-gradient-to-br from-rose-500 to-orange-400" />
+                                    <div className="pl-5 pb-5 border-b border-border/10 last:border-0">
+                                      <h4 className="font-bold text-base mb-1">{event.title}</h4>
+                                      <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{event.desc}</p>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {event.tags.map((tag: string) => (
+                                          <span key={tag} className="rounded-full bg-gradient-to-r from-rose-500/10 to-orange-400/10 px-2.5 py-0.5 text-xs font-medium text-rose-500 border border-rose-500/10">{tag}</span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+          )}
         </div>
       </main>
       <Footer />

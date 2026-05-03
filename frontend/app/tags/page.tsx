@@ -47,7 +47,7 @@ export default function TagsPage() {
           <div className="animate-float-delayed -bottom-40 left-1/4 h-[400px] w-[400px] rounded-full bg-gradient-to-br from-pink-500/8 to-rose-500/5 blur-[80px]" />
         </div>
 
-        <div className="relative mx-auto max-w-5xl px-4 py-14">
+        <div className="relative w-full px-4 py-14">
           {/* Header */}
           <div className="mb-12 text-center animate-fade-in-up">
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 shadow-xl shadow-rose-500/30">

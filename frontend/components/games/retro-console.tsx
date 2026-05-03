@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Gamepad2, Play, RotateCcw } from "lucide-react";
 
 const GAMES = [
@@ -136,80 +136,162 @@ function MemoryGame() {
 
 // ── Breakout ────────────────────────────────────────────────────────────────────
 function BreakoutGame() {
-  const [paddle, setPaddle] = useState(90);
-  const [ball, setBall] = useState({ x: 50, y: 80, vx: 1, vy: -1 });
-  const [bricks] = useState(() =>
+  const PADDLE_W = 60;
+  const PADDLE_H = 4;
+  const BALL_R = 4;
+  const PADDLE_Y = 268;
+  const keysHeld = useRef<Set<string>>(new Set());
+  const [paddle, setPaddle] = useState(110); // center x
+
+  useEffect(() => {
+    const update = () => {
+      if (keysHeld.current.has("ArrowLeft")) {
+        setPaddle(p => Math.max(PADDLE_W / 2, p - 12));
+      }
+      if (keysHeld.current.has("ArrowRight")) {
+        setPaddle(p => Math.min(W - PADDLE_W / 2, p + 12));
+      }
+    };
+    const id = setInterval(update, 20);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault();
+        keysHeld.current.add(e.key);
+      }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      keysHeld.current.delete(e.key);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, []);
+  const [ball, setBall] = useState({ x: 140, y: 200, vx: 1.5, vy: -1.5 });
+  const bricksRef = useRef(
     Array.from({ length: 5 }, (_, r) =>
       Array.from({ length: 6 }, (_, c) => ({ r, c, hit: false }))
-    ).flat()
+    )
   );
+  type Brick = { r: number; c: number; hit: boolean };
+  const [bricksRender, setBricksRender] = useState<Brick[][]>(bricksRef.current as Brick[][]);
   const [playing, setPlaying] = useState(false);
   const [score, setScore] = useState(0);
   const [over, setOver] = useState(false);
   const [won, setWon] = useState(false);
   const W = 280;
   const H = 280;
-
-  // Simple physics with setInterval
-  const intervalRef = { current: null as ReturnType<typeof setInterval> | null }; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const paddleRef = useRef(paddle);
+  paddleRef.current = paddle;
 
   const start = () => {
+    bricksRef.current = Array.from({ length: 5 }, (_, r) =>
+      Array.from({ length: 6 }, (_, c) => ({ r, c, hit: false }))
+    );
+    setBricksRender([...bricksRef.current]);
     setPlaying(true);
-    setBall({ x: W / 2, y: 80, vx: 1, vy: -1 });
+    setBall({ x: W / 2, y: 200, vx: 1.5, vy: -1.5 });
     setOver(false);
     setWon(false);
     setScore(0);
+
+    if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
       setBall(prev => {
         let { x, y, vx, vy } = prev;
         x += vx;
         y += vy;
-        // Walls
-        if (x <= 0 || x >= W) vx = -vx;
-        if (y <= 0) vy = -vy;
+
+        // Left/right walls
+        if (x - BALL_R <= 0) { x = BALL_R; vx = Math.abs(vx); }
+        if (x + BALL_R >= W) { x = W - BALL_R; vx = -Math.abs(vx); }
+        // Top wall
+        if (y - BALL_R <= 0) { y = BALL_R; vy = Math.abs(vy); }
+
         // Bottom — game over
-        if (y >= H) {
-          setOver(true);
-          setPlaying(false);
+        if (y >= H + BALL_R) {
+          clearInterval(intervalRef.current!);
+          intervalRef.current = null;
+          setTimeout(() => { setOver(true); setPlaying(false); }, 0);
           return prev;
         }
-        // Paddle — simple 1D check
-        if (y >= H - 20 && x >= paddle - 20 && x <= paddle + 60) vy = -vy;
-        // Bricks
+
+        // Paddle collision
+        if (
+          y + BALL_R >= PADDLE_Y &&
+          y - BALL_R <= PADDLE_Y + PADDLE_H &&
+          x + BALL_R >= paddleRef.current - PADDLE_W / 2 &&
+          x - BALL_R <= paddleRef.current + PADDLE_W / 2 &&
+          vy > 0
+        ) {
+          y = PADDLE_Y - BALL_R;
+          vy = -Math.abs(vy);
+          // Angle based on hit position
+          const hitPos = (x - paddleRef.current) / (PADDLE_W / 2); // -1 to 1
+          vx = hitPos * 2.5;
+        }
+
+        // Brick collision — flatten 2D array for iteration
         const brickW = W / 6;
-        const brickH = 16;
-        bricks.forEach((b, i) => {
-          if (b.hit) return;
+        const brickH = 14;
+        const flatBricks = bricksRef.current.flat();
+        let allHit = true;
+        let hitBrick = false;
+        for (let i = 0; i < flatBricks.length; i++) {
+          const b = flatBricks[i];
+          if (b.hit) continue;
+          allHit = false;
           const bx = b.c * brickW;
-          const by = b.r * brickH + 10;
-          if (x >= bx && x <= bx + brickW && y >= by && y <= by + brickH) {
-            vy = -vy;
-            b.hit = true;
+          const by = b.r * brickH + 8;
+          if (
+            x + BALL_R >= bx + 1 &&
+            x - BALL_R <= bx + brickW - 1 &&
+            y + BALL_R >= by &&
+            y - BALL_R <= by + brickH
+          ) {
+            flatBricks[i].hit = true;
+            hitBrick = true;
+            setBricksRender([...bricksRef.current]);
             setScore(s => s + 10);
-            if (bricks.filter(bb => !bb.hit).length === 0) {
-              setWon(true);
-              setPlaying(false);
+            // Bounce: vertical if hit top/bottom, horizontal if hit side
+            const fromTop = y - BALL_R <= by;
+            const fromBottom = y + BALL_R >= by + brickH;
+            const fromLeft = x - BALL_R <= bx + 1;
+            const fromRight = x + BALL_R >= bx + brickW - 1;
+            if ((fromTop || fromBottom) && !fromLeft && !fromRight) {
+              vy = -vy;
+            } else {
+              vx = -vx;
             }
+            break;
           }
-        });
+        }
+
+        if (!allHit && !hitBrick) {
+          // continue
+        } else if (allHit && !won) {
+          clearInterval(intervalRef.current!);
+          intervalRef.current = null;
+          setTimeout(() => { setWon(true); setPlaying(false); }, 0);
+        }
+
         return { x, y, vx, vy };
       });
-    }, 16);
+    }, 20);
   };
 
   useEffect(() => {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") setPaddle(p => Math.max(0, p - 10));
-      if (e.key === "ArrowRight") setPaddle(p => Math.min(W - 60, p + 10));
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, []);
-
+  
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -226,16 +308,16 @@ function BreakoutGame() {
         style={{ width: W, height: H }}
       >
         {/* Bricks */}
-        {bricks.map((b, i) => {
+        {bricksRender.flat().map((b, i) => {
           const brickW = W / 6;
-          const brickH = 16;
+          const brickH = 14;
           return !b.hit && (
             <div
               key={i}
               className="absolute rounded-sm"
               style={{
                 left: b.c * brickW + 1,
-                top: b.r * brickH + 10,
+                top: b.r * brickH + 8,
                 width: brickW - 2,
                 height: brickH,
                 background: [
@@ -251,13 +333,22 @@ function BreakoutGame() {
         })}
         {/* Ball */}
         <div
-          className="absolute w-3 h-3 rounded-full bg-white shadow-lg shadow-white/50"
-          style={{ left: ball.x - 6, top: ball.y - 6 }}
+          className="absolute rounded-full bg-white shadow-lg shadow-white/50"
+          style={{
+            left: ball.x - BALL_R,
+            top: ball.y - BALL_R,
+            width: BALL_R * 2,
+            height: BALL_R * 2,
+          }}
         />
         {/* Paddle */}
         <div
-          className="absolute h-3 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 bottom-4"
-          style={{ left: paddle, width: 60 }}
+          className="absolute h-1 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 shadow-lg shadow-rose-500/50"
+          style={{
+            left: paddle - PADDLE_W / 2,
+            top: PADDLE_Y,
+            width: PADDLE_W,
+          }}
         />
         {/* Game over / win */}
         {(over || won) && (
@@ -267,7 +358,7 @@ function BreakoutGame() {
           </div>
         )}
       </div>
-      <div className="text-center text-xs text-muted-foreground">← → 移动挡板</div>
+      <div className="text-center text-xs text-muted-foreground">← → 移动挡板 · 击破所有砖块</div>
     </div>
   );
 }

@@ -15,7 +15,7 @@ function getDefaultThemeForPath(pathname: string): string {
   for (const route of LIGHT_ROUTES) {
     if (pathname === route || pathname.startsWith(route + "/")) return "light";
   }
-  return "system";
+  return "custom";
 }
 
 export function ThemeClassHandler() {

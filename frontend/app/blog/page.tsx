@@ -58,7 +58,7 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
           <div className="animate-float-delayed -bottom-40 left-1/4 h-[400px] w-[400px] rounded-full bg-gradient-to-br from-cyan-500/8 to-teal-500/5 blur-[80px]" />
         </div>
 
-        <div className="relative container mx-auto px-4 py-14">
+        <div className="relative w-full px-4 py-14">
           {/* Page Header */}
           <div className="mb-12 animate-fade-in-up">
             <div className="flex items-center justify-between gap-6">

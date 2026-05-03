@@ -14,10 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -109,6 +106,95 @@ public class UploadController {
             // 9. 返回文件访问URL
             String fileUrl = "/uploads/" + fileName;
             return Result.success(fileUrl);
+
+        } catch (IOException e) {
+            return Result.error(500, "文件上传失败: " + e.getMessage());
+        }
+    }
+
+    // 允许的视频扩展名白名单
+    private static final Set<String> ALLOWED_VIDEO_EXTENSIONS = new HashSet<>(Arrays.asList(
+            ".mp4", ".webm", ".mov", ".avi", ".mkv"));
+
+    private static final Set<String> ALLOWED_VIDEO_MIME_TYPES = new HashSet<>(Arrays.asList(
+            "video/mp4", "video/webm", "video/quicktime", "video/x-msvideo", "video/x-matroska"));
+
+    // 视频文件魔数（简单验证）
+    private static final byte[][] VIDEO_MAGIC_NUMBERS = {
+            // MP4: ftyp (offset 4)
+            { (byte) 0x66, (byte) 0x74, (byte) 0x79, (byte) 0x70 },
+            // WebM: EBML ID
+            { (byte) 0x1A, (byte) 0x45, (byte) 0xDF, (byte) 0xA3 },
+    };
+
+    // 碎碎念图片/视频上传（支持图片和视频，最大50MB）
+    @PostMapping("/upload/media")
+    public Result<Map<String, String>> uploadMedia(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        String userId = getUserIdFromRequest(request);
+        if (userId == null) {
+            return Result.error(401, "请先登录");
+        }
+        if (file.isEmpty()) {
+            return Result.error(400, "文件为空");
+        }
+
+        // 1. 检查文件大小（最大50MB）
+        if (file.getSize() > 50 * 1024 * 1024) {
+            return Result.error(400, "文件大小不能超过50MB");
+        }
+
+        try {
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null || !originalFilename.contains(".")) {
+                return Result.error(400, "文件名称无效");
+            }
+
+            String extension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+            String contentType = file.getContentType();
+
+            boolean isImage = ALLOWED_EXTENSIONS.contains(extension) &&
+                    (contentType != null && ALLOWED_MIME_TYPES.contains(contentType));
+            boolean isVideo = ALLOWED_VIDEO_EXTENSIONS.contains(extension) &&
+                    (contentType != null && ALLOWED_VIDEO_MIME_TYPES.contains(contentType));
+
+            if (!isImage && !isVideo) {
+                return Result.error(400, "不支持的文件类型，支持: jpg, jpeg, png, gif, webp, bmp, mp4, webm, mov");
+            }
+
+            // 视频魔数验证（简单检查）
+            if (isVideo) {
+                byte[] bytes = file.getBytes();
+                boolean validMagic = false;
+                for (byte[] magic : VIDEO_MAGIC_NUMBERS) {
+                    if (bytes.length >= magic.length) {
+                        boolean match = true;
+                        for (int i = 0; i < magic.length; i++) {
+                            if (bytes[i] != magic[i]) { match = false; break; }
+                        }
+                        if (match) { validMagic = true; break; }
+                    }
+                }
+                if (!validMagic) {
+                    return Result.error(400, "视频文件内容无效");
+                }
+            }
+
+            // 保存到 notes/ 子目录
+            File uploadDir = new File(UPLOAD_DIR + "notes/");
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+
+            String fileName = UUID.randomUUID().toString() + extension;
+            Path filePath = Paths.get(uploadDir.getPath(), fileName);
+            Files.write(filePath, file.getBytes());
+
+            String fileUrl = "/uploads/notes/" + fileName;
+
+            Map<String, String> result = new java.util.HashMap<>();
+            result.put("url", fileUrl);
+            result.put("type", isVideo ? "video" : "image");
+            return Result.success(result);
 
         } catch (IOException e) {
             return Result.error(500, "文件上传失败: " + e.getMessage());
