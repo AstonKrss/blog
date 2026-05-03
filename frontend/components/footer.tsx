@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Github, Mail, Rss, Globe, Heart, ArrowUp } from "lucide-react";
+import { useSiteSettings } from "./site-context";
+import { Github, Mail, Rss, Heart, ArrowUp } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export function Footer() {
   const [showBackTop, setShowBackTop] = useState(false);
+  const { settings } = useSiteSettings();
 
   useEffect(() => {
     const handleScroll = () => setShowBackTop(window.scrollY > 400);
@@ -29,11 +31,13 @@ export function Footer() {
             {/* Brand */}
             <div className="group space-y-4 p-5 rounded-2xl glass-card animate-fade-in-up transition-all duration-300 hover:-translate-y-1">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 shadow-lg shadow-rose-500/20 transition-transform duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-rose-500/30">
-                  <span className="text-white font-bold">A</span>
-                </div>
+                <img
+                  src={settings.avatarUrl}
+                  alt={settings.siteName}
+                  className="h-10 w-10 rounded-xl object-cover shadow-lg shadow-rose-500/20 transition-transform duration-300 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-rose-500/30"
+                />
                 <div>
-                  <span className="text-lg font-bold gradient-text">Aston&apos;s Blog</span>
+                  <span className="text-lg font-bold gradient-text">{settings.siteName}</span>
                   <p className="text-xs text-muted-foreground">DevSecOps 实践者</p>
                 </div>
               </div>
@@ -151,13 +155,6 @@ export function Footer() {
                 <Heart className="h-3 w-3 text-red-500 animate-pulse" />
                 Next.js + Spring Boot
               </span>
-            </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
-                网站地图
-              </a>
-              <span>&middot;</span>
-              <span>粤ICP备xxxxxxxx号</span>
             </div>
           </div>
         </div>

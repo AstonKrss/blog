@@ -6,10 +6,12 @@ import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "./auth-context";
 import { Menu, X, User, LogOut, LayoutDashboard, Rss, ChevronDown, Gamepad2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useSiteSettings } from "./site-context";
 
 export function Header() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { settings } = useSiteSettings();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -55,14 +57,15 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-3">
           <div className="relative">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 shadow-lg shadow-rose-500/25 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-rose-500/35 group-hover:scale-110">
-              <span className="text-white font-bold text-sm">A</span>
-            </div>
+            <img
+              src={settings.avatarUrl}
+              alt={settings.siteName}
+              className="h-10 w-10 rounded-2xl object-cover shadow-lg shadow-rose-500/25 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-rose-500/35 group-hover:scale-110"
+            />
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 opacity-0 group-hover:opacity-30 blur-lg transition-opacity duration-300" />
           </div>
           <div className="hidden sm:flex items-center gap-1">
-            <span className="text-lg font-black gradient-text">Aston</span>
-            <span className="text-lg font-light text-muted-foreground">.blog</span>
+            <span className="text-lg font-black gradient-text">{settings.siteName}</span>
           </div>
         </Link>
 

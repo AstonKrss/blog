@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeClassHandler } from "@/components/theme-class-handler";
 import { AuthProvider } from "@/components/auth-context";
+import { SiteProvider } from "@/components/site-context";
 import { MusicPlayer } from "@/components/music-player";
 import { BackToTop } from "@/components/back-to-top";
 import { ClickEffects } from "@/components/games/click-effects";
@@ -71,16 +72,18 @@ export default function RootLayout({
         >
           <ThemeClassHandler />
           <AuthProvider>
-            <div className="min-h-screen bg-background text-foreground">
-              {children}
-              <MusicPlayer />
-              <BackToTop />
-              <ClickEffects />
-              <MusicVisualizer />
-              <ConsoleEasterEgg />
-              <CommandPalette />
-              <LiveVisitor />
-            </div>
+            <SiteProvider>
+              <div className="min-h-screen bg-background text-foreground">
+                {children}
+                <MusicPlayer />
+                <BackToTop />
+                <ClickEffects />
+                <MusicVisualizer />
+                <ConsoleEasterEgg />
+                <CommandPalette />
+                <LiveVisitor />
+              </div>
+            </SiteProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

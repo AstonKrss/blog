@@ -74,6 +74,17 @@ export default function SettingsPage() {
 
           <div className="rounded-2xl border bg-card/80 backdrop-blur-sm p-6 shadow-sm space-y-5 glow-card">
             <div>
+              <label className="mb-1.5 block text-sm font-medium">网站名称</label>
+              <input type="text" value={settings.site_name || "Aston's Blog"} onChange={(e) => updateSetting("site_name", e.target.value)}
+                className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all" />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium">头像 URL</label>
+              <input type="text" value={settings.avatar_url || ""} onChange={(e) => updateSetting("avatar_url", e.target.value)}
+                placeholder="https://example.com/avatar.jpg"
+                className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all" />
+            </div>
+            <div>
               <label className="mb-1.5 block text-sm font-medium">站点标题</label>
               <input type="text" value={settings.site_title || ""} onChange={(e) => updateSetting("site_title", e.target.value)}
                 className="w-full rounded-xl border bg-muted/50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all" />
