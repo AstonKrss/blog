@@ -2,6 +2,13 @@ spring:
   application:
     name: blog
 
+  # 文件上传大小限制（这个优先级更高）
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+      enabled: true
+
   # 数据库配置（生产环境用环境变量）
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false}
@@ -41,6 +48,15 @@ spring:
 # 服务器配置
 server:
   port: 8080
+  # 文件上传大小限制
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 100MB
+  # Tomcat 配置（备用）
+  tomcat:
+    max-swallow-size: 100MB
 
 # 博客站点配置
 blog:

@@ -34,6 +34,9 @@ services:
       # 共享 uploads 目录：主机 ./uploads ↔ 容器 /app/uploads
       - ./uploads:/app/uploads
     environment:
+      # 文件上传大小限制
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 50MB
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 100MB
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: bloguser
       SPRING_DATASOURCE_PASSWORD: Aston123@@blog
@@ -69,11 +72,37 @@ services:
       - "80:3000"
     environment:
       NEXT_PUBLIC_API_URL: http://47.242.21.40:8080
+      PYTHON_API_URL: http://47.242.21.40:8000    # 新增
     volumes:
       # 共享 uploads 目录：主机 ./uploads ↔ 容器 /app/uploads
       - ./uploads:/app/uploads
     depends_on:
       - backend
+    networks:
+      - blog-network
+
+  # Python 安全工具
+  python:
+    build:
+      context: ./python
+      dockerfile: Dockerfile
+    container_name: blog-python
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST:mysql
+      DB_PORT:3306
+      DB_NAME:myblog
+      DB_USER:bloguser
+      DB_PASSWORD:Aston123@@blog
+      JWT_SECRET: mySecretKeyForJwtTokenGenerationThatIsLongEnough
+      HOST: 0.0.0.0
+      PORT: 8000
+      CORS_ORIGINS: http://47.242.21.40,http://localhost:3000
+    depends_on:
+      mysql:
+        condition: service_healthy
     networks:
       - blog-network
 

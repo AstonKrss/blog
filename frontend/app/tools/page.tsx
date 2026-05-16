@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Shield, Code, Globe, Lock, Hash, Search, Zap, ArrowLeft, Copy, Check, Upload, FileText, QrCode, Clock, Key, Binary, FileJson, Type, Image, RefreshCw, ArrowRight, Gamepad2, Brain, Keyboard, LockKeyhole, MessageSquare, Send, BookOpen, ExternalLink } from "lucide-react";
+import { Shield, Code, Globe, Lock, Hash, Search, Zap, ArrowLeft, Copy, Check, Upload, FileText, QrCode, Clock, Key, Binary, FileJson, Type, Image, RefreshCw, ArrowRight, Gamepad2, Brain, Keyboard, LockKeyhole, MessageSquare, Send, BookOpen, ExternalLink, Cloud } from "lucide-react";
 import { Game2048 } from "@/components/games/game-2048";
 import { SnakeGame } from "@/components/games/snake-game";
 import { TypingRunner } from "@/components/games/typing-runner";
@@ -20,7 +20,7 @@ type ToolCategory = {
   icon: any;
   gradient: string;
   color: string;
-  tools: { name: string; desc: string; component: React.ReactNode }[];
+  tools: { name: string; desc: string; component?: React.ReactNode; href?: string }[];
 };
 
 // Result component
@@ -144,6 +144,11 @@ function QrCodeTool() {
 
 const toolCategories: ToolCategory[] = [
   { name: "实用资源", icon: BookOpen, gradient: "from-blue-500 to-cyan-500", color: "text-blue-500", tools: [] }, // filled from resources data below
+  { name: "安全工具", icon: Shield, gradient: "from-red-500 to-orange-500", color: "text-red-500", tools: [
+    { name: "XSS 扫描", desc: "跨站脚本攻击检测（反射型、存储型、SVG、事件处理器）", href: "/security/tools/web?tool=xss" },
+    { name: "SQL 注入扫描", desc: "SQL 注入检测（报错注入、布尔盲注、时间盲注、UNION）", href: "/security/tools/web?tool=sqli" },
+    { name: "OSS 安全工具", desc: "阿里云 OSS 安全测试（Bucket爆破、路径Fuzz、接管检测）", href: "/security/tools/oss" },
+  ] },
   { name: "开发工具", icon: Send, gradient: "from-violet-500 to-purple-600", color: "text-violet-500", tools: [
     { name: "API 测试器", desc: "发送 HTTP 请求，查看格式化响应", component: <ApiTester /> },
   ] },
@@ -264,21 +269,40 @@ export default function ToolsPage() {
                   </div>
                 ) : (
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {currentCat.tools.map(tool => (
-                      <button key={tool.name}
-                        onClick={() => setActiveTool({ name: tool.name, component: tool.component })}
-                        className="group relative overflow-hidden rounded-2xl glass-card p-6 text-left transition-all duration-400 hover:-translate-y-2 hover:shadow-2xl border border-transparent hover:border-rose-500/20">
-                        <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${currentCat.gradient} scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`} />
-                        <div className={`relative mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${currentCat.gradient} shadow-md transition-transform duration-300 group-hover:scale-110`}>
-                          <currentCat.icon className="h-5 w-5 text-white" />
-                        </div>
-                        <h3 className="relative mb-2 text-base font-bold group-hover:text-rose-400 transition-colors">{tool.name}</h3>
-                        <p className="relative text-sm text-muted-foreground">{tool.desc}</p>
-                        <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
-                          <ArrowRight className={`h-5 w-5 ${currentCat.color}`} />
-                        </div>
-                      </button>
-                    ))}
+                    {currentCat.tools.map(tool => {
+                      const Icon = currentCat.icon;
+                      if (tool.href) {
+                        return (
+                          <a key={tool.name} href={tool.href}
+                            className="group relative overflow-hidden rounded-2xl glass-card p-6 text-left transition-all duration-400 hover:-translate-y-2 hover:shadow-2xl border border-transparent hover:border-rose-500/20">
+                            <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${currentCat.gradient} scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`} />
+                            <div className={`relative mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${currentCat.gradient} shadow-md transition-transform duration-300 group-hover:scale-110`}>
+                              <Icon className="h-5 w-5 text-white" />
+                            </div>
+                            <h3 className="relative mb-2 text-base font-bold group-hover:text-rose-400 transition-colors">{tool.name}</h3>
+                            <p className="relative text-sm text-muted-foreground">{tool.desc}</p>
+                            <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+                              <ArrowRight className={`h-5 w-5 ${currentCat.color}`} />
+                            </div>
+                          </a>
+                        );
+                      }
+                      return (
+                        <button key={tool.name}
+                          onClick={() => setActiveTool({ name: tool.name, component: tool.component })}
+                          className="group relative overflow-hidden rounded-2xl glass-card p-6 text-left transition-all duration-400 hover:-translate-y-2 hover:shadow-2xl border border-transparent hover:border-rose-500/20">
+                          <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${currentCat.gradient} scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`} />
+                          <div className={`relative mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${currentCat.gradient} shadow-md transition-transform duration-300 group-hover:scale-110`}>
+                            <Icon className="h-5 w-5 text-white" />
+                          </div>
+                          <h3 className="relative mb-2 text-base font-bold group-hover:text-rose-400 transition-colors">{tool.name}</h3>
+                          <p className="relative text-sm text-muted-foreground">{tool.desc}</p>
+                          <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+                            <ArrowRight className={`h-5 w-5 ${currentCat.color}`} />
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>

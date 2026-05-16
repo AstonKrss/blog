@@ -16,4 +16,8 @@ COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# 文件上传限制 50MB（Tomcat 默认 1MB，需要手动设置）
+ENTRYPOINT ["java", "-jar", "app.jar", \
+  "-Dspring.servlet.multipart.max-file-size=50MB", \
+  "-Dspring.servlet.multipart.max-request-size=100MB", \
+  "-Dserver.tomcat.max-swallow-size=100MB"]

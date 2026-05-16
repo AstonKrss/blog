@@ -26,54 +26,52 @@ jobs:
         run: |
           npm ci
           npm run build
-      
+
+      # ==================== 后端构建 ====================
       - name: ☕ 设置 Java 环境
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'  # ✅ 注意拼写
+          distribution: 'temurin'
           java-version: '21'
-          cache: 'maven'  # 可选，启用 Maven 缓存
+          cache: 'maven'
 
-      # ==================== 后端构建 ====================
       - name: 打包 Spring Boot 后端
         run: mvn clean package -DskipTests
 
-      # ==================== 构建成功提示 ====================
-      - name: 完成
-        run: echo "前端和后端都构建成功！"
-        
-      - name: 调试 Secrets
-        run: |
-          echo "Host: ${{ secrets.ALIYUN_HOST }}"
-          echo "User: ${{ secrets.ALIYUN_USER }}"
-          echo "Password length: ${{ secrets.ALIYUN_PASSWORD }}"
-      
-      # ==================== SSH 部署到阿里云 ====================
+      # ==================== 部署到阿里云 ====================
       - name: 部署到阿里云服务器
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.ALIYUN_HOST }}
           username: ${{ secrets.ALIYUN_USER }}
           password: ${{ secrets.ALIYUN_PASSWORD }}
-          # key: ${{ secrets.ALIYUN_SSH_KEY }}
           port: 22
-          script_stop: true  # 遇到错误立即停止
-          debug: true  # 添加调试模式
+          script_stop: true
+          debug: true
           script: |
-            set -e  # 遇到错误退出
-            
+            set -e
+
             cd /root/workspace/blog
-            
+
             # 拉取最新代码
             git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
             git pull origin main
-            
+
+            # 生成前端环境变量
             echo "NEXT_PUBLIC_API_URL=http://47.242.21.40:8080" > frontend/.env.production
 
+            # 重启所有服务
             docker-compose down
             docker-compose up -d --build
-            
-            # 清理未使用的 Docker 资源（释放磁盘空间）
-            docker system prune -af --volumes || true
-            
-            echo "部署完成！"
+
+            # 等待服务启动
+            sleep 15
+
+            # 健康检查
+            curl -sf http://localhost:8080/api/public/health || echo "Backend health check failed"
+
+            echo "======================================"
+            echo "部署完成！服务状态："
+            echo "  前端: http://47.242.21.40"
+            echo "  后端: http://47.242.21.40:8080"
+            echo "======================================"
