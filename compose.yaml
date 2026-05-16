@@ -72,7 +72,7 @@ services:
       - "80:3000"
     environment:
       NEXT_PUBLIC_API_URL: http://47.242.21.40:8080
-      PYTHON_API_URL: http://47.242.21.40:8000    # 新增
+      PYTHON_API_URL: http://python:8000    # 新增
     volumes:
       # 共享 uploads 目录：主机 ./uploads ↔ 容器 /app/uploads
       - ./uploads:/app/uploads
