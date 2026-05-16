@@ -1,5 +1,5 @@
 from jose import jwt
-from jose.exceptions import ExpiredSignatureError, InvalidTokenError
+from jose.exceptions import ExpiredSignatureError, JWTError
 from fastapi import HTTPException, Request
 from config import JWT_SECRET
 
@@ -12,7 +12,7 @@ class JWTAuth:
             return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         except ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Token 已过期")
-        except InvalidTokenError:
+        except JWTError:
             raise HTTPException(status_code=401, detail="无效的 Token")
         
     @staticmethod
