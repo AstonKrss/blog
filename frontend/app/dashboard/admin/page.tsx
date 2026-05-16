@@ -384,15 +384,17 @@ export default function AdminDashboardPage() {
                   <span className="ml-2 text-xs text-muted-foreground">点击查看时段详情</span>
                 </div>
                 <div className="h-32 flex items-end gap-1">
-                  {analytics?.hourlyDistribution?.slice(0, 24).map((hour, i) => {
-                    const maxCount = Math.max(...(analytics?.hourlyDistribution || [{count: 1}]).map(h => h.count), 1);
-                    const height = (hour.count / maxCount) * 100;
+                  {Array.from({ length: 24 }, (_, i) => {
+                    const hourData = analytics?.hourlyDistribution?.find((h: any) => h.hour === i);
+                    const count = hourData?.count || 0;
+                    const maxCount = Math.max(...(analytics?.hourlyDistribution || [{count: 1}]).map((h: any) => h.count), 1);
+                    const height = maxCount > 0 ? (count / maxCount) * 100 : 0;
                     return (
                       <div key={i} className="flex-1 flex flex-col items-center gap-1">
                         <div className="w-full bg-gradient-to-t from-rose-500/30 to-pink-500/60 rounded-t hover:from-rose-500/50 hover:to-pink-500/80 transition-all cursor-pointer"
-                          style={{ height: `${Math.max(height, 4)}%`, minHeight: '4%' }}
-                          title={`${hour.hour}:00 - ${hour.count}次`} />
-                        <span className="text-[10px] text-muted-foreground">{i % 6 === 0 ? `${hour.hour}` : ""}</span>
+                          style={{ height: `${Math.max(height, 5)}%`, minHeight: '20px' }}
+                          title={`${i}:00 - ${count}次`} />
+                        <span className="text-[10px] text-muted-foreground">{i % 6 === 0 ? `${i}` : ""}</span>
                       </div>
                     );
                   })}
@@ -687,12 +689,12 @@ export default function AdminDashboardPage() {
                   {securityStats?.attackTrend && securityStats.attackTrend.length > 0 ? (
                     securityStats.attackTrend.map((item: any, i: number) => {
                       const maxCount = Math.max(...securityStats.attackTrend.map((h: any) => h.count), 1);
-                      const height = (item.count / maxCount) * 100;
+                      const height = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
                       return (
                         <div key={i} className="flex-1 flex flex-col items-center gap-1">
                           <div
                             className="w-full bg-gradient-to-t from-red-500/30 to-red-500 rounded-t hover:from-red-500/50 hover:to-red-500 transition-all cursor-pointer"
-                            style={{ height: `${Math.max(height, 4)}%`, minHeight: '4%' }}
+                            style={{ height: `${Math.max(height, 5)}%`, minHeight: '20px' }}
                             title={`${item.date}: ${item.count}次`}
                           />
                           <span className="text-xs text-muted-foreground">{item.date}</span>

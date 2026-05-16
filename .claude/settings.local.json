@@ -19,7 +19,8 @@
       "Bash(netstat -ano)",
       "Bash(tasklist /FI \"PID eq 79944\")",
       "Bash(ps -p 79944 -o comm=)",
-      "Bash(grep *)"
+      "Bash(grep *)",
+      "Bash(docker exec blog-mysql *)"
     ]
   }
 }
