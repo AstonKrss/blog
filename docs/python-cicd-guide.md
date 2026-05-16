@@ -86,8 +86,8 @@ services:
       # 容器内用 'mysql' 而不是 localhost（docker-compose 内部 DNS）
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_USER: root
-      DB_PASSWORD: Chuyangqi123@@    # 和 mysql 的 MYSQL_ROOT_PASSWORD 一致
+      DB_USER: bloguser
+      DB_PASSWORD: Aston123@@blog    # 和 mysql 的 MYSQL_USER/MYSQL_PASSWORD 一致
       DB_NAME: myblog
       JWT_SECRET: mySecretKeyForJwtTokenGenerationThatIsLongEnough
       HOST: 0.0.0.0
@@ -176,7 +176,12 @@ jobs:
 
             # 拉取最新代码
             git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
+
+            # 生成前端环境变量
+            echo "NEXT_PUBLIC_API_URL=http://47.242.21.40:8080" > frontend/.env.production
+            echo "PYTHON_API_URL=http://47.242.21.40:8000" >> frontend/.env.production
 
             # 构建 Python 镜像
             cd python && docker build -t blog-python:latest . && cd ..
@@ -235,7 +240,7 @@ Python 服务依赖 `oss_scan_logs` 表，部署前确保数据库中有这张�
 
 ```bash
 # 如果表不存在，需要执行 SQL 创建
-docker-compose exec mysql mysql -uroot -pChuyangqi123@@ myblog < SQL/oss_security_logs.sql
+docker-compose exec mysql mysql -ubloguser -pAston123@@blog myblog < SQL/oss_security_logs.sql
 ```
 
 ---
@@ -342,3 +347,13 @@ CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
 ### 为什么用 `--no-cache-dir`？
 
 减少镜像体积，pip 缓存 (~100MB) 对运行无用且占用空间。
+
+### 为什么用 `git reset --hard` 而不是 `git pull`？
+
+CI 在服务器上每次部署会生成 `frontend/.env.production` 文件（`.gitignore` 里原本漏掉了，所以不在 GitHub 仓库里）。
+
+`git pull` = fetch + merge，遇到本地有文件但 GitHub 没有的情况会报冲突。
+
+`git reset --hard origin/main` = 强制把本地所有文件覆盖成远程的样子，不管本地有什么，不 merge，不冲突。
+
+> 建议把 `.env.production` 加入 `.gitignore`，或者直接 commit 到仓库里，两种方式都能避免冲突。

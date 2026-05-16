@@ -1,6 +1,6 @@
 # Aston's Blog
 
-全栈博客系统，前端 **Next.js 15 (App Router)** + 后端 **Spring Boot 4.0 (Java 21)**，数据库 **MySQL 8.0**。
+全栈博客系统，前端 **Next.js 15 (App Router)** + 后端 **Spring Boot 4.0 (Java 21)** + **Python FastAPI (安全工具)**，数据库 **MySQL 8.0**。
 
 ## 新增功能
 
@@ -36,7 +36,7 @@
 | `learn nginx` | Nginx Web 服务器 |
 
 ### 安全工具箱
-集成常用安全检测工具：XSS 检测、SQL 注入检测、算法检测等。
+集成常用安全检测工具：XSS 检测、SQL 注入检测、算法检测、OSS 存储桶扫描、路径模糊测试、子域名 takeover 检测、端口扫描、URL 模板模糊测试等。
 
 ## 快速开始
 
@@ -83,6 +83,11 @@ blog/
 │   │   ├── travel/        # 旅行足迹
 │   │   └── ...
 │   └── api/               # API 代理路由
+├── python/                  # Python FastAPI 安全工具
+│   ├── modules/           # 扫描模块 (oss, web, crypto)
+│   ├── routers/           # API 路由
+│   ├── services/          # 任务管理、数据库服务
+│   └── utils/             # JWT 认证、SSE
 ├── compose.yaml            # Docker Compose
 └── docs/                   # 文档
 ```
@@ -93,6 +98,7 @@ blog/
 |------|------|
 | 前端 | Next.js 15, React, TypeScript, TailwindCSS, next-themes |
 | 后端 | Spring Boot 4.0, Java 21, Spring Security, JPA |
+| Python | FastAPI, uvicorn, pydantic, pymysql, python-jose |
 | 数据库 | MySQL 8.0 |
 | 部署 | Docker, Docker Compose, GitHub Actions |
 
@@ -188,6 +194,10 @@ login username -p password
 | `/api/settings` | GET/PUT | 站点设置 |
 | `/api/terminal` | POST | 终端命令执行 |
 | `/api/upload` | POST | 文件上传 |
+| `/api/security/oss/scan` | POST | OSS 存储桶扫描 |
+| `/api/security/web/scan` | POST | Web 安全扫描 |
+| `/api/security/crypto/encode` | POST | 加密/编码工具 |
+| `/api/security/crypto/decode` | POST | 解密/解码工具 |
 
 ## 主题系统
 
@@ -208,7 +218,8 @@ login username -p password
 Push 到 `main` 分支自动触发 GitHub Actions：
 1. 前端构建
 2. 后端打包
-3. SSH 部署到阿里云
+3. Python 安全工具镜像构建
+4. SSH 部署到阿里云
 
 ## 开发笔记
 

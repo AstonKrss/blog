@@ -91,11 +91,11 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DB_HOST:mysql
-      DB_PORT:3306
-      DB_NAME:myblog
-      DB_USER:bloguser
-      DB_PASSWORD:Aston123@@blog
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: myblog
+      DB_USER: bloguser
+      DB_PASSWORD: Aston123@@blog
       JWT_SECRET: mySecretKeyForJwtTokenGenerationThatIsLongEnough
       HOST: 0.0.0.0
       PORT: 8000
