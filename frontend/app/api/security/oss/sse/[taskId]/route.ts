@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const { taskId } = await params;
   const cookieStore = await cookies();
-  const token = cookieStore.get('blog_token')?.value;
+  const token = cookieStore.get('auth_token')?.value;
 
   if (!token) {
     return new Response('未登录', { status: 401 });

@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   // 从 Cookie 获取 JWT token
   const cookieStore = await cookies();
-  const token = cookieStore.get('blog_token')?.value;
+  const token = cookieStore.get('auth_token')?.value;
 
   if (!token) {
     return NextResponse.json({ error: '未登录' }, { status: 401 });
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
 
   const cookieStore = await cookies();
-  const token = cookieStore.get('blog_token')?.value;
+  const token = cookieStore.get('auth_token')?.value;
 
   if (!token) {
     return NextResponse.json({ error: '未登录' }, { status: 401 });
@@ -68,7 +68,7 @@ export async function DELETE(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   const cookieStore = await cookies();
-  const token = cookieStore.get('blog_token')?.value;
+  const token = cookieStore.get('auth_token')?.value;
 
   if (!token) {
     return NextResponse.json({ error: '未登录' }, { status: 401 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
@@ -67,18 +67,8 @@ function WebSecurityContent() {
   const [scanning, setScanning] = useState(false);
   const [results, setResults] = useState<Results | null>(null);
   const [error, setError] = useState('');
-  const [token, setToken] = useState('');
-
-  useEffect(() => {
-    const saved = localStorage.getItem('token') || sessionStorage.getItem('auth_token') || '';
-    setToken(saved);
-  }, []);
 
   const handleScan = async () => {
-    if (!token) {
-      setError('请先登录');
-      return;
-    }
     if (!url) {
       setError('请输入 URL');
       return;
@@ -92,19 +82,12 @@ function WebSecurityContent() {
       const endpoint = validToolType === 'xss' ? '/api/security/web/xss/scan' : '/api/security/web/sqli/scan';
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, param })
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || '扫描失败');
-      }
-
       const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || '扫描失败');
       setResults(data);
     } catch (e: any) {
       setError(e.message || '扫描失败');
@@ -162,7 +145,7 @@ function WebSecurityContent() {
 
           <button
             onClick={handleScan}
-            disabled={scanning || !token}
+            disabled={scanning}
             className={`group relative inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 overflow-hidden ${
               scanning ? 'bg-gray-500' : `bg-gradient-to-r ${tool.gradient}`
             }`}
