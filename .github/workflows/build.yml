@@ -23,6 +23,7 @@ jobs:
         working-directory: ./frontend
         env:
           NEXT_PUBLIC_API_URL: http://47.242.21.40:8080
+          PYTHON_API_URL: http://47.242.21.40:8000
         run: |
           npm ci
           npm run build
@@ -37,6 +38,13 @@ jobs:
 
       - name: 打包 Spring Boot 后端
         run: mvn clean package -DskipTests
+
+      # ==================== Python 安全工具构建 ====================
+      - name: 🐍 构建 Python 环境
+        run: |
+          cd python
+          docker build -t blog-python:latest .
+
 
       # ==================== 部署到阿里云 ====================
       - name: 部署到阿里云服务器
@@ -55,10 +63,15 @@ jobs:
 
             # 拉取最新代码
             git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
 
             # 生成前端环境变量
             echo "NEXT_PUBLIC_API_URL=http://47.242.21.40:8080" > frontend/.env.production
+            echo "PYTHON_API_URL=http://47.242.21.40:8000" >> frontend/.env.production
+
+            # 构建 Python 镜像
+            cd python && docker build -t blog-python:latest . && cd ..
 
             # 重启所有服务
             docker-compose down
@@ -69,9 +82,12 @@ jobs:
 
             # 健康检查
             curl -sf http://localhost:8080/api/public/health || echo "Backend health check failed"
+            curl -sf http://localhost:8000/health || echo "Python service health check failed"
+            curl -sf http://localhost:3000/api/public/health || echo "Frontend health check failed"
 
             echo "======================================"
             echo "部署完成！服务状态："
             echo "  前端: http://47.242.21.40"
             echo "  后端: http://47.242.21.40:8080"
+            echo "  Python: http://47.242.21.40:8000"
             echo "======================================"
