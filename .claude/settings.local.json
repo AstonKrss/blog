@@ -20,7 +20,9 @@
       "Bash(tasklist /FI \"PID eq 79944\")",
       "Bash(ps -p 79944 -o comm=)",
       "Bash(grep *)",
-      "Bash(docker exec blog-mysql *)"
+      "Bash(docker exec blog-mysql *)",
+      "Read(//d/d/Users/32239/java_code/blog/**)",
+      "Read(//d/Users/32239/java_code/blog/frontend/app//**)"
     ]
   }
 }

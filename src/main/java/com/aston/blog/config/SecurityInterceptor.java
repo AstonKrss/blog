@@ -152,6 +152,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
             if (userAgent != null && userAgent.toLowerCase().contains(signature)) {
                 attackLogService.recordAttack(ip, path, method, fullPayload, "SCANNER_DETECTED", userAgent,
                         fullPayload);
+                attackLogService.recordThreat(ip, path, method, fullPayload, "SCANNER_DETECTED", userAgent, fullPayload);
                 return true;
             }
         }
@@ -159,8 +160,9 @@ public class SecurityInterceptor implements HandlerInterceptor {
         // 检测 XSS
         for (Pattern pattern : XSS_PATTERNS) {
             if (pattern.matcher(fullPayload).find()) {
-                attackLogService.recordAttack(ip, path, method, extractMatchedContent(pattern, fullPayload), "XSS",
-                        userAgent, fullPayload);
+                String matched = extractMatchedContent(pattern, fullPayload);
+                attackLogService.recordAttack(ip, path, method, matched, "XSS", userAgent, fullPayload);
+                attackLogService.recordThreat(ip, path, method, matched, "XSS", userAgent, fullPayload);
                 return true;
             }
         }
@@ -168,8 +170,9 @@ public class SecurityInterceptor implements HandlerInterceptor {
         // 检测 SQL 注入
         for (Pattern pattern : SQL_PATTERNS) {
             if (pattern.matcher(fullPayload).find()) {
-                attackLogService.recordAttack(ip, path, method, extractMatchedContent(pattern, fullPayload),
-                        "SQL_INJECTION", userAgent, fullPayload);
+                String matched = extractMatchedContent(pattern, fullPayload);
+                attackLogService.recordAttack(ip, path, method, matched, "SQL_INJECTION", userAgent, fullPayload);
+                attackLogService.recordThreat(ip, path, method, matched, "SQL_INJECTION", userAgent, fullPayload);
                 return true;
             }
         }
@@ -177,9 +180,9 @@ public class SecurityInterceptor implements HandlerInterceptor {
         // 检测路径穿越
         for (Pattern pattern : PATH_TRAVERSAL_PATTERNS) {
             if (pattern.matcher(fullPayload).find() || pattern.matcher(path).find()) {
-                attackLogService.recordAttack(ip, path, method,
-                        extractMatchedContent(pattern, fullPayload + " | " + path), "PATH_TRAVERSAL", userAgent,
-                        fullPayload);
+                String matched = extractMatchedContent(pattern, fullPayload + " | " + path);
+                attackLogService.recordAttack(ip, path, method, matched, "PATH_TRAVERSAL", userAgent, fullPayload);
+                attackLogService.recordThreat(ip, path, method, matched, "PATH_TRAVERSAL", userAgent, fullPayload);
                 return true;
             }
         }
@@ -187,8 +190,9 @@ public class SecurityInterceptor implements HandlerInterceptor {
         // 检测命令注入
         for (Pattern pattern : COMMAND_INJECTION_PATTERNS) {
             if (pattern.matcher(fullPayload).find()) {
-                attackLogService.recordAttack(ip, path, method, extractMatchedContent(pattern, fullPayload),
-                        "COMMAND_INJECTION", userAgent, fullPayload);
+                String matched = extractMatchedContent(pattern, fullPayload);
+                attackLogService.recordAttack(ip, path, method, matched, "COMMAND_INJECTION", userAgent, fullPayload);
+                attackLogService.recordThreat(ip, path, method, matched, "COMMAND_INJECTION", userAgent, fullPayload);
                 return true;
             }
         }
@@ -197,8 +201,8 @@ public class SecurityInterceptor implements HandlerInterceptor {
         String pathLower = path.toLowerCase();
         for (String ext : SENSITIVE_EXTENSIONS) {
             if (pathLower.endsWith(ext) || pathLower.contains(ext)) {
-                attackLogService.recordAttack(ip, path, method, fullPayload, "SENSITIVE_ACCESS", userAgent,
-                        fullPayload);
+                attackLogService.recordAttack(ip, path, method, fullPayload, "SENSITIVE_ACCESS", userAgent, fullPayload);
+                attackLogService.recordThreat(ip, path, method, fullPayload, "SENSITIVE_ACCESS", userAgent, fullPayload);
                 return true;
             }
         }
@@ -206,8 +210,8 @@ public class SecurityInterceptor implements HandlerInterceptor {
         // 检测敏感路径关键词
         for (String keyword : SENSITIVE_PATHS) {
             if (pathLower.contains(keyword.toLowerCase())) {
-                attackLogService.recordAttack(ip, path, method, fullPayload, "SENSITIVE_ACCESS", userAgent,
-                        fullPayload);
+                attackLogService.recordAttack(ip, path, method, fullPayload, "SENSITIVE_ACCESS", userAgent, fullPayload);
+                attackLogService.recordThreat(ip, path, method, fullPayload, "SENSITIVE_ACCESS", userAgent, fullPayload);
                 return true;
             }
         }

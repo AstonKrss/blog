@@ -1,6 +1,7 @@
 package com.aston.blog.Service.impl;
 
 import com.aston.blog.Service.AttackLogService;
+import com.aston.blog.Service.ThreatSignatureService;
 import com.aston.blog.entity.AttackLog;
 import com.aston.blog.entity.LoginAttempt;
 import com.aston.blog.repository.AttackLogRepository;
@@ -24,11 +25,14 @@ public class AttackLogServiceImpl implements AttackLogService {
     private final Map<String, LocalDateTime> blockedIps = new ConcurrentHashMap<>();
     private final AttackLogRepository attackLogRepository;
     private final LoginAttemptRepository loginAttemptRepository;
+    private final ThreatSignatureService threatSignatureService;
 
     public AttackLogServiceImpl(AttackLogRepository attackLogRepository,
-            LoginAttemptRepository loginAttemptRepository) {
+            LoginAttemptRepository loginAttemptRepository,
+            ThreatSignatureService threatSignatureService) {
         this.attackLogRepository = attackLogRepository;
         this.loginAttemptRepository = loginAttemptRepository;
+        this.threatSignatureService = threatSignatureService;
     }
 
     @Override
@@ -53,6 +57,13 @@ public class AttackLogServiceImpl implements AttackLogService {
         log.setUserAgent(userAgent);
         log.setQueryParams(queryParams);
         attackLogRepository.save(log);
+    }
+
+    @Override
+    public void recordThreat(String ip, String path, String method, String payload, String attackType,
+                             String userAgent, String fullPayload) {
+        // 每次攻击都追加到威胁特征库（自动去重）
+        threatSignatureService.recordThreat(ip, path, method, payload, attackType, userAgent, fullPayload);
     }
 
     @Override

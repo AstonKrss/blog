@@ -68,6 +68,20 @@ interface SecurityStats {
   recentLogs: SecurityLog[];
 }
 
+interface ThreatSignature {
+  id: string;
+  ip: string;
+  payloads: string;
+  userAgent: string;
+  attackCount: number;
+  attackTypes: string;
+  reviewed: boolean;
+  riskLevel: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function AdminDashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -84,6 +98,9 @@ export default function AdminDashboardPage() {
   const [filteredLogs, setFilteredLogs] = useState<SecurityLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
   const [showTrendDetail, setShowTrendDetail] = useState(false);
+  const [threats, setThreats] = useState<ThreatSignature[]>([]);
+  const [threatsLoading, setThreatsLoading] = useState(false);
+  const [threatReviewNote, setThreatReviewNote] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!authLoading && (!user || user.role !== "ADMIN")) {
@@ -106,6 +123,7 @@ export default function AdminDashboardPage() {
           setSecurityStats(securityRes.data);
           setFilteredLogs(securityRes.data.recentLogs || []);
         }
+        loadThreats();
       }).catch(console.error)
       .finally(() => setLoading(false));
     }
@@ -126,6 +144,38 @@ export default function AdminDashboardPage() {
       })
       .catch(console.error)
       .finally(() => setLogsLoading(false));
+  };
+
+  const loadThreats = () => {
+    setThreatsLoading(true);
+    const token = getToken();
+    fetch(`${API_BASE}/api/admin/security/threats`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(r => r.json())
+      .then(data => {
+        if (data.code === 0) setThreats(data.data || []);
+      })
+      .catch(console.error)
+      .finally(() => setThreatsLoading(false));
+  };
+
+  const markThreatReviewed = (id: string) => {
+    const token = getToken();
+    const note = threatReviewNote[id] || "";
+    fetch(`${API_BASE}/api/admin/security/threats/${id}/review`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ note })
+    }).then(r => r.json())
+      .then(data => {
+        if (data.code === 0) {
+          setThreats(prev => prev.filter(t => t.id !== id));
+        }
+      })
+      .catch(console.error);
   };
 
   if (authLoading || loading) {
@@ -841,6 +891,82 @@ export default function AdminDashboardPage() {
                       )}
                     </tbody>
                   </table>
+                </div>
+              </div>
+              {/* 威胁特征库 */}
+              <div className="rounded-2xl border bg-card overflow-hidden">
+                <div className="p-4 border-b border-border flex items-center gap-2 flex-wrap">
+                  <Bug className="h-4 w-4 text-orange-500" />
+                  <span className="text-sm font-medium text-foreground">威胁特征库</span>
+                  <span className="ml-2 px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500 text-xs">
+                    {threats.length} 未审核
+                  </span>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {threatsLoading ? "加载中..." : `${threats.length} 条记录`}
+                  </span>
+                  <button onClick={loadThreats}
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    刷新
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  {threats.length === 0 && !threatsLoading ? (
+                    <div className="py-12 text-center text-muted-foreground">
+                      <Bug className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                      <p>暂无待审核的威胁记录</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-border/30">
+                      {threats.map(threat => (
+                        <div key={threat.id} className="p-4 hover:bg-muted/20 transition-colors">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap mb-1">
+                                <span className="text-sm font-mono font-medium text-foreground">{threat.ip}</span>
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                  threat.riskLevel === "critical" ? "bg-red-500/10 text-red-500" :
+                                  threat.riskLevel === "high" ? "bg-orange-500/10 text-orange-500" :
+                                  "bg-yellow-500/10 text-yellow-600"
+                                }`}>
+                                  {threat.riskLevel === "critical" ? "严重" :
+                                   threat.riskLevel === "high" ? "高危" : "中危"}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs">
+                                  {threat.attackCount} 次攻击
+                                </span>
+                              </div>
+                              <div className="text-xs text-muted-foreground mb-2">
+                                类型: {threat.attackTypes} · UA: {threat.userAgent?.substring(0, 60) || "-"}
+                              </div>
+                              <div className="text-xs text-muted-foreground mb-2">
+                                记录时间: {threat.createdAt ? new Date(threat.createdAt).toLocaleString("zh-CN") : "-"}
+                              </div>
+                              {threat.payloads && (
+                                <div className="bg-muted/30 rounded-lg p-2 font-mono text-xs text-muted-foreground max-h-24 overflow-y-auto">
+                                  {threat.payloads.split("||").map((p, i) => (
+                                    <div key={i} className="truncate">{i + 1}. {p}</div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              <input
+                                type="text"
+                                placeholder="填写分析备注..."
+                                value={threatReviewNote[threat.id] || ""}
+                                onChange={e => setThreatReviewNote(prev => ({ ...prev, [threat.id]: e.target.value }))}
+                                className="px-2 py-1 rounded border border-border bg-card text-xs text-foreground w-40 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                              />
+                              <button onClick={() => markThreatReviewed(threat.id)}
+                                className="flex items-center gap-1 px-3 py-1 rounded-lg bg-orange-500/10 text-orange-500 text-xs hover:bg-orange-500/20 transition-colors">
+                                标记已审核
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -17,6 +17,9 @@ public interface AttackLogService {
     void recordAttack(String ip, String path, String method, String payload, String attackType, String userAgent,
             String queryParams);
 
+    void recordThreat(String ip, String path, String method, String payload, String attackType,
+                      String userAgent, String fullPayload);
+
     SecurityStatsVO getSecurityStats();
 
     List<Map<String, Object>> getRecentLogsByType(String attackType, String ip, int limit);
