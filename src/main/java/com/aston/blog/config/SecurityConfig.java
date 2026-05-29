@@ -45,11 +45,32 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(authz -> authz
-                        .anyRequest().permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.requestMatchers(
+                        "/api/public/**",
+                        "/api/auth/login",
+                        "/api/auth/register",
+                        "/api/auth/send-code",
+                        "/uploads/**",
+                        "/health").permitAll()
+                        .requestMatchers(
+                                "/api/admin/**",
+                                "/api/settings",
+                                "/api/projects/**",
+                                "/api/photos/**",
+                                "/api/friends/**",
+                                "/api/analytics/**")
+                        .hasRole("ADMIN")
+                        .requestMatchers(
+                                "/api/posts/**",
+                                "/api/notes/**",
+                                "/api/users/profile",
+                                "/api/users/password",
+                                "/api/upload/**",
+                                "/api/terminal/**")
+                        .authenticated()
+                        .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
@@ -65,11 +86,10 @@ public class SecurityConfig {
         } else {
             // 默认允许本地开发和生产 IP
             originsList = java.util.List.of(
-                "http://localhost:3000",
-                "http://47.242.21.40",
-                "http://47.242.21.40:80",
-                "http://47.242.21.40:8080"
-            );
+                    "http://localhost:3000",
+                    "http://47.242.21.40",
+                    "http://47.242.21.40:80",
+                    "http://47.242.21.40:8080");
         }
 
         configuration.setAllowedOrigins(originsList);
@@ -126,10 +146,10 @@ public class SecurityConfig {
                             String role = jwtUtil.extractRole(token);
 
                             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                userId,
-                                null,
-                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + (role != null ? role : "USER")))
-                            );
+                                    userId,
+                                    null,
+                                    Collections.singletonList(
+                                            new SimpleGrantedAuthority("ROLE_" + (role != null ? role : "USER"))));
                             SecurityContextHolder.getContext().setAuthentication(authToken);
                         }
                     }
