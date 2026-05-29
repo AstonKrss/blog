@@ -25,6 +25,8 @@ const themes = [
   },
 ];
 
+const THEME_CHOICE_KEY = "theme-user-choice";
+
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -75,6 +77,7 @@ export function ThemeToggle() {
                   <button
                     key={t.value}
                     onClick={() => {
+                      localStorage.setItem(THEME_CHOICE_KEY, t.value);
                       setTheme(t.value);
                       setOpen(false);
                     }}

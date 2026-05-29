@@ -21,6 +21,14 @@ const TOOLS = [
     gradient: 'from-red-500 to-orange-500'
   },
   {
+    id: 'code-audit',
+    name: '代码审计 Agent',
+    desc: '基于 AI Agent 的代码安全审计、风险分级和修复建议',
+    icon: '🤖',
+    href: '/security/tools/code-audit',
+    gradient: 'from-violet-500 to-blue-500'
+  },
+  {
     id: 'xss',
     name: 'XSS 扫描器',
     desc: '检测跨站脚本攻击漏洞 (反射型、存储型、SVG)',

@@ -1,15 +1,17 @@
 "use client"
 import { getToken } from "@/lib/token"
 import { useEffect, useRef, useState } from "react"
+import * as echarts from "echarts"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Loader2, Trash2, MapPin, X, Globe, Plus } from "lucide-react"
 import { useAuth } from "@/components/auth-context"
 import citiesData from "./cities.json"
+import chinaGeo from "./china-geo.json"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
-declare global { interface Window { echarts: any; footprintChart: any; } }
+declare global { interface Window { footprintChart: echarts.ECharts | null; } }
 
 interface Footprint {
   id: string
@@ -36,22 +38,30 @@ interface FootprintPoint {
   symbolSize?: number
 }
 
-async function loadScript(src: string): Promise<void> {
-  if (document.querySelector(`script[src="${src}"]`)) return
-  await new Promise<void>((resolve, reject) => {
-    const s = document.createElement("script")
-    s.src = src; s.onload = () => resolve(); s.onerror = () => reject()
-    document.head.appendChild(s)
-  })
-}
-
 async function loadJson(src: string): Promise<any> {
   const res = await fetch(src)
+  if (!res.ok) throw new Error(`Failed to load ${src}`)
   return res.json()
+}
+
+function buildProvinceCounts(points: FootprintPoint[], footprints: Footprint[]) {
+  const provinceCounts: Record<string, number> = {}
+
+  points.forEach(p => {
+    provinceCounts[p.province] = (provinceCounts[p.province] || 0) + 1
+  })
+
+  footprints.forEach(f => {
+    provinceCounts[f.province] = (provinceCounts[f.province] || 0) + 1
+  })
+
+  return provinceCounts
 }
 
 export default function TravelMapPage() {
   const chartRef = useRef<HTMLDivElement>(null)
+  const chartInstanceRef = useRef<echarts.ECharts | null>(null)
+  const resizeHandlerRef = useRef<(() => void) | null>(null)
   const mounted = useRef(true)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -63,28 +73,40 @@ export default function TravelMapPage() {
   const [description, setDescription] = useState("")
   const [pointData, setPointData] = useState<FootprintPoint[]>([])
 
-  const fetchFootprints = async () => {
+  const fetchFootprints = async (): Promise<Footprint[]> => {
     try {
       const res = await fetch(`${API_BASE}/api/public/footprints`)
       const data = await res.json()
       if (data.code === 0 && data.data) {
-        setFootprints(data.data.map((f: any) => ({
+        const nextFootprints = data.data.map((f: any) => ({
           id: f.id, province: f.province, city: f.city || undefined,
           description: f.description
-        })))
+        }))
+        setFootprints(nextFootprints)
+        return nextFootprints
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) { /* keep static footprint map available when backend is offline */ }
+    setFootprints([])
+    return []
+  }
+
+  const updateChartProvinceData = (points: FootprintPoint[], nextFootprints: Footprint[]) => {
+    const provinceCounts = buildProvinceCounts(points, nextFootprints)
+    const maxCount = Math.max(...Object.values(provinceCounts), 0) || 1
+
+    chartInstanceRef.current?.setOption({
+      visualMap: { max: maxCount },
+      series: [
+        { data: points },
+        { data: Object.entries(provinceCounts).map(([name, value]) => ({ name, value })) }
+      ]
+    })
   }
 
   const initChart = async () => {
     if (!chartRef.current || !mounted.current) return
     try {
-      // Load ECharts
-      await loadScript("https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js")
-      if (!mounted.current) return
-
-      // Load external china.js (UMD — registers echarts.registerMap('china', ...))
-      await loadScript("/travel/china.js")
+      echarts.registerMap("china", chinaGeo as any)
       if (!mounted.current) return
 
       // Load footprint.json (user's personal city points)
@@ -92,25 +114,20 @@ export default function TravelMapPage() {
       if (!mounted.current) return
       setPointData(fetchedPointData)
 
-      await fetchFootprints()
+      const fetchedFootprints = await fetchFootprints()
       if (!mounted.current) return
 
       // Destroy old chart
-      if (window.footprintChart && !window.footprintChart.isDisposed()) {
-        window.footprintChart.dispose()
+      if (chartInstanceRef.current && !chartInstanceRef.current.isDisposed()) {
+        chartInstanceRef.current.dispose()
       }
 
-      const chart = window.echarts.init(chartRef.current)
+      const chart = echarts.init(chartRef.current)
+      chartInstanceRef.current = chart
       window.footprintChart = chart
 
       // Get max visits for visualMap
-      const visited = new Set<string>()
-      footprints.forEach(f => visited.add(f.province))
-
-      const provinceCounts: Record<string, number> = {}
-      fetchedPointData.forEach(p => {
-        provinceCounts[p.province] = (provinceCounts[p.province] || 0) + 1
-      })
+      const provinceCounts = buildProvinceCounts(fetchedPointData, fetchedFootprints)
       const maxCount = Math.max(...Object.values(provinceCounts), 0) || 1
 
       const option = {
@@ -220,7 +237,11 @@ export default function TravelMapPage() {
         })
       })
 
-      window.addEventListener('resize', () => chart.resize())
+      if (resizeHandlerRef.current) {
+        window.removeEventListener('resize', resizeHandlerRef.current)
+      }
+      resizeHandlerRef.current = () => chart.resize()
+      window.addEventListener('resize', resizeHandlerRef.current)
       setLoading(false)
     } catch (e) {
       console.error("地图初始化失败", e)
@@ -233,7 +254,11 @@ export default function TravelMapPage() {
     return () => {
       mounted.current = false
       clearTimeout(t)
-      window.footprintChart?.dispose()
+      if (resizeHandlerRef.current) {
+        window.removeEventListener('resize', resizeHandlerRef.current)
+      }
+      chartInstanceRef.current?.dispose()
+      window.footprintChart = null
     }
   }, [])
 
@@ -248,25 +273,9 @@ export default function TravelMapPage() {
       })
       setModal(false)
       setDescription("")
-      await fetchFootprints()
+      const nextFootprints = await fetchFootprints()
       // Refresh chart province coloring
-      if (window.footprintChart) {
-        const visited = new Set<string>()
-        const allFootprints = [...footprints, { province, city }]
-        allFootprints.forEach(f => visited.add(f.province))
-        const provinceCounts: Record<string, number> = {}
-        pointData.forEach(p => {
-          provinceCounts[p.province] = (provinceCounts[p.province] || 0) + 1
-        })
-        const maxCount = Math.max(...Object.values(provinceCounts), 1)
-        window.footprintChart.setOption({
-          series: [{
-            // scatter series — no change
-          }, {
-            data: Object.entries(provinceCounts).map(([name, value]) => ({ name, value }))
-          }]
-        })
-      }
+      updateChartProvinceData(pointData, nextFootprints)
     } catch (e) { console.error(e) }
   }
 
@@ -276,7 +285,11 @@ export default function TravelMapPage() {
     const res = await fetch(`${API_BASE}/api/footprints/${id}`, {
       method: "DELETE", headers: { Authorization: `Bearer ${token}` }
     })
-    if (res.ok) setFootprints(f => f.filter(p => p.id !== id))
+    if (res.ok) {
+      const nextFootprints = footprints.filter(p => p.id !== id)
+      setFootprints(nextFootprints)
+      updateChartProvinceData(pointData, nextFootprints)
+    }
   }
 
   const visitedProvinces = new Set(footprints.map(f => f.province))

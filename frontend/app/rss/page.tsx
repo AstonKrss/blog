@@ -5,6 +5,7 @@ import { Rss, Mail, Check, ExternalLink, Clock, User } from "lucide-react";
 import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
 
 interface RssItem {
   title: string;
@@ -74,7 +75,7 @@ function getDemoRssItems(): RssItem[] {
       title: "博客订阅功能上线",
       link: "/blog/rss-subscription",
       description: "欢迎订阅 Aston's Blog，通过 RSS 阅读器第一时间获取更新。",
-      pubDate: new Date().toUTCString(),
+      pubDate: "Fri, 22 May 2026 00:00:00 GMT",
       author: "Aston",
       category: ["公告"],
     },
@@ -82,7 +83,7 @@ function getDemoRssItems(): RssItem[] {
       title: "Spring Boot 入门教程",
       link: "/blog/spring-boot-guide",
       description: "从零开始学习 Spring Boot，掌握现代 Java 后端开发。",
-      pubDate: new Date(Date.now() - 86400000).toUTCString(),
+      pubDate: "Thu, 21 May 2026 00:00:00 GMT",
       author: "Aston",
       category: ["Java", "教程"],
     },
@@ -90,7 +91,7 @@ function getDemoRssItems(): RssItem[] {
       title: "Next.js 15 新特性解析",
       link: "/blog/nextjs-15-features",
       description: "深入了解 Next.js 15 的 App Router、Server Components 等新特性。",
-      pubDate: new Date(Date.now() - 172800000).toUTCString(),
+      pubDate: "Wed, 20 May 2026 00:00:00 GMT",
       author: "Aston",
       category: ["前端", "Next.js"],
     },
@@ -122,17 +123,12 @@ export default async function RssPage() {
         type="website"
       />
 
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-rose-50/50 to-white dark:from-gray-900 dark:to-gray-900">
+      <div className="min-h-screen flex flex-col">
         <Header />
 
         <main className="flex-1">
           {/* Hero Section */}
-          <section className="relative overflow-hidden border-b bg-card/50">
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-rose-400/10 blur-3xl" />
-              <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-pink-400/10 blur-3xl" />
-            </div>
-
+          <section className="relative overflow-hidden border-b border-border/30">
             <div className="relative mx-auto max-w-4xl px-4 py-16 text-center">
               <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-lg">
                 <Rss className="h-8 w-8" />
@@ -149,7 +145,7 @@ export default async function RssPage() {
 
               {/* Subscription Info */}
               <div className="grid gap-4 sm:grid-cols-2 max-w-xl mx-auto">
-                <div className="flex items-center gap-3 rounded-xl border bg-card p-4 text-left">
+                <div className="flex items-center gap-3 rounded-xl glass-card p-4 text-left">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
                     <Rss className="h-5 w-5" />
                   </div>
@@ -161,7 +157,7 @@ export default async function RssPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 rounded-xl border bg-card p-4 text-left">
+                <div className="flex items-center gap-3 rounded-xl glass-card p-4 text-left">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
                     <Mail className="h-5 w-5" />
                   </div>
@@ -182,7 +178,7 @@ export default async function RssPage() {
 
             <div className="grid gap-6 md:grid-cols-3">
               {/* Step 1 */}
-              <div className="rounded-xl border bg-card p-6">
+              <div className="rounded-xl glass-card p-6">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-rose-100 text-rose-600 dark:bg-indigo-900/30 dark:text-rose-400">
                   <span className="text-lg font-bold">1</span>
                 </div>
@@ -193,7 +189,7 @@ export default async function RssPage() {
               </div>
 
               {/* Step 2 */}
-              <div className="rounded-xl border bg-card p-6">
+              <div className="rounded-xl glass-card p-6">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100 text-purple-600 dark:bg-purple-900/30 dark:text-pink-400">
                   <span className="text-lg font-bold">2</span>
                 </div>
@@ -204,7 +200,7 @@ export default async function RssPage() {
               </div>
 
               {/* Step 3 */}
-              <div className="rounded-xl border bg-card p-6">
+              <div className="rounded-xl glass-card p-6">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
                   <Check className="h-5 w-5" />
                 </div>
@@ -231,7 +227,7 @@ export default async function RssPage() {
                     href={reader.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm hover:bg-accent transition-colors"
+                  className="inline-flex items-center gap-2 rounded-lg border bg-card/70 px-4 py-2 text-sm backdrop-blur-sm hover:bg-accent transition-colors"
                   >
                     {reader.name}
                     <ExternalLink className="h-3 w-3" />
@@ -249,7 +245,7 @@ export default async function RssPage() {
               {items.map((item, index) => (
                 <article
                   key={index}
-                  className="group rounded-xl border bg-card p-6 transition-all hover:shadow-md"
+                  className="group rounded-xl glass-card p-6 transition-all hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
@@ -321,7 +317,7 @@ export default async function RssPage() {
                   </p>
                 </div>
                 <code className="rounded-lg bg-white/20 px-4 py-2 font-mono text-sm backdrop-blur-sm">
-                  {typeof window !== "undefined" ? window.location.origin : ""}/rss.xml
+                  {SITE_URL}/rss.xml
                 </code>
               </div>
             </div>

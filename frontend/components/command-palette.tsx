@@ -24,6 +24,8 @@ interface CommandItem {
   shortcut?: string;
 }
 
+const THEME_CHOICE_KEY = "theme-user-choice";
+
 // ─── Command Registry ────────────────────────────────────────────────────────
 
 const buildCommands = (
@@ -369,7 +371,10 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const commands = buildCommands(setTheme, router);
+  const commands = buildCommands((theme) => {
+    localStorage.setItem(THEME_CHOICE_KEY, theme);
+    setTheme(theme);
+  }, router);
 
   const filtered = query.trim()
     ? commands.filter(cmd => fuzzyMatch(query, cmd.label) ||
