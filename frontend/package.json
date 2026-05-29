@@ -41,10 +41,6 @@
   },
   "devDependencies": {
       "@tailwindcss/postcss": "^4.0.9",
-      "@testing-library/react": "^19.0.0",
-      "@testing-library/jest-dom": "^6.4.0",
-      "@testing-library/user-event": "^14.5.0",
-      "@playwright/test": "^1.50.0",
       "@types/bcryptjs": "^2.4.6",
       "@types/jsonwebtoken": "^9.0.9",
       "@types/node": "^22.13.5",
@@ -54,8 +50,6 @@
       "prisma": "^6.5.0",
       "tailwindcss": "^4.0.9",
       "ts-node": "^10.9.2",
-      "typescript": "^5.7.3",
-      "jest": "^29.7.0",
-      "jest-environment-jsdom": "^29.7.0"
+      "typescript": "^5.7.3"
   }
 }
