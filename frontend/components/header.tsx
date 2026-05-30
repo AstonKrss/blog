@@ -4,7 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "./auth-context";
-import { Menu, X, User, LogOut, LayoutDashboard, Rss, ChevronDown, Gamepad2 } from "lucide-react";
+import {
+  Menu, X, User, LogOut, LayoutDashboard, Rss, ChevronDown, Gamepad2,
+  Home, BookOpen, Search, Archive, Tags, MessageSquare, Link2, FolderKanban,
+  Wrench, AtSign, TreePine, Info, MapPinned, Images, Shield, Library
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSiteSettings } from "./site-context";
 
@@ -21,29 +25,37 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
   const mainLinks = [
-    { href: "/", label: "首页" },
-    { href: "/blog", label: "博客" },
-    { href: "/search", label: "搜索" },
-    { href: "/archive", label: "归档" },
-    { href: "/tags", label: "标签" },
-    { href: "/guestbook", label: "留言" },
-    { href: "/friends", label: "友链" },
-    { href: "/projects", label: "项目" },
-    { href: "/tools", label: "工具箱" },
-    { href: "/notes", label: "碎碎念" },
+    { href: "/", label: "首页", icon: Home },
+    { href: "/blog", label: "博客", icon: BookOpen },
+    { href: "/search", label: "搜索", icon: Search },
+    { href: "/archive", label: "归档", icon: Archive },
+    { href: "/tags", label: "标签", icon: Tags },
+    { href: "/guestbook", label: "留言", icon: MessageSquare },
+    { href: "/friends", label: "友链", icon: Link2 },
+    { href: "/projects", label: "项目", icon: FolderKanban },
+    { href: "/tools", label: "工具箱", icon: Wrench },
+    { href: "/notes", label: "碎碎念", icon: AtSign },
   ];
 
   const moreLinks = [
-    { href: "/tree/", label: "圣诞树" },
-    { href: "/about", label: "关于" },
-    { href: "/travel", label: "旅行" },
-    { href: "/photos", label: "相册" },
+    { href: "/security/tools", label: "安全", icon: Shield },
+    { href: "/resources", label: "资源", icon: Library },
+    { href: "/tree/", label: "圣诞树", icon: TreePine },
+    { href: "/about", label: "关于", icon: Info },
+    { href: "/travel", label: "旅行", icon: MapPinned },
+    { href: "/photos", label: "相册", icon: Images },
   ];
 
   const gameLinks = [
-    { href: "/games", label: "趣味游戏" },
+    { href: "/games", label: "趣味游戏", icon: Gamepad2 },
   ];
+
+  const mobileLinks = [...mainLinks, ...moreLinks, ...gameLinks, { href: "/rss", label: "RSS", icon: Rss }];
 
   return (
     <header
@@ -55,7 +67,7 @@ export function Header() {
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-6">
         {/* Logo */}
-        <Link href="/" className="group flex items-center gap-3">
+        <Link href="/" className="group flex min-w-0 items-center gap-3">
           <div className="relative">
             <img
               src={settings.avatarUrl}
@@ -64,8 +76,8 @@ export function Header() {
             />
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 opacity-0 group-hover:opacity-30 blur-lg transition-opacity duration-300" />
           </div>
-          <div className="hidden sm:flex items-center gap-1">
-            <span className="text-lg font-black gradient-text">{settings.siteName}</span>
+          <div className="hidden min-w-0 sm:flex items-center gap-1">
+            <span className="max-w-[160px] truncate text-lg font-black gradient-text xl:max-w-none">{settings.siteName}</span>
           </div>
         </Link>
 
@@ -191,9 +203,10 @@ export function Header() {
 
           {/* Mobile menu toggle */}
           <button
-            className="p-2 rounded-xl hover:bg-muted/30 transition-colors lg:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-xl hover:bg-muted/30 transition-colors lg:hidden"
             onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
+            aria-label={menuOpen ? "关闭菜单" : "打开菜单"}
+            aria-expanded={menuOpen}
           >
             <div className="relative w-5 h-5">
               <Menu className={`h-5 w-5 absolute inset-0 transition-all duration-300 ${menuOpen ? "opacity-0 rotate-90 scale-50" : "opacity-100 rotate-0 scale-100"}`} />
@@ -203,46 +216,69 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile menu */}
-      <div
-        className={`lg:hidden overflow-hidden transition-all duration-400 border-t border-border/30 ${
-          menuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
-        }`}
-      >
-        <div className="glass-card border-t px-4 py-4 space-y-1 mx-3 mb-3 rounded-2xl">
-          {[...mainLinks, ...moreLinks].map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMenuOpen(false)}
-              className={`flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150 ${
-                pathname === link.href
-                  ? "bg-gradient-to-r from-rose-500/10 to-orange-400/10 text-foreground font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-          <div className="pt-3 border-t border-white/5 mt-3 flex items-center justify-between">
-            <ThemeToggle />
-            {user ? (
-              <div className="flex items-center gap-3">
-                <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                  控制台
+      {menuOpen && (
+        <div className="fixed inset-x-0 top-16 z-50 border-t border-border/30 bg-background/85 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3 shadow-2xl shadow-black/15 backdrop-blur-2xl lg:hidden">
+          <div className="max-h-[calc(100dvh-5.5rem)] overflow-y-auto rounded-2xl border border-border/40 bg-card/80 p-3 shadow-xl backdrop-blur-xl">
+            <div className="grid grid-cols-2 gap-2">
+              {mobileLinks.map((link) => {
+                const Icon = link.icon;
+                const active = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href.replace(/\/$/, "")));
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex min-h-12 items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition-all duration-200 ${
+                      active
+                        ? "bg-gradient-to-r from-rose-500/15 to-orange-400/10 text-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    }`}
+                  >
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                      active ? "bg-gradient-to-br from-rose-500 to-pink-500 text-white" : "bg-muted text-muted-foreground"
+                    }`}>
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <span>{link.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="mt-3 flex items-center justify-between gap-3 border-t border-border/30 pt-3">
+              <ThemeToggle />
+              {user ? (
+                <div className="flex flex-1 items-center justify-end gap-2">
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex min-h-11 items-center gap-2 rounded-xl bg-muted/60 px-4 text-sm font-semibold text-foreground"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    控制台
+                  </Link>
+                  <button
+                    onClick={() => { logout(); setMenuOpen(false); }}
+                    className="flex min-h-11 items-center gap-2 rounded-xl bg-red-500/10 px-4 text-sm font-semibold text-red-500"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    退出
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 px-4 text-sm font-bold text-white shadow-lg shadow-rose-500/20"
+                >
+                  <User className="h-4 w-4" />
+                  登录
                 </Link>
-                <button onClick={() => { logout(); setMenuOpen(false); }} className="text-sm font-medium text-red-500">
-                  退出
-                </button>
-              </div>
-            ) : (
-              <Link href="/login" onClick={() => setMenuOpen(false)} className="text-sm font-medium gradient-text">
-                登录
-              </Link>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </header>
   );
 }

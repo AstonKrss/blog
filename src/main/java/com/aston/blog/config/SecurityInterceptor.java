@@ -6,6 +6,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.aston.blog.Service.AttackLogService;
 
+import java.io.IOException;
 import java.util.regex.Pattern;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,6 +28,21 @@ public class SecurityInterceptor implements HandlerInterceptor {
     // ========== 排除的路径 ==========
     private static final String[] EXCLUDE_PATHS = {
             "/uploads/", "/static/", "/favicon", "/robots.txt", "/health", "/actuator"
+    };
+
+    // ========== 先启用阻断的高风险入口 ==========
+    private static final String[] BLOCK_PATH_PREFIXES = {
+            "/api/tools/",
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/send-code",
+            "/api/public/comments",
+            "/api/notes/"
+    };
+
+    private static final String[] BLOCK_PATH_CONTAINS = {
+            "/comments",
+            "/guestbook"
     };
 
     // ========== 敏感文件扩展名 ==========
@@ -150,10 +166,8 @@ public class SecurityInterceptor implements HandlerInterceptor {
         // 检测扫描器特征
         for (String signature : SCANNER_SIGNATURES) {
             if (userAgent != null && userAgent.toLowerCase().contains(signature)) {
-                attackLogService.recordAttack(ip, path, method, fullPayload, "SCANNER_DETECTED", userAgent,
+                return handleDetectedRequest(response, ip, path, method, fullPayload, "SCANNER_DETECTED", userAgent,
                         fullPayload);
-                attackLogService.recordThreat(ip, path, method, fullPayload, "SCANNER_DETECTED", userAgent, fullPayload);
-                return true;
             }
         }
 
@@ -161,9 +175,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
         for (Pattern pattern : XSS_PATTERNS) {
             if (pattern.matcher(fullPayload).find()) {
                 String matched = extractMatchedContent(pattern, fullPayload);
-                attackLogService.recordAttack(ip, path, method, matched, "XSS", userAgent, fullPayload);
-                attackLogService.recordThreat(ip, path, method, matched, "XSS", userAgent, fullPayload);
-                return true;
+                return handleDetectedRequest(response, ip, path, method, matched, "XSS", userAgent, fullPayload);
             }
         }
 
@@ -171,9 +183,8 @@ public class SecurityInterceptor implements HandlerInterceptor {
         for (Pattern pattern : SQL_PATTERNS) {
             if (pattern.matcher(fullPayload).find()) {
                 String matched = extractMatchedContent(pattern, fullPayload);
-                attackLogService.recordAttack(ip, path, method, matched, "SQL_INJECTION", userAgent, fullPayload);
-                attackLogService.recordThreat(ip, path, method, matched, "SQL_INJECTION", userAgent, fullPayload);
-                return true;
+                return handleDetectedRequest(response, ip, path, method, matched, "SQL_INJECTION", userAgent,
+                        fullPayload);
             }
         }
 
@@ -181,9 +192,8 @@ public class SecurityInterceptor implements HandlerInterceptor {
         for (Pattern pattern : PATH_TRAVERSAL_PATTERNS) {
             if (pattern.matcher(fullPayload).find() || pattern.matcher(path).find()) {
                 String matched = extractMatchedContent(pattern, fullPayload + " | " + path);
-                attackLogService.recordAttack(ip, path, method, matched, "PATH_TRAVERSAL", userAgent, fullPayload);
-                attackLogService.recordThreat(ip, path, method, matched, "PATH_TRAVERSAL", userAgent, fullPayload);
-                return true;
+                return handleDetectedRequest(response, ip, path, method, matched, "PATH_TRAVERSAL", userAgent,
+                        fullPayload);
             }
         }
 
@@ -191,9 +201,8 @@ public class SecurityInterceptor implements HandlerInterceptor {
         for (Pattern pattern : COMMAND_INJECTION_PATTERNS) {
             if (pattern.matcher(fullPayload).find()) {
                 String matched = extractMatchedContent(pattern, fullPayload);
-                attackLogService.recordAttack(ip, path, method, matched, "COMMAND_INJECTION", userAgent, fullPayload);
-                attackLogService.recordThreat(ip, path, method, matched, "COMMAND_INJECTION", userAgent, fullPayload);
-                return true;
+                return handleDetectedRequest(response, ip, path, method, matched, "COMMAND_INJECTION", userAgent,
+                        fullPayload);
             }
         }
 
@@ -201,22 +210,66 @@ public class SecurityInterceptor implements HandlerInterceptor {
         String pathLower = path.toLowerCase();
         for (String ext : SENSITIVE_EXTENSIONS) {
             if (pathLower.endsWith(ext) || pathLower.contains(ext)) {
-                attackLogService.recordAttack(ip, path, method, fullPayload, "SENSITIVE_ACCESS", userAgent, fullPayload);
-                attackLogService.recordThreat(ip, path, method, fullPayload, "SENSITIVE_ACCESS", userAgent, fullPayload);
-                return true;
+                return handleDetectedRequest(response, ip, path, method, fullPayload, "SENSITIVE_ACCESS", userAgent,
+                        fullPayload);
             }
         }
 
         // 检测敏感路径关键词
         for (String keyword : SENSITIVE_PATHS) {
             if (pathLower.contains(keyword.toLowerCase())) {
-                attackLogService.recordAttack(ip, path, method, fullPayload, "SENSITIVE_ACCESS", userAgent, fullPayload);
-                attackLogService.recordThreat(ip, path, method, fullPayload, "SENSITIVE_ACCESS", userAgent, fullPayload);
-                return true;
+                return handleDetectedRequest(response, ip, path, method, fullPayload, "SENSITIVE_ACCESS", userAgent,
+                        fullPayload);
             }
         }
 
         return true;
+    }
+
+    private boolean handleDetectedRequest(
+            HttpServletResponse response,
+            String ip,
+            String path,
+            String method,
+            String payload,
+            String attackType,
+            String userAgent,
+            String fullPayload
+    ) throws IOException {
+        attackLogService.recordAttack(ip, path, method, payload, attackType, userAgent, fullPayload);
+        attackLogService.recordThreat(ip, path, method, payload, attackType, userAgent, fullPayload);
+
+        if (!isBlockingEnabled() || !isBlockPath(path)) {
+            return true;
+        }
+
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"code\":403,\"message\":\"请求被安全策略拦截\"}");
+        return false;
+    }
+
+    private boolean isBlockingEnabled() {
+        String value = System.getenv("SECURITY_INTERCEPTOR_BLOCK");
+        return value == null || Boolean.parseBoolean(value);
+    }
+
+    private boolean isBlockPath(String path) {
+        String normalizedPath = path == null ? "" : path.toLowerCase();
+
+        for (String prefix : BLOCK_PATH_PREFIXES) {
+            if (normalizedPath.startsWith(prefix.toLowerCase())) {
+                return true;
+            }
+        }
+
+        for (String keyword : BLOCK_PATH_CONTAINS) {
+            if (normalizedPath.contains(keyword.toLowerCase())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private String getClientIp(HttpServletRequest request) {

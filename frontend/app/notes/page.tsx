@@ -72,9 +72,7 @@ function ImageGrid({ urls }: { urls: NoteImage[] }) {
     ? "grid-cols-1"
     : urls.length === 2
     ? "grid-cols-2"
-    : urls.length === 3
-    ? "grid-cols-3"
-    : "grid-cols-3"
+    : "grid-cols-2 sm:grid-cols-3"
 
   return (
     <>
@@ -84,7 +82,7 @@ function ImageGrid({ urls }: { urls: NoteImage[] }) {
             key={i}
             onClick={() => setLightbox(i)}
             className={`relative bg-muted overflow-hidden cursor-zoom-in ${
-              urls.length === 1 ? "aspect-video max-h-80" : "aspect-square"
+              urls.length === 1 ? "aspect-video max-h-80" : "aspect-square min-h-24"
             } hover:opacity-90 transition-opacity`}
           >
             {img.type === "video" ? (
@@ -109,7 +107,7 @@ function ImageGrid({ urls }: { urls: NoteImage[] }) {
 
       {/* Lightbox */}
       {lightbox !== null && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-3 sm:p-4"
           onClick={() => setLightbox(null)}>
           <button onClick={() => setLightbox(null)} className="absolute top-4 right-4 text-white p-2 hover:bg-white/20 rounded-full">
             <X className="w-6 h-6" />
@@ -170,10 +168,10 @@ function CommentInput({ noteId, onComment }: { noteId: string; onComment: () => 
         onChange={e => setText(e.target.value)}
         onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
         placeholder="写评论..."
-        className="flex-1 bg-muted/50 rounded-full px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-rose-500/30 transition-all"
+        className="min-h-11 flex-1 rounded-full bg-muted/50 px-4 text-sm outline-none transition-all focus:ring-2 focus:ring-rose-500/25"
       />
       <button onClick={submit} disabled={!text.trim() || loading}
-        className="p-2 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white disabled:opacity-40 transition-all hover:scale-105">
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white disabled:opacity-40 transition-all hover:scale-105">
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
       </button>
     </div>
@@ -269,7 +267,7 @@ function NoteCard({ note, onDelete, onUpdate }: {
   }
 
   return (
-    <div className="relative rounded-2xl glass-card p-5 transition-all duration-300 hover:shadow-xl border border-transparent hover:border-rose-500/10 group animate-fade-in-up">
+    <div className="relative rounded-2xl glass-card p-4 transition-all duration-300 hover:shadow-xl group animate-fade-in-up sm:p-5">
       {/* Author + menu */}
       <div className="flex items-center gap-3 mb-3">
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm overflow-hidden shadow-md">
@@ -286,7 +284,7 @@ function NoteCard({ note, onDelete, onUpdate }: {
         {user && user.id === note.authorId && (
           <div className="relative">
             <button onClick={() => setMenuOpen(!menuOpen)}
-              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-muted transition-all text-muted-foreground">
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-muted sm:opacity-0 sm:group-hover:opacity-100">
               <MoreHorizontal className="w-4 h-4" />
             </button>
             {menuOpen && (
@@ -302,7 +300,7 @@ function NoteCard({ note, onDelete, onUpdate }: {
       </div>
 
       {/* Content */}
-      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words mb-3">{note.content}</p>
+      <p className="mb-3 whitespace-pre-wrap break-words text-[15px] leading-7 text-foreground/90">{note.content}</p>
 
       {/* Images */}
       <ImageGrid urls={images} />
@@ -317,10 +315,10 @@ function NoteCard({ note, onDelete, onUpdate }: {
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-6 mt-3 pt-3 border-t border-border/20">
+      <div className="mt-3 flex items-center gap-3 border-t border-border/20 pt-3">
         <button
           onClick={handleLike}
-          className={`flex items-center gap-1.5 text-sm transition-all ${
+          className={`flex min-h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-all ${
             liked ? "text-rose-500" : "text-muted-foreground hover:text-rose-400"
           }`}
         >
@@ -329,7 +327,7 @@ function NoteCard({ note, onDelete, onUpdate }: {
         </button>
         <button
           onClick={() => { setShowComments(!showComments); if (!showComments && commentList.length === 0) refreshComments(); }}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-sky-400 transition-all"
+          className="flex min-h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground transition-all hover:text-sky-400"
         >
           <MessageCircle className="w-4 h-4" />
           <span>{commentCount}</span>
@@ -414,9 +412,9 @@ function ComposeModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-3 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}>
-      <div className="w-full max-w-lg glass-card shadow-2xl rounded-2xl overflow-hidden animate-bounce-in"
+      <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-hidden rounded-2xl glass-card shadow-2xl animate-bounce-in"
         onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border/30">
@@ -427,12 +425,12 @@ function ComposeModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: 
         </div>
 
         {/* Textarea */}
-        <div className="p-4">
+        <div className="max-h-[60dvh] overflow-y-auto p-4">
           <textarea
             value={content}
             onChange={e => setContent(e.target.value)}
             placeholder="今天想分享点什么..."
-            className="w-full h-40 bg-transparent resize-none text-sm outline-none placeholder:text-muted-foreground/50"
+            className="h-36 w-full resize-none bg-transparent text-base outline-none placeholder:text-muted-foreground/50 sm:h-40 sm:text-sm"
             autoFocus
           />
 
@@ -571,33 +569,39 @@ export default function NotesPage() {
       <Header />
       <main className="flex-1">
         {/* Background */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 right-1/4 h-[600px] w-[600px] rounded-full bg-rose-500/6 blur-[120px] animate-float" />
-          <div className="absolute -bottom-40 left-1/4 h-[400px] w-[400px] rounded-full bg-pink-500/5 blur-[80px] animate-float-delayed" />
-        </div>
-
         {/* 7:3 split layout */}
-        <div className="relative w-full px-4 py-16 max-w-6xl mx-auto">
-          <div className="flex gap-8 items-start">
+        <div className="relative mx-auto w-full max-w-6xl px-4 py-8 sm:py-14">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
           {/* Left — main feed (7 parts) */}
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             {/* Header */}
-            <div className="mb-8 text-left animate-fade-in-up">
-              <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-pink-500 shadow-xl shadow-rose-500/30">
-                  <AtSign className="h-7 w-7 text-white" />
+            <div className="mb-6 rounded-2xl glass-card p-5 text-left animate-fade-in-up sm:mb-8 sm:p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-pink-500 shadow-xl shadow-rose-500/25">
+                    <AtSign className="h-7 w-7 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
+                      <span className="bg-gradient-to-r from-rose-400 to-pink-400 bg-clip-text text-transparent">碎碎念</span>
+                    </h1>
+                    <p className="mt-1 text-sm text-muted-foreground">记录生活，分享每一刻</p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-4xl font-black tracking-tight">
-                    <span className="bg-gradient-to-r from-rose-400 to-pink-400 bg-clip-text text-transparent">碎碎念</span>
-                  </h1>
-                  <p className="text-sm text-muted-foreground">记录生活，分享每一刻</p>
-                </div>
+                {user && (
+                  <button
+                    onClick={() => setComposeOpen(true)}
+                    className="hidden min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 px-4 text-sm font-bold text-white shadow-lg shadow-rose-500/20 transition-all hover:-translate-y-0.5 sm:flex"
+                  >
+                    <Send className="h-4 w-4" />
+                    发布
+                  </button>
+                )}
               </div>
             </div>
 
             {/* Feed — 瀑布流两列 */}
-            <div className="columns-1 sm:columns-2 gap-4 space-y-4">
+            <div className="columns-1 gap-4 space-y-4 xl:columns-2">
               {notes.map((note, i) => (
                 <div key={note.id} style={{ animationDelay: `${i * 0.05}s` }} className="break-inside-avoid">
                   <NoteCard note={note} onDelete={handleDelete} onUpdate={handleNoteUpdate} />
@@ -610,10 +614,10 @@ export default function NotesPage() {
                 </div>
               ) : notes.length === 0 ? (
                 <div className="text-center py-16">
-                  <p className="text-muted-foreground text-sm">还没有碎碎念，来发布第一条吧 ✨</p>
+                  <p className="text-muted-foreground text-sm">还没有碎碎念，来发布第一条吧</p>
                 </div>
               ) : hasMore ? (
-                <button onClick={loadMore} className="w-full py-3 text-sm text-muted-foreground hover:text-foreground transition-colors glass-card rounded-xl">
+                <button onClick={loadMore} className="w-full min-h-12 rounded-xl glass-card text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground">
                   加载更多
                 </button>
               ) : null}
@@ -621,8 +625,8 @@ export default function NotesPage() {
           </div>
 
           {/* Right — 推荐阅读 (3 parts) */}
-          <aside className="w-72 shrink-0">
-            <div className="rounded-2xl glass-card p-4 sticky top-24 space-y-4">
+          <aside className="w-full shrink-0 lg:w-72">
+            <div className="rounded-2xl glass-card p-4 lg:sticky lg:top-24 space-y-4">
               {/* 推荐标题 */}
               <div className="flex items-center gap-2 px-2">
                 <Sparkles className="h-4 w-4 text-rose-400" />
@@ -659,7 +663,7 @@ export default function NotesPage() {
               {/* 碎碎念说明 */}
               <div className="pt-3 border-t border-border/20">
                 <p className="text-xs text-muted-foreground/60 leading-relaxed">
-                  碎碎念是我分享生活点滴、技术感悟和日常思考的地方。欢迎留言交流 ✨
+                  碎碎念是我分享生活点滴、技术感悟和日常思考的地方。欢迎留言交流。
                 </p>
               </div>
 
@@ -679,6 +683,16 @@ export default function NotesPage() {
         </div>
       </main>
       <Footer />
+
+      {user && (
+        <button
+          onClick={() => setComposeOpen(true)}
+          className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-2xl shadow-rose-500/30 transition-transform active:scale-95 sm:hidden"
+          aria-label="发布碎碎念"
+        >
+          <Send className="h-5 w-5" />
+        </button>
+      )}
 
       {composeOpen && (
         <ComposeModal

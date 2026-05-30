@@ -1,19 +1,37 @@
 package com.aston.blog.Controller;
 
 import com.aston.blog.common.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/tools")
 public class SecurityToolsController {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private static final Logger log = LoggerFactory.getLogger(SecurityToolsController.class);
+    private static final Set<Integer> ALLOWED_OUTBOUND_PORTS = Set.of(80, 443);
+    private static final int CONNECT_TIMEOUT_MS = 2000;
+    private static final int READ_TIMEOUT_MS = 3000;
+
+    private final RestTemplate restTemplate = new RestTemplate(noRedirectRequestFactory());
 
     /**
      * ========== IP 信息查询 ==========
@@ -28,8 +46,7 @@ public class SecurityToolsController {
             
             // 调用外部 IP 查询 API
             String apiUrl = "http://ip-api.com/json/" + clientIp + "?fields=status,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query";
-            RestTemplate template = new RestTemplate();
-            ResponseEntity<String> response = template.getForEntity(apiUrl, String.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
             
             Map<String, Object> result = new HashMap<>();
             result.put("ip", clientIp);
@@ -155,8 +172,18 @@ public class SecurityToolsController {
      * 扫描常用端口
      */
     @GetMapping("/port-scan")
-    public Result<?> portScan(@RequestParam String host, @RequestParam(defaultValue = "80,443,22,21,25,53,110,143,3306,3389,5432,6379,8080,8443,27017") String ports) {
+    public Result<?> portScan(
+            @RequestParam String host,
+            @RequestParam(defaultValue = "80,443") String ports,
+            HttpServletRequest request) {
         try {
+            if (!isAdmin()) {
+                return Result.error(403, "仅管理员可使用该安全工具");
+            }
+
+            InetAddress targetAddress = validatePublicHost(host);
+            auditToolRequest(request, "port-scan", host);
+
             String[] portList = ports.split(",");
             List<Map<String, Object>> results = new ArrayList<>();
             
@@ -164,12 +191,19 @@ public class SecurityToolsController {
             for (String portStr : portList) {
                 try {
                     int port = Integer.parseInt(portStr.trim());
-                    boolean isOpen = checkPort(host, port);
-                    
                     Map<String, Object> portInfo = new HashMap<>();
                     portInfo.put("port", port);
-                    portInfo.put("status", isOpen ? "open" : "closed");
                     portInfo.put("service", getCommonService(port));
+                    
+                    if (!ALLOWED_OUTBOUND_PORTS.contains(port)) {
+                        portInfo.put("status", "blocked");
+                        portInfo.put("reason", "仅允许扫描 80/443 端口");
+                        results.add(portInfo);
+                        continue;
+                    }
+
+                    boolean isOpen = checkPort(targetAddress, port);
+                    portInfo.put("status", isOpen ? "open" : "closed");
                     results.add(portInfo);
                 } catch (NumberFormatException e) {
                     // 跳过无效端口
@@ -178,9 +212,12 @@ public class SecurityToolsController {
             
             Map<String, Object> result = new HashMap<>();
             result.put("host", host);
+            result.put("resolvedIp", targetAddress.getHostAddress());
             result.put("ports", results);
             
             return Result.success(result);
+        } catch (IllegalArgumentException e) {
+            return Result.error(400, e.getMessage());
         } catch (Exception e) {
             return Result.error(500, "端口扫描失败: " + e.getMessage());
         }
@@ -192,23 +229,32 @@ public class SecurityToolsController {
      * 获取网站的 HTTP 响应头
      */
     @GetMapping("/http-headers")
-    public Result<?> getHttpHeaders(@RequestParam String url) {
+    public Result<?> getHttpHeaders(@RequestParam String url, HttpServletRequest request) {
         try {
-            RestTemplate template = new RestTemplate();
+            if (!isAdmin()) {
+                return Result.error(403, "仅管理员可使用该安全工具");
+            }
+
+            URI targetUri = validatePublicUrl(url);
+            auditToolRequest(request, "http-headers", targetUri.toString());
+
             HttpHeaders headers = new HttpHeaders();
             HttpEntity<String> entity = new HttpEntity<>(headers);
             
-            ResponseEntity<String> response = template.exchange(
-                url, HttpMethod.GET, entity, String.class
+            ResponseEntity<String> response = restTemplate.exchange(
+                targetUri, HttpMethod.GET, entity, String.class
             );
+            validateRedirectLocation(response.getHeaders().getLocation());
             
             HttpHeaders responseHeaders = response.getHeaders();
             Map<String, Object> result = new HashMap<>();
-            result.put("url", url);
+            result.put("url", targetUri.toString());
             result.put("status", response.getStatusCode().value());
             result.put("headers", responseHeaders.toSingleValueMap());
             
             return Result.success(result);
+        } catch (IllegalArgumentException e) {
+            return Result.error(400, e.getMessage());
         } catch (Exception e) {
             return Result.error(500, "获取 HTTP 头失败: " + e.getMessage());
         }
@@ -220,23 +266,33 @@ public class SecurityToolsController {
      * 测试目标站点的 CORS 配置
      */
     @GetMapping("/cors-test")
-    public Result<?> corsTest(@RequestParam String url, @RequestParam(defaultValue = "https://evil.com") String origin) {
+    public Result<?> corsTest(
+            @RequestParam String url,
+            @RequestParam(defaultValue = "https://evil.com") String origin,
+            HttpServletRequest request) {
         try {
-            RestTemplate template = new RestTemplate();
+            if (!isAdmin()) {
+                return Result.error(403, "仅管理员可使用该安全工具");
+            }
+
+            URI targetUri = validatePublicUrl(url);
+            auditToolRequest(request, "cors-test", targetUri.toString());
+
             HttpHeaders headers = new HttpHeaders();
             headers.setOrigin(origin);
             
             HttpEntity<String> entity = new HttpEntity<>(headers);
             
             // 发送预检请求
-            ResponseEntity<String> response = template.exchange(
-                url, HttpMethod.OPTIONS, entity, String.class
+            ResponseEntity<String> response = restTemplate.exchange(
+                targetUri, HttpMethod.OPTIONS, entity, String.class
             );
+            validateRedirectLocation(response.getHeaders().getLocation());
             
             HttpHeaders responseHeaders = response.getHeaders();
             
             Map<String, Object> result = new HashMap<>();
-            result.put("testedUrl", url);
+            result.put("testedUrl", targetUri.toString());
             result.put("testOrigin", origin);
             result.put("responseHeaders", responseHeaders.toSingleValueMap());
             
@@ -254,6 +310,8 @@ public class SecurityToolsController {
             result.put("analysis", analysis);
             
             return Result.success(result);
+        } catch (IllegalArgumentException e) {
+            return Result.error(400, e.getMessage());
         } catch (Exception e) {
             return Result.error(500, "CORS 测试失败: " + e.getMessage());
         }
@@ -268,14 +326,15 @@ public class SecurityToolsController {
     public Result<?> cveSearch(@RequestParam String keyword, @RequestParam(defaultValue = "10") int limit) {
         try {
             // 使用 NVD API (美国国家漏洞数据库)
-            String apiUrl = "https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=" + keyword + "&resultsPerPage=" + limit;
+            String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
+            int safeLimit = Math.max(1, Math.min(limit, 50));
+            String apiUrl = "https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=" + encodedKeyword + "&resultsPerPage=" + safeLimit;
             
-            RestTemplate template = new RestTemplate();
-            ResponseEntity<String> response = template.getForEntity(apiUrl, String.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
             
             return Result.success(Map.of(
                 "keyword", keyword,
-                "count", limit,
+                "count", safeLimit,
                 "apiUrl", apiUrl,
                 "rawResponse", response.getBody(),
                 "note", "建议使用专门的 CVE 查询前端解析 NVD API 响应"
@@ -322,6 +381,132 @@ public class SecurityToolsController {
      */
     
     // 获取客户端真实 IP
+    private static SimpleClientHttpRequestFactory noRedirectRequestFactory() {
+        return new SimpleClientHttpRequestFactory() {
+            {
+                setConnectTimeout(CONNECT_TIMEOUT_MS);
+                setReadTimeout(READ_TIMEOUT_MS);
+            }
+
+            @Override
+            protected void prepareConnection(HttpURLConnection connection, String httpMethod) throws IOException {
+                super.prepareConnection(connection, httpMethod);
+                connection.setInstanceFollowRedirects(false);
+            }
+        };
+    }
+
+    private URI validatePublicUrl(String rawUrl) {
+        URI uri = parseTargetUri(rawUrl);
+        validateAllowedScheme(uri);
+        validateAllowedPort(uri);
+        validatePublicHost(uri.getHost());
+        return uri;
+    }
+
+    private InetAddress validatePublicHost(String rawHost) {
+        URI uri = parseTargetUri(rawHost);
+        validateAllowedScheme(uri);
+        validateAllowedPort(uri);
+
+        InetAddress[] addresses;
+        try {
+            addresses = InetAddress.getAllByName(uri.getHost());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("目标地址解析失败");
+        }
+
+        if (addresses.length == 0) {
+            throw new IllegalArgumentException("目标地址解析失败");
+        }
+
+        for (InetAddress address : addresses) {
+            if (isPrivateOrLocalAddress(address)) {
+                throw new IllegalArgumentException("禁止访问内网、本机或保留地址");
+            }
+        }
+        return addresses[0];
+    }
+
+    private URI parseTargetUri(String rawTarget) {
+        if (rawTarget == null || rawTarget.isBlank()) {
+            throw new IllegalArgumentException("目标地址不能为空");
+        }
+
+        String target = rawTarget.trim();
+        if (!target.matches("^[a-zA-Z][a-zA-Z0-9+.-]*://.*")) {
+            target = "http://" + target;
+        }
+
+        try {
+            URI uri = URI.create(target);
+            if (uri.getHost() == null || uri.getHost().isBlank()) {
+                throw new IllegalArgumentException("目标地址无效");
+            }
+            if (uri.getUserInfo() != null) {
+                throw new IllegalArgumentException("目标地址不能包含用户名密码");
+            }
+            return uri;
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage() != null && e.getMessage().startsWith("目标地址")) {
+                throw e;
+            }
+            throw new IllegalArgumentException("目标地址格式无效");
+        }
+    }
+
+    private void validateAllowedScheme(URI uri) {
+        String scheme = uri.getScheme();
+        if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+            throw new IllegalArgumentException("只允许 http/https 协议");
+        }
+    }
+
+    private void validateAllowedPort(URI uri) {
+        int port = uri.getPort();
+        if (port == -1) {
+            port = "https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80;
+        }
+        if (!ALLOWED_OUTBOUND_PORTS.contains(port)) {
+            throw new IllegalArgumentException("只允许访问 80/443 端口");
+        }
+    }
+
+    private void validateRedirectLocation(URI location) {
+        if (location != null && location.isAbsolute()) {
+            validatePublicUrl(location.toString());
+        }
+    }
+
+    private boolean isPrivateOrLocalAddress(InetAddress address) {
+        if (address.isAnyLocalAddress()
+                || address.isLoopbackAddress()
+                || address.isLinkLocalAddress()
+                || address.isSiteLocalAddress()
+                || address.isMulticastAddress()) {
+            return true;
+        }
+
+        if (address instanceof Inet6Address) {
+            byte firstByte = address.getAddress()[0];
+            return (firstByte & 0xfe) == 0xfc;
+        }
+
+        return false;
+    }
+
+    private boolean isAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                        .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+    }
+
+    private void auditToolRequest(HttpServletRequest request, String tool, String target) {
+        log.info("security tool request tool={} target={} ip={}", tool, target, getClientIp(request));
+    }
+
     private String getClientIp(HttpServletRequest request) {
         String[] headerNames = {
             "X-Forwarded-For",
@@ -348,9 +533,9 @@ public class SecurityToolsController {
     }
 
     // 检查端口是否开放
-    private boolean checkPort(String host, int port) {
-        try (var socket = new java.net.Socket()) {
-            socket.connect(new java.net.InetSocketAddress(host, port), 1000);
+    private boolean checkPort(InetAddress address, int port) {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress(address, port), CONNECT_TIMEOUT_MS);
             return true;
         } catch (Exception e) {
             return false;

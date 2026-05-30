@@ -13,6 +13,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -47,6 +50,16 @@ class SecurityInterceptorTest {
             return interceptor.preHandle(request, response, null);
         } catch (Exception e) {
             throw new AssertionError("SecurityInterceptor.preHandle should not throw in these tests", e);
+        }
+    }
+
+    private StringWriter prepareResponseWriter() {
+        try {
+            StringWriter body = new StringWriter();
+            when(response.getWriter()).thenReturn(new PrintWriter(body));
+            return body;
+        } catch (Exception e) {
+            throw new AssertionError("Unable to prepare mocked response writer", e);
         }
     }
 
@@ -303,6 +316,66 @@ class SecurityInterceptorTest {
 
         assertThat(result).isTrue();
         verifyNoInteractions(attackLogService);
+    }
+
+    // ─── 高风险入口阻断 ───
+
+    @Test
+    @DisplayName("/api/tools/** 命中攻击后应阻断")
+    void toolsApiAttack_shouldBeBlocked() {
+        StringWriter body = prepareResponseWriter();
+        when(request.getRequestURI()).thenReturn("/api/tools/cors-test");
+        when(request.getQueryString()).thenReturn("url=javascript:alert(1)");
+
+        boolean result = preHandle();
+
+        assertThat(result).isFalse();
+        assertThat(body.toString()).contains("请求被安全策略拦截");
+        verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+        verify(response).setContentType("application/json;charset=UTF-8");
+        verify(attackLogService).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("XSS"), anyString(), anyString());
+        verify(attackLogService).recordThreat(anyString(), anyString(), anyString(), anyString(), eq("XSS"), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("登录接口命中攻击后应阻断")
+    void loginAttack_shouldBeBlocked() {
+        prepareResponseWriter();
+        when(request.getRequestURI()).thenReturn("/api/auth/login");
+        when(request.getQueryString()).thenReturn("username=admin' OR '1'='1");
+
+        boolean result = preHandle();
+
+        assertThat(result).isFalse();
+        verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+        verify(attackLogService).recordAttack(anyString(), eq("/api/auth/login"), eq("GET"), anyString(), eq("SQL_INJECTION"), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("评论接口命中攻击后应阻断")
+    void commentsAttack_shouldBeBlocked() {
+        prepareResponseWriter();
+        when(request.getRequestURI()).thenReturn("/api/public/comments/post-1");
+        when(request.getQueryString()).thenReturn("content=<script>alert(1)</script>");
+
+        boolean result = preHandle();
+
+        assertThat(result).isFalse();
+        verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
+        verify(attackLogService).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("XSS"), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("普通搜索接口命中攻击时先记录但不阻断")
+    void publicSearchAttack_shouldBeLoggedButNotBlocked() {
+        when(request.getRequestURI()).thenReturn("/api/public/search");
+        when(request.getQueryString()).thenReturn("q=<script>alert(1)</script>");
+
+        boolean result = preHandle();
+
+        assertThat(result).isTrue();
+        verify(response, never()).setStatus(HttpServletResponse.SC_FORBIDDEN);
+        verify(attackLogService).recordAttack(anyString(), eq("/api/public/search"), eq("GET"), anyString(), eq("XSS"), anyString(), anyString());
     }
 
     // ─── 双写验证 ───

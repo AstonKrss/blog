@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Code, Loader2, ExternalLink, Github, Star, ArrowRight, Folder, Zap, Cpu, Globe } from "lucide-react";
+import { Loader2, ExternalLink, Github, Star, ArrowRight, Folder, Zap, Cpu, Globe, Layers3 } from "lucide-react";
 import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -35,21 +35,32 @@ export default function ProjectsPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="animate-float -top-32 right-1/4 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-rose-500/10 via-pink-500/5 to-orange-400/5 blur-[100px]" />
-          <div className="animate-float-delayed -bottom-40 left-1/4 h-[400px] w-[400px] rounded-full bg-gradient-to-br from-pink-500/8 to-rose-500/5 blur-[80px]" />
-        </div>
-
-        <div className="relative mx-auto max-w-6xl px-4 py-14">
+        <div className="relative mx-auto max-w-6xl px-4 py-8 sm:py-14">
           {/* Header */}
-          <div className="mb-14 text-center animate-fade-in-up">
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 shadow-xl shadow-rose-500/30">
-              <Zap className="h-8 w-8 text-white" />
+          <div className="mb-8 overflow-hidden rounded-2xl glass-card p-5 animate-fade-in-up sm:mb-10 sm:p-8">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-400 shadow-xl shadow-rose-500/25 sm:h-16 sm:w-16">
+                  <Zap className="h-7 w-7 text-white sm:h-8 sm:w-8" />
+                </div>
+                <h1 className="text-3xl font-black tracking-tight sm:text-5xl">项目作品</h1>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  把练手、实战、部署和安全实验都收在这里。每个项目都是一次从想法到上线的完整记录。
+                </p>
+              </div>
+              <div className="grid grid-cols-3 gap-2 sm:min-w-80">
+                {[
+                  { label: "作品", value: projects.length },
+                  { label: "精选", value: projects.filter(p => p.featured).length },
+                  { label: "在线", value: projects.filter(p => p.demoUrl).length },
+                ].map((stat) => (
+                  <div key={stat.label} className="rounded-xl bg-muted/45 p-3 text-center">
+                    <div className="text-2xl font-black">{stat.value}</div>
+                    <div className="text-xs text-muted-foreground">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <h1 className="mb-4 text-4xl font-black">项目作品</h1>
-            <p className="text-muted-foreground">
-              共 <span className="font-bold text-foreground">{projects.length}</span> 个作品，记录成长与实践
-            </p>
           </div>
 
           {loading ? (
@@ -58,14 +69,14 @@ export default function ProjectsPage() {
               <p className="text-muted-foreground">加载中...</p>
             </div>
           ) : projects.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {projects.map((project, i) => {
                 const gradient = gradients[i % gradients.length];
                 const isFeatured = project.featured;
                 return (
                   <div
                     key={project.id}
-                    className={`group relative flex flex-col rounded-2xl glass-card overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-500/20 border border-transparent animate-fade-in-up`}
+                    className={`group relative flex flex-col overflow-hidden rounded-2xl glass-card transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl md:hover:-translate-y-2 ${isFeatured ? "md:col-span-2 lg:col-span-1" : ""} animate-fade-in-up`}
                     style={{ animationDelay: `${0.05 * i}s` }}
                   >
                     {/* Gradient top accent */}
@@ -90,12 +101,9 @@ export default function ProjectsPage() {
                         )}
                       </div>
                     ) : (
-                      <div className="relative aspect-video flex items-center justify-center bg-gradient-to-br from-rose-500/10 via-pink-500/10 to-orange-400/10">
-                        {/* Decorative shapes */}
-                        <div className={`absolute top-4 right-4 w-16 h-16 border border-rose-500/10 rotate-12 rounded-sm opacity-50 group-hover:opacity-100 group-hover:rotate-45 transition-all duration-500`} />
-                        <div className={`absolute bottom-4 left-4 w-10 h-10 border border-pink-500/10 -rotate-6 rounded-sm opacity-50 group-hover:opacity-100 group-hover:-rotate-12 transition-all duration-700`} />
+                      <div className="relative aspect-video flex items-center justify-center bg-gradient-to-br from-background/70 via-muted/50 to-card">
                         <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} shadow-lg transition-transform duration-300 group-hover:scale-110`}>
-                          <Cpu className="h-7 w-7 text-white" />
+                          {isFeatured ? <Layers3 className="h-7 w-7 text-white" /> : <Cpu className="h-7 w-7 text-white" />}
                         </div>
                         <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
                         {isFeatured && (
@@ -110,7 +118,7 @@ export default function ProjectsPage() {
                     )}
 
                     {/* Content */}
-                    <div className="flex-1 p-5 space-y-3">
+                    <div className="flex-1 p-4 space-y-3 sm:p-5">
                       <div className="flex items-start justify-between gap-2">
                         <h3 className={`font-bold text-base group-hover:text-primary transition-colors leading-tight ${isFeatured ? "text-lg" : ""}`}>
                           {project.name}
@@ -120,7 +128,7 @@ export default function ProjectsPage() {
                         )}
                       </div>
                       {project.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                        <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed sm:min-h-[4.75rem]">
                           {project.description}
                         </p>
                       )}
@@ -129,7 +137,7 @@ export default function ProjectsPage() {
                           {project.techStack.split(",").map((tech: string, j: number) => (
                             <span
                               key={j}
-                              className={`rounded-full bg-gradient-to-r ${gradients[j % gradients.length]}/10 px-2.5 py-0.5 text-xs font-medium transition-all duration-200 tag-pill`}
+                              className="rounded-full border border-border/40 bg-muted/50 px-2.5 py-1 text-xs font-semibold text-muted-foreground transition-all duration-200 hover:border-rose-500/30 hover:text-rose-500"
                             >
                               {tech.trim()}
                             </span>
@@ -139,13 +147,13 @@ export default function ProjectsPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-2 border-t border-border/30 p-3">
+                    <div className="grid grid-cols-2 gap-2 border-t border-border/30 p-3">
                       {project.url && (
                         <a
                           href={project.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group/btn flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-border/50 bg-muted/50 py-2.5 text-sm font-medium transition-all hover:bg-muted hover:-translate-y-0.5"
+                          className="group/btn flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-border/50 bg-muted/50 px-3 text-sm font-semibold transition-all hover:bg-muted hover:-translate-y-0.5"
                         >
                           <Github className="h-4 w-4 transition-transform group-hover/btn:scale-110" />
                           代码
@@ -156,7 +164,7 @@ export default function ProjectsPage() {
                           href={project.demoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={`group/btn flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${gradient} py-2.5 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5`}
+                          className={`group/btn flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${gradient} px-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5`}
                         >
                           <ExternalLink className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
                           演示
@@ -165,7 +173,7 @@ export default function ProjectsPage() {
                       {!project.url && !project.demoUrl && (
                         <Link
                           href="/projects"
-                          className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-border/50 bg-muted/50 py-2.5 text-sm font-medium text-muted-foreground"
+                          className="col-span-2 flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-border/50 bg-muted/50 text-sm font-medium text-muted-foreground"
                         >
                           <Folder className="h-4 w-4" />
                           暂无

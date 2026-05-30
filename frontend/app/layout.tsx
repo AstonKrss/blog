@@ -12,6 +12,7 @@ import { MusicVisualizer } from "@/components/games/music-visualizer";
 import { ConsoleEasterEgg } from "@/components/games/console-easter-egg";
 import { CommandPalette } from "@/components/command-palette";
 import { LiveVisitor } from "@/components/live-visitor";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -74,7 +75,7 @@ export default function RootLayout({
           <ThemeClassHandler />
           <AuthProvider>
             <SiteProvider>
-              <div className="min-h-screen bg-background text-foreground">
+              <div className="min-h-screen bg-background pb-20 text-foreground md:pb-0">
                 {children}
                 <MusicPlayer />
                 <BackToTop />
@@ -83,6 +84,7 @@ export default function RootLayout({
                 <ConsoleEasterEgg />
                 <CommandPalette />
                 <LiveVisitor />
+                <MobileBottomNav />
               </div>
             </SiteProvider>
           </AuthProvider>
