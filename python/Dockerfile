@@ -1,11 +1,16 @@
-from python:3.11
+FROM python:3.11-slim
 
 # 设置工作目录
 WORKDIR /app
 
+# 避免生成 .pyc，并让容器日志实时输出
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
 # 复制 requirements.txt 并安装依赖
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # 复制应用代码
 COPY . .

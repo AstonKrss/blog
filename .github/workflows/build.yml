@@ -39,13 +39,6 @@ jobs:
       - name: 打包 Spring Boot 后端
         run: mvn clean package -DskipTests
 
-      # ==================== Python 安全工具构建 ====================
-      - name: 🐍 构建 Python 环境
-        run: |
-          cd python
-          docker build -t blog-python:latest .
-
-
       # ==================== 部署到阿里云 ====================
       - name: 部署到阿里云服务器
         uses: appleboy/ssh-action@v0.1.5
@@ -55,6 +48,7 @@ jobs:
           password: ${{ secrets.ALIYUN_PASSWORD }}
           port: 22
           script_stop: true
+          command_timeout: 30m
           debug: true
           script: |
             set -e
@@ -63,19 +57,42 @@ jobs:
 
             # 拉取最新代码
             git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
+            OLD_SHA=$(git rev-parse HEAD)
             git fetch origin
+            NEW_SHA=$(git rev-parse origin/main)
+            CHANGED_FILES=$(git diff --name-only "$OLD_SHA" "$NEW_SHA" || true)
             git reset --hard origin/main
 
             # 生成前端环境变量
             echo "NEXT_PUBLIC_API_URL=http://47.242.21.40:8080" > frontend/.env.production
             echo "PYTHON_API_URL=http://47.242.21.40:8000" >> frontend/.env.production
 
-            # 构建 Python 镜像
-            cd python && docker build -t blog-python:latest . && cd ..
+            # 按变更范围重建服务，避免每次 push 都重建 Python/后端/前端全部镜像
+            SERVICES=""
+            if echo "$CHANGED_FILES" | grep -qE '(^pom.xml|^Dockerfile.backend|^src/)'; then
+              SERVICES="$SERVICES backend"
+            fi
+            if echo "$CHANGED_FILES" | grep -qE '(^frontend/|^compose.yaml)'; then
+              SERVICES="$SERVICES frontend"
+            fi
+            if echo "$CHANGED_FILES" | grep -qE '(^python/|^compose.yaml)'; then
+              SERVICES="$SERVICES python"
+            fi
+            if echo "$CHANGED_FILES" | grep -qE '(^compose.yaml)'; then
+              SERVICES="backend frontend python"
+            fi
 
-            # 重启所有服务
-            docker-compose down
-            docker-compose up -d --build
+            docker-compose up -d mysql
+
+            if [ -n "$SERVICES" ]; then
+              echo "Changed files:"
+              echo "$CHANGED_FILES"
+              echo "Rebuilding services:$SERVICES"
+              docker-compose up -d --build $SERVICES
+            else
+              echo "No service code changed; keeping existing containers running."
+              docker-compose up -d
+            fi
 
             # 等待服务启动
             sleep 15
