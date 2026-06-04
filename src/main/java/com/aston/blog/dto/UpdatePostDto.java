@@ -17,7 +17,7 @@ public class UpdatePostDto {
     private String slug;
 
     @NotBlank(message = "文章内容不能为空")
-    @Size(max = 500, message = "文章内容不能超过500个字符")
+    @Size(max = 20000, message = "文章内容不能超过20000个字符")
     private String content;
 
     @Size(max = 500, message = "摘要不能超过500个字符")
