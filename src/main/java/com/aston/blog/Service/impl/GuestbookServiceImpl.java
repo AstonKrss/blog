@@ -4,6 +4,8 @@ import com.aston.blog.Service.GuestbookService;
 import com.aston.blog.entity.Guestbook;
 import com.aston.blog.repository.GuestbookRepository;
 import com.aston.blog.vo.guestbook.GuestbookVO;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +20,7 @@ public class GuestbookServiceImpl implements GuestbookService {
     }
 
     @Override
+    @Cacheable(value = "guestbook")
     public List<GuestbookVO> getAllGuestbooks() {
         return guestbookRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
@@ -26,6 +29,7 @@ public class GuestbookServiceImpl implements GuestbookService {
     }
 
     @Override
+    @CacheEvict(value = "guestbook", allEntries = true)
     public GuestbookVO addGuestbook(String nickname, String content, String contact) {
         Guestbook guestbook = new Guestbook();
         guestbook.setNickname(nickname);

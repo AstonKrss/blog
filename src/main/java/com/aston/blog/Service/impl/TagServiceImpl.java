@@ -4,6 +4,8 @@ import com.aston.blog.Service.TagService;
 import com.aston.blog.entity.Tag;
 import com.aston.blog.repository.TagRepository;
 import com.aston.blog.vo.tag.TagVO;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +21,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @Cacheable(value = "tags")
     public List<TagVO> getAllTags() {
         return tagRepository.findAll().stream()
                 .map(tag -> {

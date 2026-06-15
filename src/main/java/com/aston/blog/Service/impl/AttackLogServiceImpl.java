@@ -8,13 +8,14 @@ import com.aston.blog.repository.AttackLogRepository;
 import com.aston.blog.repository.LoginAttemptRepository;
 import com.aston.blog.vo.security.SecurityStatsVO;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,17 +23,19 @@ public class AttackLogServiceImpl implements AttackLogService {
 
     private static final int FAILED_THRESHOLD = 10;
     private static final int WINDOW_MINUTES = 15;
-    private final Map<String, LocalDateTime> blockedIps = new ConcurrentHashMap<>();
     private final AttackLogRepository attackLogRepository;
     private final LoginAttemptRepository loginAttemptRepository;
     private final ThreatSignatureService threatSignatureService;
+    private final StringRedisTemplate redisTemplate;
 
     public AttackLogServiceImpl(AttackLogRepository attackLogRepository,
             LoginAttemptRepository loginAttemptRepository,
-            ThreatSignatureService threatSignatureService) {
+            ThreatSignatureService threatSignatureService,
+            StringRedisTemplate redisTemplate) {
         this.attackLogRepository = attackLogRepository;
         this.loginAttemptRepository = loginAttemptRepository;
         this.threatSignatureService = threatSignatureService;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -43,6 +46,22 @@ public class AttackLogServiceImpl implements AttackLogService {
         attempt.setSuccess(success);
         attempt.setUserAgent(userAgent);
         loginAttemptRepository.save(attempt);
+
+        // 失败才计数(给 isBruteForce 查)。用 INCR,首次设过期
+        if (!success) {
+            Long count = redisTemplate.opsForValue().increment("login:fail:ip:" + ip);
+            if (count != null && count == 1L) {
+                redisTemplate.expire("login:fail:ip:" + ip, Duration.ofMinutes(WINDOW_MINUTES));
+            }
+            Long userCount = redisTemplate.opsForValue().increment("login:fail:user:" + username);
+            if (userCount != null && userCount == 1L) {
+                redisTemplate.expire("login:fail:user:" + username, Duration.ofMinutes(WINDOW_MINUTES));
+            }
+        } else {
+            // 成功登录清零,避免之前失败累积导致后续正常登录被误判
+            redisTemplate.delete("login:fail:ip:" + ip);
+            redisTemplate.delete("login:fail:user:" + username);
+        }
     }
 
     @Override
@@ -68,31 +87,26 @@ public class AttackLogServiceImpl implements AttackLogService {
 
     @Override
     public boolean isBruteForce(String ip, String username) {
-        LocalDateTime since = LocalDateTime.now().minusMinutes(WINDOW_MINUTES);
-        long failedCount = loginAttemptRepository.countFailedAttemptsByIp(ip, since);
-        if (failedCount >= FAILED_THRESHOLD) {
+        // 只查不增(计数在 recordLoginAttempt 里)
+        String ipCountStr = redisTemplate.opsForValue().get("login:fail:ip:" + ip);
+        long ipCount = ipCountStr != null ? Long.parseLong(ipCountStr) : 0;
+        if (ipCount >= FAILED_THRESHOLD) {
             return true;
         }
-        // 也可以根据用户名统计
-        long failedCountByUser = loginAttemptRepository.countFailedAttemptsByUsername(username, since);
-        return failedCountByUser >= FAILED_THRESHOLD;
+        String userCountStr = redisTemplate.opsForValue().get("login:fail:user:" + username);
+        long userCount = userCountStr != null ? Long.parseLong(userCountStr) : 0;
+        return userCount >= FAILED_THRESHOLD;
     }
 
     @Override
     public void blockIp(String ip) {
-        blockedIps.put(ip, LocalDateTime.now().plusMinutes(WINDOW_MINUTES));
+        // 用 Redis SETEX 替代进程内 Map:多实例部署时也共享封禁状态
+        redisTemplate.opsForValue().set("login:blocked:ip:" + ip, "1", Duration.ofMinutes(WINDOW_MINUTES));
     }
 
     @Override
     public boolean isIpBlocked(String ip) {
-        LocalDateTime until = blockedIps.get(ip);
-        if (until == null)
-            return false;
-        if (until.isBefore(LocalDateTime.now())) {
-            blockedIps.remove(ip);
-            return false;
-        }
-        return true;
+        return Boolean.TRUE.equals(redisTemplate.hasKey("login:blocked:ip:" + ip));
     }
 
     private int calculateRiskLevel(String attackType) {

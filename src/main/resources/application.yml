@@ -16,6 +16,7 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+
   # JPA/Hibernate 配置
   jpa:
     hibernate:
@@ -48,6 +49,31 @@ spring:
   docker:
     compose:
       enabled: false
+
+  data:
+      # Redis 配置（生产环境用环境变量）
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+      timeout: 2000ms        # 命令超时:防止 Lettuce 共享连接 hang 死整个请求
+      lettuce:
+        pool:
+          enabled: true       # 启用连接池,避免共享连接在异常时阻塞所有请求
+          max-active: 16      # 最大连接数
+          max-idle: 8
+          min-idle: 1
+          max-wait: 1000ms    # 获取连接最大等待
+        shutdown-timeout: 200ms
+
+    # 缓存配置
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000 # 10分钟
+      cache-null-values: false
+      use-key-prefix: true
+      key-prefix: "blog:"
 
 # 服务器配置
 server:

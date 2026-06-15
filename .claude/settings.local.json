@@ -24,7 +24,14 @@
       "Read(//d/d/Users/32239/java_code/blog/**)",
       "Read(//d/Users/32239/java_code/blog/frontend/app//**)",
       "Bash(mvn test *)",
-      "Bash(mvn compile *)"
+      "Bash(mvn compile *)",
+      "Bash(TaskStop)",
+      "Bash(nc -w 2 localhost 6379)",
+      "Bash(redis-cli)",
+      "Bash(docker compose *)",
+      "Bash(tasklist)",
+      "Bash(redis-cli -h localhost -p 6379 ping)",
+      "Bash(where java *)"
     ]
   }
 }

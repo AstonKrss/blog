@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import com.aston.blog.Service.PhotoService;
 import com.aston.blog.common.Result;
 import com.aston.blog.entity.Photo;
+import com.aston.blog.vo.photo.PhotoVO;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -31,12 +32,12 @@ public class PhotoController {
     }
 
     @GetMapping("/public/photos")
-    public Result<List<Photo>> getPhotos() {
+    public Result<List<PhotoVO>> getPhotos() {
         return Result.success(photoService.getAllPhotos());
     }
 
     @GetMapping("/photos")
-    public Result<List<Photo>> getAllPhotos(HttpServletRequest request) {
+    public Result<List<PhotoVO>> getAllPhotos(HttpServletRequest request) {
         String role = getUserRole(request);
         if (!"ADMIN".equals(role)) {
             return Result.error(403, "无权限");

@@ -4,6 +4,8 @@ import com.aston.blog.Service.SiteSettingService;
 import com.aston.blog.entity.SiteSetting;
 import com.aston.blog.repository.SiteSettingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,11 +21,13 @@ public class SiteSettingServiceImpl implements SiteSettingService {
     private SiteSettingRepository siteSettingRepository;
 
     @Override
+    @Cacheable(value = "siteSettings")
     public List<SiteSetting> getAllSettings() {
         return siteSettingRepository.findAll();
     }
 
     @Override
+    @Cacheable(value = "siteSettings")
     public Map<String, String> getSettingsMap() {
         List<SiteSetting> settings = siteSettingRepository.findAll();
         Map<String, String> map = new HashMap<>();
@@ -35,6 +39,7 @@ public class SiteSettingServiceImpl implements SiteSettingService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "siteSettings", allEntries = true)
     public void updateSettings(Map<String, String> settings) {
         for (Map.Entry<String, String> entry : settings.entrySet()) {
             updateSetting(entry.getKey(), entry.getValue());
@@ -42,12 +47,14 @@ public class SiteSettingServiceImpl implements SiteSettingService {
     }
 
     @Override
+    @Cacheable(value = "siteSettings", key = "#key")
     public SiteSetting getSettingByKey(String key) {
         return siteSettingRepository.findBySettingKey(key).orElse(null);
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "siteSettings", allEntries = true)
     public void updateSetting(String key, String value) {
         Optional<SiteSetting> existing = siteSettingRepository.findBySettingKey(key);
         if (existing.isPresent()) {

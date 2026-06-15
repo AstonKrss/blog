@@ -7,6 +7,9 @@ import com.aston.blog.entity.ProjectStatus;
 import com.aston.blog.repository.ProjectRepository;
 import com.aston.blog.vo.project.ProjectListVO;
 import com.aston.blog.vo.project.ProjectVO;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,6 +26,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Cacheable(value = "publicProjects", key = "'p:' + #page + ':l:' + #limit")
     public ProjectListVO getPublicProjects(int page, int limit) {
         List<Project> list = repository.findByStatusOrderBySortOrderAsc(ProjectStatus.PUBLISHED);
         
@@ -38,12 +42,14 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Cacheable(value = "project", key = "#id")
     public ProjectVO getProject(String id) {
         Project project = repository.findById(id).orElseThrow(() -> new RuntimeException("项目不存在"));
         return toVO(project);
     }
 
     @Override
+    @CacheEvict(value = "publicProjects", allEntries = true)
     public ProjectVO create(CreateProjectDTO dto) {
         Project project = new Project();
         project.setName(dto.getName());
@@ -60,6 +66,10 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = "project", key = "#id"),
+        @CacheEvict(value = "publicProjects", allEntries = true)
+    })
     public ProjectVO update(String id, CreateProjectDTO dto) {
         Project project = repository.findById(id).orElseThrow(() -> new RuntimeException("项目不存在"));
         project.setName(dto.getName());
@@ -78,6 +88,10 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = "project", key = "#id"),
+        @CacheEvict(value = "publicProjects", allEntries = true)
+    })
     public void delete(String id) {
         repository.deleteById(id);
     }

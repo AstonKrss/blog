@@ -10,6 +10,8 @@ import com.aston.blog.vo.friend.FriendLinkListVO;
 import com.aston.blog.vo.friend.FriendLinkVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ public class FriendLinkServiceImpl implements FriendLinkService {
     }
 
     @Override
+    @Cacheable(value = "approvedFriends")
     public FriendLinkListVO getApprovedFriendLinks() {
         log.info("getApprovedFriendLinks called");
         List<Friend_links> approvedLinks = repository.findByStatus(FriendStatus.APPROVED);
@@ -77,6 +80,7 @@ public class FriendLinkServiceImpl implements FriendLinkService {
     }
 
     @Override
+    @CacheEvict(value = "approvedFriends", allEntries = true)
     public void approve(String id, ApproveFriendLinkDTO dto) {
         Friend_links entity = repository.findById(id)
             .orElseThrow(() -> new RuntimeException("友链不存在"));

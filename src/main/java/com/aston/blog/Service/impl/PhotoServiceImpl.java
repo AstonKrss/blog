@@ -3,10 +3,14 @@ package com.aston.blog.Service.impl;
 import com.aston.blog.Service.PhotoService;
 import com.aston.blog.entity.Photo;
 import com.aston.blog.repository.PhotoRepository;
+import com.aston.blog.vo.photo.PhotoVO;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PhotoServiceImpl implements PhotoService {
@@ -20,11 +24,25 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
-    public List<Photo> getAllPhotos() {
-        return repository.findAllByOrderBySortOrderAsc();
+    @Cacheable(value = "allPhotos")
+    public List<PhotoVO> getAllPhotos() {
+        return repository.findAllByOrderBySortOrderAsc().stream()
+                .map(this::toVO)
+                .collect(Collectors.toList());
+    }
+
+    private PhotoVO toVO(Photo p) {
+        PhotoVO vo = new PhotoVO();
+        vo.setId(p.getId());
+        vo.setFilename(p.getFilename());
+        vo.setDescription(p.getDescription());
+        vo.setSortOrder(p.getSortOrder());
+        vo.setCreatedAt(p.getCreatedAt());
+        return vo;
     }
 
     @Override
+    @CacheEvict(value = "allPhotos", allEntries = true)
     public Photo uploadPhoto(String filename) {
         Photo photo = new Photo();
         photo.setFilename(filename);
@@ -32,6 +50,7 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
+    @CacheEvict(value = "allPhotos", allEntries = true)
     public void deletePhoto(String id) {
         Photo photo = repository.findById(id).orElseThrow(() -> new RuntimeException("照片不存在"));
         try {
@@ -47,6 +66,7 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
+    @CacheEvict(value = "allPhotos", allEntries = true)
     public void updateOrder(List<String> photoIds) {
         for (int i = 0; i < photoIds.size(); i++) {
             final int index = i;
@@ -58,6 +78,7 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
+    @CacheEvict(value = "allPhotos", allEntries = true)
     public void syncPhotosFromDirectory() {
         File dir = new File(UPLOAD_DIR);
         if (!dir.exists() || !dir.isDirectory()) {
@@ -82,6 +103,7 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
+    @CacheEvict(value = "allPhotos", allEntries = true)
     public int syncPhotosFromFrontendDirectory() {
         File frontendDir = new File(FRONTEND_TREE_PHOTOS_DIR);
         File uploadDir = new File(UPLOAD_DIR);

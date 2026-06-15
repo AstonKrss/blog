@@ -5,8 +5,10 @@ import com.aston.blog.entity.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -63,4 +65,13 @@ public interface PostRepository extends JpaRepository<Post, String> {
     List<Post> findAllDrafts();
 
     Optional<Post> findBySlugAndStatus(String slug, String status);
+
+    /**
+     * 原子累加浏览量(供定时任务从 Redis delta 刷回 MySQL 用)
+     * 单条 UPDATE 不会与并发读 view_count 冲突(view_count 不是强一致)
+     */
+    @Modifying
+    @Transactional
+    @Query("UPDATE Post p SET p.viewCount = p.viewCount + :delta WHERE p.id = :id")
+    int incrementViewCount(@Param("id") String id, @Param("delta") long delta);
 }

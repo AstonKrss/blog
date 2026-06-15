@@ -61,7 +61,9 @@ public class PublicController {
     @GetMapping("/posts/{slug}")
     public Result<PostDetailVO> getPostBySlug(@PathVariable String slug) {
         PostDetailVO post = postService.getPostBySlug(slug);
-        return post == null ? Result.error(404, "文章未找到") : Result.success(post);
+        if (post == null) return Result.error(404, "文章未找到");
+        postService.incrementViewInRedis(post.getId());  // 跨 Bean,正常
+        return Result.success(post);
     }
 
     @GetMapping("/stats")

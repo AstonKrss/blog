@@ -18,9 +18,12 @@ import com.aston.blog.vo.post.PostSummaryVO;
 import com.aston.blog.vo.stats.StatsVO;
 import com.aston.blog.vo.tag.TagVO;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,17 +40,20 @@ public class PostServiceImpl implements PostService {
     private final TagRepository tagRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final StringRedisTemplate redisTemplate;
 
     public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository,
-            CommentRepository commentRepository, UserRepository userRepository) {
+            CommentRepository commentRepository, UserRepository userRepository,
+            StringRedisTemplate redisTemplate) {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Cacheable(value = "publicPosts", key = "'p:' + #page + ':l:' + #limit + ':t:' + (#tag == null || #tag.isEmpty() ? 'all' : #tag)")
     public PostListVO getPublicPosts(int page, int limit, String tag) {
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<Post> postPage;
@@ -103,6 +109,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "archive", allEntries = true)
     public PostDetailVO createPost(CreatePostDTO dto, String authorId) {
         // 验证作者是否存在
         if (authorId == null || authorId.isEmpty()) {
@@ -162,21 +169,25 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Transactional
+    @Cacheable(value = "postDetail", key = "#slug")
     public PostDetailVO getPostBySlug(String slug) {
-        return postRepository.findBySlugFull(slug).map(post -> {
-            // 增加浏览量
-            post.setViewCount(post.getViewCount() + 1);
-            postRepository.save(post);
-            return convertToPostDetailVO(post);
-        }).orElse(null);
+        return postRepository.findBySlugFull(slug)
+                .map(this::convertToPostDetailVO)
+                .orElse(null);
+    }
+
+    @Override
+    public void incrementViewInRedis(String postId) {
+        redisTemplate.opsForValue().increment("post:view:delta:" + postId);
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "archive", allEntries = true)
     public PostDetailVO updatePost(String id, UpdatePostDto dto, String userId) {
         Post post = postRepository.findByIdWithTags(id).orElse(null);
-        if (post == null) throw new RuntimeException("文章不存在");
+        if (post == null)
+            throw new RuntimeException("文章不存在");
         if (!post.getAuthorId().equals(userId)) {
             throw new RuntimeException("无权限操作");
         }
@@ -216,10 +227,12 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "archive", allEntries = true)
     public void deletePost(String id, String userId, String role) {
         Post post = postRepository.findById(id).orElse(null);
-        if (post == null) throw new RuntimeException("文章不存在");
-        
+        if (post == null)
+            throw new RuntimeException("文章不存在");
+
         // 管理员可以删除任何文章，非管理员只能删除自己的文章
         if (!"ADMIN".equals(role) && !post.getAuthorId().equals(userId)) {
             throw new RuntimeException("无权限操作");
@@ -228,6 +241,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Cacheable(value = "archive")
     public List<ArchiveYearVO> getArchive() {
         List<Post> posts = postRepository.findAll().stream()
                 .filter(p -> "PUBLISHED".equals(p.getStatus()) && p.getPublishedAt() != null)
@@ -266,6 +280,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Cacheable(value = "stats")
     public StatsVO getStats() {
         StatsVO stats = new StatsVO();
         stats.setTotalPosts(postRepository.countByStatus("PUBLISHED"));
@@ -368,9 +383,11 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<Map<String, Object>> extractToc(String content) {
         List<Map<String, Object>> toc = new ArrayList<>();
-        if (content == null || content.isEmpty()) return toc;
+        if (content == null || content.isEmpty())
+            return toc;
 
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("^(#{1,6})\\s+(.+)$", java.util.regex.Pattern.MULTILINE);
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("^(#{1,6})\\s+(.+)$",
+                java.util.regex.Pattern.MULTILINE);
         java.util.regex.Matcher matcher = pattern.matcher(content);
 
         while (matcher.find()) {

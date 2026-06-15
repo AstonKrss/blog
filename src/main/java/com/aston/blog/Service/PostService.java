@@ -24,6 +24,8 @@ public interface PostService {
 
     PostDetailVO getPostBySlug(String slug);
 
+    void incrementViewInRedis(String postId);
+
     PostDetailVO updatePost(String id, UpdatePostDto dto, String userId);
 
     void deletePost(String id, String userId, String role);

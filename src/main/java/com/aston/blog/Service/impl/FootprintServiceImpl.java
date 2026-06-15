@@ -3,6 +3,8 @@ package com.aston.blog.Service.impl;
 import com.aston.blog.Service.FootprintService;
 import com.aston.blog.entity.Footprint;
 import com.aston.blog.repository.FootprintRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,11 +19,13 @@ public class FootprintServiceImpl implements FootprintService {
     }
 
     @Override
+    @Cacheable(value = "publicFootprints", key = "#userId")
     public List<Footprint> getFootprintsByUserId(String userId) {
         return repository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
     @Override
+    @CacheEvict(value = "publicFootprints", key = "#userId")
     public Footprint addFootprint(String userId, String province, String city, String description) {
         if (repository.existsByUserIdAndProvinceAndCity(userId, province, city)) {
             throw new RuntimeException("该足迹已存在");
@@ -35,6 +39,7 @@ public class FootprintServiceImpl implements FootprintService {
     }
 
     @Override
+    @CacheEvict(value = "publicFootprints", allEntries = true)
     public void deleteFootprint(String id, String userId) {
         Footprint footprint = repository.findById(id)
             .orElseThrow(() -> new RuntimeException("足迹不存在"));
@@ -45,6 +50,7 @@ public class FootprintServiceImpl implements FootprintService {
     }
 
     @Override
+    @CacheEvict(value = "publicFootprints", key = "#userId")
     public Footprint updateDescription(String id, String userId, String description) {
         Footprint footprint = repository.findById(id)
             .orElseThrow(() -> new RuntimeException("足迹不存在"));

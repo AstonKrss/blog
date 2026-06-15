@@ -53,9 +53,15 @@ services:
       BLOG_OWNER_NAME: Aston
       # Cookie 域名设置（关键：让前端页面能共享 httpOnly cookie）
       COOKIE_DOMAIN: 47.242.21.40
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: Aston123@@blog
+
     depends_on:
       mysql:
         condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - blog-network
 
@@ -105,10 +111,19 @@ services:
         condition: service_healthy
     networks:
       - blog-network
+  redis:
+    image: redis:7-alpine
+    container_name: blog-redis
+    restart: always
+    command: ["redis-server", "--requirepass", "Aston123@@blog"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - blog-network
 
 volumes:
   mysql_data:
-
+  redis_data:
 networks:
   blog-network:
     driver: bridge

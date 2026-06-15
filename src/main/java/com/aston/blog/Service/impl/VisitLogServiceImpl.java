@@ -8,9 +8,13 @@ import com.aston.blog.vo.analytics.VisitAnalyticsVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,17 +25,27 @@ public class VisitLogServiceImpl implements VisitLogService {
     @Autowired
     private VisitLogRepository visitLogRepository;
 
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    // 在线判定窗口:5 分钟内有活动算"在线"
+    private static final Duration ONLINE_TTL = Duration.ofMinutes(5);
+    private static final String ONLINE_KEY_PREFIX = "online:ip:";
+
     @Override
     @Async
     public void logVisit(String ipAddress, String userAgent, String referer, String path) {
         try {
+            // 1. Redis 在线标记:SETEX 自动覆盖并续期
+            redisTemplate.opsForValue().set(ONLINE_KEY_PREFIX + ipAddress, "1", ONLINE_TTL);
+
+            // 2. 异步写 visit_logs(后台分析面板还在用)
             VisitLog log = new VisitLog();
             log.setIpAddress(ipAddress);
             log.setUserAgent(userAgent);
             log.setReferer(referer);
             log.setPath(path);
 
-            // 使用IP归属地工具查询
             IpLocationUtil.IpInfo ipInfo = IpLocationUtil.lookup(ipAddress);
             log.setCountry(ipInfo.getCountry());
             log.setProvince(ipInfo.getProvince());
@@ -85,8 +99,23 @@ public class VisitLogServiceImpl implements VisitLogService {
 
     @Override
     public long countOnlineVisitors() {
-        LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
-        return visitLogRepository.countUniqueIpsSince(fiveMinutesAgo);
+        // 用 SCAN 遍历 online:ip:* 的 key 数量,5 分钟内没活动的 IP key 已自动过期
+        // SCAN 是非阻塞游标,O(N) 但不会卡 Redis;几千 IP 毫秒级
+        long count = 0;
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(ONLINE_KEY_PREFIX + "*")
+                .count(100)
+                .build();
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                cursor.next();
+                count++;
+            }
+        } catch (Exception e) {
+            // Redis 挂了,降级返回 0(不影响主流程)
+            return 0;
+        }
+        return count;
     }
 
     private List<Map<String, Object>> convertToMapList(List<Object[]> data, String key1, String key2) {
