@@ -152,4 +152,47 @@ public interface PostRepository extends JpaRepository<Post, String> {
     @Transactional
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + :delta WHERE p.id = :id")
     int incrementViewCount(@Param("id") String id, @Param("delta") long delta);
+
+    @Modifying
+    @Transactional
+    @Query("""
+            UPDATE Post p
+            SET p.likeCount = COALESCE(p.likeCount, 0) + 1
+            WHERE p.id = :id
+            """)
+    int incrementLikeCount(@Param("id") String id);
+
+    @Modifying
+    @Transactional
+    @Query("""
+            UPDATE Post p
+            SET p.likeCount = CASE
+                WHEN COALESCE(p.likeCount, 0) > 0 THEN p.likeCount - 1
+                ELSE 0
+            END
+            WHERE p.id = :id
+            """)
+    int decrementLikeCount(@Param("id") String id);
+
+    @Query("SELECT COALESCE(p.likeCount, 0) FROM Post p WHERE p.id = :id")
+    Integer findLikeCountById(@Param("id") String id);
+
+    /**
+     * 周期性校准：只更新和 post_likes 实际数量不一致的文章。
+     */
+    @Modifying
+    @Transactional
+    @Query(value = """
+            UPDATE posts p
+            LEFT JOIN (
+                SELECT post_id, COUNT(*) AS actual_count
+                FROM post_likes
+                GROUP BY post_id
+            ) stats ON stats.post_id = p.id
+            SET p.like_count = COALESCE(stats.actual_count, 0)
+            WHERE COALESCE(p.like_count, 0) <> COALESCE(stats.actual_count, 0)
+            """, nativeQuery = true)
+    int calibrateLikeCounts();
 }
+
+

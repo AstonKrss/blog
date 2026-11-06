@@ -161,6 +161,12 @@ blog:
   mysql:
     slow-query:
       refresh-ms: ${BLOG_MYSQL_SLOW_QUERY_REFRESH_MS:30000}
+  # 点赞数周期校准
+  post-like:
+    calibration:
+      enabled: ${BLOG_POST_LIKE_CALIBRATION_ENABLED:true}
+      interval-ms: ${BLOG_POST_LIKE_CALIBRATION_INTERVAL_MS:3600000}
+      initial-delay-ms: ${BLOG_POST_LIKE_CALIBRATION_INITIAL_DELAY_MS:300000}
   # 热门文章缓存预热
   cache:
     enabled: ${BLOG_CACHE_ENABLED:true}
@@ -174,3 +180,4 @@ blog:
   owner:
     email: ${BLOG_OWNER_EMAIL:}
     name: ${BLOG_OWNER_NAME:Aston}
+
