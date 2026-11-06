@@ -33,7 +33,8 @@ public class CacheConfig {
 
     @Bean
     @ConditionalOnProperty(name = "blog.cache.enabled", havingValue = "true", matchIfMissing = true)
-    public CacheManager cacheManager(RedisConnectionFactory connectionFactory, MeterRegistry meterRegistry) {
+    public CacheManager cacheManager(RedisConnectionFactory connectionFactory, MeterRegistry meterRegistry,
+            CacheStampedeGuard stampedeGuard) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
@@ -69,7 +70,7 @@ public class CacheConfig {
                 .build();
 
         // 所有缓存统一包装：Redis 不可用时退化为无缓存，业务方法回源 MySQL。
-        return new ResilientCacheManager(redisCacheManager, meterRegistry);
+        return new ResilientCacheManager(redisCacheManager, meterRegistry, stampedeGuard);
     }
 
     @Bean
@@ -78,4 +79,7 @@ public class CacheConfig {
         return new NoOpCacheManager();
     }
 }
+
+
+
 

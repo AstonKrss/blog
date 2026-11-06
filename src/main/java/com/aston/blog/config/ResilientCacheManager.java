@@ -19,11 +19,14 @@ public class ResilientCacheManager implements CacheManager {
 
     private final CacheManager delegate;
     private final MeterRegistry meterRegistry;
+    private final CacheStampedeGuard stampedeGuard;
     private final ConcurrentMap<String, Cache> cacheWrappers = new ConcurrentHashMap<>();
 
-    public ResilientCacheManager(CacheManager delegate, MeterRegistry meterRegistry) {
+    public ResilientCacheManager(CacheManager delegate, MeterRegistry meterRegistry,
+            CacheStampedeGuard stampedeGuard) {
         this.delegate = delegate;
         this.meterRegistry = meterRegistry;
+        this.stampedeGuard = stampedeGuard;
     }
 
     @Override
@@ -33,7 +36,7 @@ public class ResilientCacheManager implements CacheManager {
         if (cache == null) {
             return null;
         }
-        return cacheWrappers.computeIfAbsent(name, ignored -> new ResilientCache(cache, meterRegistry));
+        return cacheWrappers.computeIfAbsent(name, ignored -> new ResilientCache(cache, meterRegistry, stampedeGuard));
     }
 
     @Override
@@ -41,3 +44,5 @@ public class ResilientCacheManager implements CacheManager {
         return delegate.getCacheNames();
     }
 }
+
+

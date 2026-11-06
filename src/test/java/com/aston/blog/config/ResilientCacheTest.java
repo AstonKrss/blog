@@ -27,6 +27,8 @@ class ResilientCacheTest {
 
     @Mock
     private Cache delegate;
+    @Mock
+    private CacheStampedeGuard stampedeGuard;
 
     private SimpleMeterRegistry registry;
     private ResilientCache cache;
@@ -88,7 +90,7 @@ class ResilientCacheTest {
         when(delegateManager.getCache("postDetail")).thenReturn(redisCache);
         when(delegateManager.getCacheNames()).thenReturn(List.of("postDetail"));
 
-        ResilientCacheManager manager = new ResilientCacheManager(delegateManager, registry);
+        ResilientCacheManager manager = new ResilientCacheManager(delegateManager, registry, stampedeGuard);
 
         Cache first = manager.getCache("postDetail");
         Cache second = manager.getCache("postDetail");
@@ -98,5 +100,7 @@ class ResilientCacheTest {
         assertThat(manager.getCacheNames()).containsExactly("postDetail");
     }
 }
+
+
 
 

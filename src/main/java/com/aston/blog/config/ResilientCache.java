@@ -24,11 +24,18 @@ public class ResilientCache implements Cache {
 
     private final Cache delegate;
     private final MeterRegistry meterRegistry;
+    private final CacheStampedeGuard stampedeGuard;
     private final AtomicLong lastFailureLogAt = new AtomicLong();
 
     public ResilientCache(Cache delegate, MeterRegistry meterRegistry) {
+        this(delegate, meterRegistry, null);
+    }
+
+    public ResilientCache(Cache delegate, MeterRegistry meterRegistry,
+            CacheStampedeGuard stampedeGuard) {
         this.delegate = delegate;
         this.meterRegistry = meterRegistry;
+        this.stampedeGuard = stampedeGuard;
     }
 
     @Override
@@ -66,6 +73,38 @@ public class ResilientCache implements Cache {
     @Override
     @Nullable
     public <T> T get(Object key, Callable<T> valueLoader) {
+        if (stampedeGuard == null) {
+            return loadWithoutStampedeGuard(key, valueLoader);
+        }
+
+        ValueWrapper existing = get(key);
+        if (existing != null) {
+            return castValue(existing);
+        }
+
+        try {
+            return stampedeGuard.load(getName(), key, () -> {
+                ValueWrapper latest = get(key);
+                if (latest != null) {
+                    return castValue(latest);
+                }
+                T value = valueLoader.call();
+                if (value != null) {
+                    put(key, value);
+                }
+                return value;
+            });
+        } catch (RuntimeException ex) {
+            if (ex instanceof ValueRetrievalException) {
+                throw ex;
+            }
+            throw ex;
+        } catch (Exception ex) {
+            throw new ValueRetrievalException(key, valueLoader, ex);
+        }
+    }
+
+    private <T> T loadWithoutStampedeGuard(Object key, Callable<T> valueLoader) {
         try {
             return delegate.get(key, valueLoader);
         } catch (RuntimeException ex) {
@@ -88,6 +127,11 @@ public class ResilientCache implements Cache {
                 throw new ValueRetrievalException(key, valueLoader, loaderEx);
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T castValue(ValueWrapper wrapper) {
+        return (T) wrapper.get();
     }
 
     @Override
@@ -164,4 +208,5 @@ public class ResilientCache implements Cache {
         }
     }
 }
+
 
