@@ -4,17 +4,17 @@
 > 技术栈：Next.js 15 + Spring Boot 4 + Java 21 + MySQL 8 + Redis + Docker  
 > 目标岗位：Java 后端工程师  
 > 文档日期：2026-11-02  
-> 状态：执行中（最后更新：2026-11-05）
+> 状态：执行中（最后更新：2026-11-06）
 
 ---
 
-## 0. 执行状态总览（2026-11-05）
+## 0. 执行状态总览（2026-11-06）
 
 | 阶段 | 状态 | 完成度 | 已完成 | 未完成 / 风险 |
 |---|---|---:|---|---|
 | 阶段 0：可观测性与压测基线 | ✅ 已完成 | 100% | Actuator、Micrometer、Prometheus、Grafana、traceId、k6、慢查询、Hikari/Redis/任务指标、基线报告 | 无阻断项；基线数据已补充大数据量实验 |
 | 阶段 1：数据库与查询路径优化 | ✅ 已完成 | 100% | 文章两段式分页、笔记 N+1、标签统计 N+1、FULLTEXT UNION 搜索、标签筛选执行计划、索引前后对比、Testcontainers 集成测试、`BENCHMARK_QUERY.md` | 本机无 Docker，Testcontainers 4 个用例自动跳过；需在 Docker/CI 环境执行一次真实容器测试 |
-| 阶段 2：缓存与热点写优化 | 🟡 部分完成 | 约 88% | 缓存边界与命中率指标、浏览量幂等+允许少计、Hikari min10/max20、Redis Cache 统一降级、在线/限流/登录防护/分布式锁故障策略 | TTL 抖动、精确缓存失效、热点 Key 互斥回源、点赞原子计数与校准任务 |
+| 阶段 2：缓存与热点写优化 | ✅ 已完成 | 100% | TTL 抖动、精确缓存失效、热点 Key 互斥回源、点赞原子计数与周期校准、Redis Cache 统一降级、浏览量幂等+允许少计、Hikari min10/max20、在线/限流/登录防护/分布式锁故障策略、`CACHE_AND_HOT_WRITE_REPORT.md` | 本机未做四项收尾改动后的正式高并发 A/B 压测；跨实例 Redis 抢锁失败时采用可用性优先降级，不是严格全局互斥 |
 | 阶段 3：RabbitMQ 可靠异步链路 | ⬜ 未开始 | 0% | 无 | RabbitMQ 依赖、Compose、生产者/消费者、DLQ、幂等消费、积压监控、故障演练 |
 | 阶段 4：多实例部署与故障演练（可选） | 🟡 部分完成 | 约 55% | Nginx 配置、JWT 无状态、MinIO 存储抽象、Redis 分布式锁、健康/就绪检查、双实例故障转移演练 | 真实 Nginx 加载、真实 MinIO 上传、优雅停机、Redis/RabbitMQ 故障演练、完整一致性记录 |
 | 阶段 5：文档、数据与简历包装 | 🟡 部分完成 | 约 25% | `BENCHMARK_BASELINE.md`、k6 脚本、阶段 1/2 报告、N+1/Hikari 专项报告 | `ARCHITECTURE.md`、`ADR.md`、`BENCHMARK_RESULT.md`、`RUNBOOK.md`、`FAILOVER_DRILL.md`、架构图/时序图、README 优化亮点重写 |
@@ -23,19 +23,18 @@
 
 - 阶段 0 已完成，并且已经用大数据量实验验证了真实瓶颈：连接池等待、索引缺失、缓存掩盖数据库压力。
 - 阶段 1 已完成：核心查询改造、执行计划对比、Testcontainers 测试和 `BENCHMARK_QUERY.md` 均已落地；本机无 Docker，容器测试需在 CI 或安装 Docker 后执行。
-- 阶段 2 已完成主要 Redis 故障策略：Spring Cache 回源 MySQL，浏览量和在线人数可降级，留言/登录防护 fail-open，分布式锁跳过任务；仍需补 TTL 抖动、精确失效、热点互斥和点赞计数校准。
-- 阶段 3 尚未开始，不建议现在直接上 RabbitMQ；先把阶段 2 缓存可靠性做扎实。
+- 阶段 2 已完成：TTL 抖动、版本号精确失效、热点 Key 回源保护、点赞原子计数与周期校准均已落地；统一验收见 `docs/CACHE_AND_HOT_WRITE_REPORT.md`。
+- 阶段 3 尚未开始；如进入 RabbitMQ，只做访问日志异步写入这一条链路，先验证可靠投递、幂等消费和 DLQ。
 - 阶段 4 已有可演示的多实例资产，但真实 Nginx/MinIO 和完整故障矩阵还没验证。
 - 阶段 5 的专项报告已经不少，但还缺统一的架构、ADR、Runbook 和 README 包装。
 
 ### 下一步建议（按顺序）
 
-1. **P0：阶段 2 缓存可靠性续作**：TTL 抖动、精确缓存失效、热点 Key 互斥回源。
-2. **P1：点赞计数原子化与周期校准**，避免高并发下计数漂移。
-3. **P1：完成阶段 2 后再决定是否进入 RabbitMQ**；如果进入，只做访问日志异步写入一条链路。
-4. **P2：真实 Nginx + MinIO 验证和优雅停机**，把多实例从“可演示”提升到“可复现”。
-5. **P2：在 Docker/CI 环境执行 Testcontainers 测试**，补齐阶段 1 的容器验证证据。
-6. **最后：阶段 5 文档与 README 重写**，统一架构图、ADR、Benchmark、Runbook 和简历表述。
+1. **P0：在 Docker/CI 环境执行 Testcontainers 测试**，补齐阶段 1 的容器验证证据。
+2. **P1：阶段 3 只做一个 RabbitMQ 场景**：访问日志异步写入，包含 Publisher Confirm、手动 ACK、有限重试、DLQ 和幂等消费。
+3. **P2：真实 Nginx + MinIO 验证和优雅停机**，把多实例从“可演示”提升到“可复现”。
+4. **P2：如果要求严格跨实例热点回源互斥**，单独设计等待、重试和超时降级策略。
+5. **最后：阶段 5 文档与 README 重写**，统一架构图、ADR、Benchmark、Runbook 和简历表述。
 
 ---
 
@@ -680,12 +679,13 @@ dead letter queue: visit.log.write.dlq
 - [x] 留言限流 Redis 故障 fail-open 指标。
 - [x] 登录失败计数与 IP 封禁 Redis 故障 fail-open 指标。
 - [x] 分布式锁获取/释放失败指标与持锁跳过指标。
-- [ ] 完善缓存失效策略（TTL 抖动、精确失效、避免 `allEntries=true`）。 ← 当前 P0
+- [x] 完善缓存失效策略（TTL 抖动、精确失效、避免 `allEntries=true`）。
 - [x] 增加 Redis 不可用时降级查 MySQL（`docs/CACHE_RESILIENCE.md`）。
-- [ ] 增加热点 Key 互斥回源，防止缓存击穿。 ← 下一步 P0
+- [x] 增加热点 Key 互斥回源，防止缓存击穿（单实例强保护，多实例可用性优先降级）。
 - [x] 显式配置 Hikari：`minimum-idle=10`、`maximum-pool-size=20`，并完成压测验证。
-- [ ] 点赞计数原子化与周期性校准。
+- [x] 点赞计数原子化与周期性校准。
 - [x] 输出 Benchmark 报告。
+- [x] 输出 `docs/CACHE_AND_HOT_WRITE_REPORT.md` 并完成阶段 2 收口。
 - [ ] 完成阶段 2 后再决定是否进入 RabbitMQ 阶段。
 
 ---
