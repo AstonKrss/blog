@@ -2,6 +2,7 @@ package com.aston.blog.Service.impl;
 
 import com.aston.blog.Service.PostService;
 import com.aston.blog.common.PaginationUtils;
+import com.aston.blog.config.CacheInvalidationService;
 import com.aston.blog.dto.CreatePostDTO;
 import com.aston.blog.dto.UpdatePostDto;
 import com.aston.blog.entity.Post;
@@ -19,8 +20,6 @@ import com.aston.blog.vo.post.PostSummaryVO;
 import com.aston.blog.vo.stats.StatsVO;
 import com.aston.blog.vo.tag.TagVO;
 
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,20 +47,23 @@ public class PostServiceImpl implements PostService {
     private final UserRepository userRepository;
     private final StringRedisTemplate redisTemplate;
     private final MeterRegistry meterRegistry;
+    private final CacheInvalidationService cacheInvalidationService;
 
     public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository,
             CommentRepository commentRepository, UserRepository userRepository,
-            StringRedisTemplate redisTemplate, MeterRegistry meterRegistry) {
+            StringRedisTemplate redisTemplate, MeterRegistry meterRegistry,
+            CacheInvalidationService cacheInvalidationService) {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
         this.meterRegistry = meterRegistry;
+        this.cacheInvalidationService = cacheInvalidationService;
     }
 
     @Override
-    @Cacheable(value = "publicPosts", key = "'p:' + #page + ':l:' + #limit + ':t:' + (#tag == null || #tag.isEmpty() ? 'all' : #tag)")
+    @Cacheable(value = "publicPosts", sync = true, key = "'v:' + @cacheVersionService.current('publicPosts') + ':p:' + #page + ':l:' + #limit + ':t:' + (#tag == null || #tag.isEmpty() ? 'all' : #tag)")
     @Transactional(readOnly = true)
     public PostListVO getPublicPosts(int page, int limit, String tag) {
         Pageable pageable = PaginationUtils.toPageable(page, limit);
@@ -124,14 +126,6 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "search", allEntries = true),
-            @CacheEvict(value = "publicPosts", allEntries = true),
-            @CacheEvict(value = "postDetail", allEntries = true),
-            @CacheEvict(value = "archive", allEntries = true),
-            @CacheEvict(value = "stats", allEntries = true),
-            @CacheEvict(value = "tags", allEntries = true)
-    })
     public PostDetailVO createPost(CreatePostDTO dto, String authorId) {
         // 验证作者是否存在
         if (authorId == null || authorId.isEmpty()) {
@@ -178,6 +172,7 @@ public class PostServiceImpl implements PostService {
         }
 
         post = postRepository.save(post);
+        cacheInvalidationService.postCreated(post.getSlug());
         return convertToPostDetailVO(post);
     }
 
@@ -191,7 +186,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Cacheable(value = "postDetail", key = "#slug")
+    @Cacheable(value = "postDetail", sync = true, key = "#slug")
     public PostDetailVO getPostBySlug(String slug) {
         return postRepository.findBySlugFull(slug)
                 .map(this::convertToPostDetailVO)
@@ -211,14 +206,6 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "search", allEntries = true),
-            @CacheEvict(value = "publicPosts", allEntries = true),
-            @CacheEvict(value = "postDetail", allEntries = true),
-            @CacheEvict(value = "archive", allEntries = true),
-            @CacheEvict(value = "stats", allEntries = true),
-            @CacheEvict(value = "tags", allEntries = true)
-    })
     public PostDetailVO updatePost(String id, UpdatePostDto dto, String userId) {
         Post post = postRepository.findByIdWithTags(id).orElse(null);
         if (post == null)
@@ -227,6 +214,7 @@ public class PostServiceImpl implements PostService {
             throw new RuntimeException("无权限操作");
         }
 
+        String oldSlug = post.getSlug();
         if (!post.getSlug().equals(dto.getSlug()) && postRepository.existsBySlug(dto.getSlug())) {
             throw new RuntimeException("Slug已存在: " + dto.getSlug());
         }
@@ -257,19 +245,12 @@ public class PostServiceImpl implements PostService {
         }
 
         post = postRepository.save(post);
+        cacheInvalidationService.postChanged(oldSlug, post.getSlug());
         return convertToPostDetailVO(post);
     }
 
     @Override
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "search", allEntries = true),
-            @CacheEvict(value = "publicPosts", allEntries = true),
-            @CacheEvict(value = "postDetail", allEntries = true),
-            @CacheEvict(value = "archive", allEntries = true),
-            @CacheEvict(value = "stats", allEntries = true),
-            @CacheEvict(value = "tags", allEntries = true)
-    })
     public void deletePost(String id, String userId, String role) {
         Post post = postRepository.findById(id).orElse(null);
         if (post == null)
@@ -279,7 +260,9 @@ public class PostServiceImpl implements PostService {
         if (!"ADMIN".equals(role) && !post.getAuthorId().equals(userId)) {
             throw new RuntimeException("无权限操作");
         }
+        String deletedSlug = post.getSlug();
         postRepository.deleteById(id);
+        cacheInvalidationService.postDeleted(deletedSlug);
     }
 
     @Override
@@ -410,7 +393,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Cacheable(value = "search", key = "'q:' + #query + ':p:' + #page + ':l:' + #limit")
+    @Cacheable(value = "search", sync = true, key = "'q:' + @cacheVersionService.current('search') + ':' + #query + ':p:' + #page + ':l:' + #limit")
     public SearchResultVO search(String query, int page, int limit) {
         Pageable pageable = PaginationUtils.toPageable(page, limit);
         // FULLTEXT 先分页查 ID，再批量取关联，避免 LIKE 全表扫描和大结果集 OOM。
@@ -459,5 +442,11 @@ public class PostServiceImpl implements PostService {
     }
 
 }
+
+
+
+
+
+
 
 

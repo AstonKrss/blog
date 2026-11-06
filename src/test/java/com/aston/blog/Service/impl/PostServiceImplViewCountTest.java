@@ -4,6 +4,7 @@ import com.aston.blog.repository.CommentRepository;
 import com.aston.blog.repository.PostRepository;
 import com.aston.blog.repository.TagRepository;
 import com.aston.blog.repository.UserRepository;
+import com.aston.blog.config.CacheInvalidationService;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,8 @@ class PostServiceImplViewCountTest {
     private StringRedisTemplate redisTemplate;
     @Mock
     private ValueOperations<String, String> valueOperations;
+    @Mock
+    private CacheInvalidationService cacheInvalidationService;
 
     private SimpleMeterRegistry registry;
     private PostServiceImpl service;
@@ -41,7 +44,7 @@ class PostServiceImplViewCountTest {
     void setUp() {
         registry = new SimpleMeterRegistry();
         service = new PostServiceImpl(postRepository, tagRepository, commentRepository,
-                userRepository, redisTemplate, registry);
+                userRepository, redisTemplate, registry, cacheInvalidationService);
     }
 
     @Test
@@ -66,3 +69,6 @@ class PostServiceImplViewCountTest {
         assertThat(registry.counter("post.view.redis.failures").count()).isZero();
     }
 }
+
+
+
