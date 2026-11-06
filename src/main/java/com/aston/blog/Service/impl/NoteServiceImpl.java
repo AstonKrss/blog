@@ -16,7 +16,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,25 +90,64 @@ public class NoteServiceImpl implements NoteService {
         return enrichNotes(notes.getContent(), userId);
     }
 
+    /**
+     * 批量组装一页笔记的评论和点赞状态。
+     *
+     * 修复 N+1：评论只按当前页 noteId 集合查询一次，评论作者只查询一次，
+     * 当前用户的点赞状态也只查询当前页，不再在笔记循环中访问数据库。
+     */
     private List<Note> enrichNotes(List<Note> notes, String currentUserId) {
         if (notes == null || notes.isEmpty()) return notes;
 
+        List<String> noteIds = notes.stream()
+                .map(Note::getId)
+                .filter(Objects::nonNull)
+                .toList();
+        if (noteIds.isEmpty()) return notes;
+
         if (currentUserId != null) {
-            Set<String> likedNoteIds = new HashSet<>();
-            for (NoteLike like : noteLikeRepository.findByUserId(currentUserId)) {
-                likedNoteIds.add(like.getNoteId());
-            }
+            Set<String> likedNoteIds = noteLikeRepository
+                    .findByUserIdAndNoteIdIn(currentUserId, noteIds)
+                    .stream()
+                    .map(NoteLike::getNoteId)
+                    .collect(Collectors.toSet());
             for (Note note : notes) {
                 note.setLiked(likedNoteIds.contains(note.getId()));
             }
         }
 
+        List<NoteComment> allComments = noteCommentRepository
+                .findByNoteIdInOrderByNoteIdAscCreatedAtAsc(noteIds);
+
+        // 按 noteId 分组；LinkedHashMap 保留 SQL 返回的 noteId 顺序。
+        Map<String, List<NoteComment>> commentsByNote = allComments.stream()
+                .filter(comment -> comment.getNoteId() != null)
+                .collect(Collectors.groupingBy(
+                        NoteComment::getNoteId,
+                        LinkedHashMap::new,
+                        Collectors.toList()));
+
+        // 评论作者也只批量加载一次，并把 userMap 传给建树方法复用。
+        Map<String, User> userMap = loadUsers(allComments);
+
         for (Note note : notes) {
-            List<NoteComment> flat = noteCommentRepository.findByNoteIdOrderByCreatedAtAsc(note.getId());
-            note.setComments(buildCommentTree(flat).stream().limit(3).toList());
+            List<NoteComment> flat = commentsByNote.getOrDefault(note.getId(), List.of());
+            // 先建完整树，再截取前 3 条根评论，保证子评论不会被误当成根评论。
+            note.setComments(buildCommentTree(flat, userMap).stream().limit(3).toList());
         }
 
         return notes;
+    }
+
+    private Map<String, User> loadUsers(List<NoteComment> comments) {
+        Set<String> userIds = comments.stream()
+                .map(NoteComment::getUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (userIds.isEmpty()) return Map.of();
+
+        return userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity(), (left, right) -> left));
     }
 
     @Override
@@ -120,7 +166,7 @@ public class NoteServiceImpl implements NoteService {
     public Note getNoteById(String id) {
         Note note = noteRepository.findById(id).orElseThrow(() -> new RuntimeException("动态不存在"));
         List<NoteComment> flat = noteCommentRepository.findByNoteIdOrderByCreatedAtAsc(id);
-        note.setComments(buildCommentTree(flat));
+        note.setComments(buildCommentTree(flat, loadUsers(flat)));
         return note;
     }
 
@@ -166,7 +212,7 @@ public class NoteServiceImpl implements NoteService {
     @Override
     public Object getNoteComments(String noteId) {
         List<NoteComment> flat = noteCommentRepository.findByNoteIdOrderByCreatedAtAsc(noteId);
-        return buildCommentTree(flat);
+        return buildCommentTree(flat, loadUsers(flat));
     }
 
     @Override
@@ -183,21 +229,11 @@ public class NoteServiceImpl implements NoteService {
         return saved;
     }
 
-    private List<NoteCommentVO> buildCommentTree(List<NoteComment> flat) {
+    private List<NoteCommentVO> buildCommentTree(List<NoteComment> flat, Map<String, User> userMap) {
         Map<String, NoteCommentVO> map = new LinkedHashMap<>();
         List<NoteCommentVO> roots = new ArrayList<>();
 
-        if (flat.isEmpty()) return roots;
-
-        // Batch load all user IDs at once (fixes N+1)
-        Set<String> userIds = new HashSet<>();
-        for (NoteComment c : flat) {
-            if (c.getUserId() != null) userIds.add(c.getUserId());
-        }
-        Map<String, User> userMap = new HashMap<>();
-        for (User u : userRepository.findAllById(userIds)) {
-            userMap.put(u.getId(), u);
-        }
+        if (flat == null || flat.isEmpty()) return roots;
 
         for (NoteComment c : flat) {
             User u = userMap.get(c.getUserId());

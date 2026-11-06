@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface TagRepository extends JpaRepository<Tag, String> {
@@ -17,6 +18,6 @@ public interface TagRepository extends JpaRepository<Tag, String> {
 
     boolean existsBySlug(String slug);
 
-    @Query(value = "SELECT COUNT(*) FROM post_tags WHERE tag_id = :tagId", nativeQuery = true)
-    long countPostsByTagId(@Param("tagId") String tagId);
+    @Query(value = "SELECT tag_id, COUNT(*) FROM post_tags GROUP BY tag_id", nativeQuery = true)
+    List<Object[]> countPostsGroupByTag();
 }

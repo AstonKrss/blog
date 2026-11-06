@@ -1,6 +1,7 @@
 package com.aston.blog.Service.impl;
 
 import com.aston.blog.Service.PostService;
+import com.aston.blog.common.PaginationUtils;
 import com.aston.blog.dto.CreatePostDTO;
 import com.aston.blog.dto.UpdatePostDto;
 import com.aston.blog.entity.Post;
@@ -19,9 +20,9 @@ import com.aston.blog.vo.stats.StatsVO;
 import com.aston.blog.vo.tag.TagVO;
 
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -32,46 +33,60 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.aston.blog.vo.post.SearchResultVO;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class PostServiceImpl implements PostService {
+
+    private static final Logger log = LoggerFactory.getLogger(PostServiceImpl.class);
 
     private final PostRepository postRepository;
     private final TagRepository tagRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final StringRedisTemplate redisTemplate;
+    private final MeterRegistry meterRegistry;
 
     public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository,
             CommentRepository commentRepository, UserRepository userRepository,
-            StringRedisTemplate redisTemplate) {
+            StringRedisTemplate redisTemplate, MeterRegistry meterRegistry) {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
+        this.meterRegistry = meterRegistry;
     }
 
     @Override
     @Cacheable(value = "publicPosts", key = "'p:' + #page + ':l:' + #limit + ':t:' + (#tag == null || #tag.isEmpty() ? 'all' : #tag)")
+    @Transactional(readOnly = true)
     public PostListVO getPublicPosts(int page, int limit, String tag) {
-        Pageable pageable = PageRequest.of(page - 1, limit);
-        Page<Post> postPage;
-        if (tag != null && !tag.isEmpty()) {
-            postPage = postRepository.findByStatusAndTags("PUBLISHED", tag, pageable);
-        } else {
-            postPage = postRepository.findPublishedWithAuthorAndTags(pageable);
-        }
+        Pageable pageable = PaginationUtils.toPageable(page, limit);
+        // 两段式分页：先查当前页 ID，再批量取作者和标签，避免 JOIN FETCH + Page 把全表拉进内存。
+        Page<String> idPage = (tag != null && !tag.isEmpty())
+                ? postRepository.findPublishedIdsByTag(tag, pageable)
+                : postRepository.findPublishedIds(pageable);
 
-        List<PostSummaryVO> posts = postPage.getContent().stream()
+        List<String> ids = idPage.getContent();
+        List<Post> pagePosts = ids.isEmpty()
+                ? List.of()
+                : postRepository.findByIdInWithAuthorAndTags(ids);
+        Map<String, Post> postById = pagePosts.stream()
+                .collect(Collectors.toMap(Post::getId, post -> post));
+        List<PostSummaryVO> posts = ids.stream()
+                .map(postById::get)
+                .filter(Objects::nonNull)
                 .map(this::convertToPostSummaryVO)
                 .collect(Collectors.toList());
 
         PaginationVO pagination = new PaginationVO();
         pagination.setPage(page);
         pagination.setLimit(limit);
-        pagination.setTotal(postPage.getTotalElements());
-        pagination.setTotalPages(postPage.getTotalPages());
+        pagination.setTotal(idPage.getTotalElements());
+        pagination.setTotalPages(idPage.getTotalPages());
 
         PostListVO result = new PostListVO();
         result.setPosts(posts);
@@ -82,7 +97,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public PostListVO getMyPosts(String authorId, int page, int limit, String status) {
-        Pageable pageable = PageRequest.of(page - 1, limit);
+        Pageable pageable = PaginationUtils.toPageable(page, limit);
         Page<Post> postPage;
 
         if (status != null && !status.isEmpty()) {
@@ -109,7 +124,14 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "archive", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "search", allEntries = true),
+            @CacheEvict(value = "publicPosts", allEntries = true),
+            @CacheEvict(value = "postDetail", allEntries = true),
+            @CacheEvict(value = "archive", allEntries = true),
+            @CacheEvict(value = "stats", allEntries = true),
+            @CacheEvict(value = "tags", allEntries = true)
+    })
     public PostDetailVO createPost(CreatePostDTO dto, String authorId) {
         // 验证作者是否存在
         if (authorId == null || authorId.isEmpty()) {
@@ -178,12 +200,25 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public void incrementViewInRedis(String postId) {
-        redisTemplate.opsForValue().increment("post:view:delta:" + postId);
+        try {
+            redisTemplate.opsForValue().increment("post:view:delta:" + postId);
+        } catch (RuntimeException ex) {
+            // 浏览量允许少计，Redis 故障不能影响文章详情返回。
+            meterRegistry.counter("post.view.redis.failures").increment();
+            log.warn("文章浏览量 Redis 增量失败，允许少计 postId={} reason={}", postId, ex.getMessage());
+        }
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = "archive", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "search", allEntries = true),
+            @CacheEvict(value = "publicPosts", allEntries = true),
+            @CacheEvict(value = "postDetail", allEntries = true),
+            @CacheEvict(value = "archive", allEntries = true),
+            @CacheEvict(value = "stats", allEntries = true),
+            @CacheEvict(value = "tags", allEntries = true)
+    })
     public PostDetailVO updatePost(String id, UpdatePostDto dto, String userId) {
         Post post = postRepository.findByIdWithTags(id).orElse(null);
         if (post == null)
@@ -227,7 +262,14 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "archive", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "search", allEntries = true),
+            @CacheEvict(value = "publicPosts", allEntries = true),
+            @CacheEvict(value = "postDetail", allEntries = true),
+            @CacheEvict(value = "archive", allEntries = true),
+            @CacheEvict(value = "stats", allEntries = true),
+            @CacheEvict(value = "tags", allEntries = true)
+    })
     public void deletePost(String id, String userId, String role) {
         Post post = postRepository.findById(id).orElse(null);
         if (post == null)
@@ -280,10 +322,11 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Cacheable(value = "stats")
+    @Cacheable(value = "stats", key = "'summary'")
     public StatsVO getStats() {
         StatsVO stats = new StatsVO();
         stats.setTotalPosts(postRepository.countByStatus("PUBLISHED"));
+        stats.setTotalTaggedPosts(postRepository.countTaggedPublished());
         stats.setTotalTags((long) tagRepository.count());
         stats.setTotalComments(commentRepository.count());
 
@@ -367,16 +410,26 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Cacheable(value = "search", key = "'q:' + #query + ':p:' + #page + ':l:' + #limit")
     public SearchResultVO search(String query, int page, int limit) {
-        Pageable pageable = PageRequest.of(page - 1, limit);
-        Page<Post> postPage = postRepository.search("PUBLISHED", query, pageable);
-        List<PostSummaryVO> posts = postPage.getContent().stream()
+        Pageable pageable = PaginationUtils.toPageable(page, limit);
+        // FULLTEXT 先分页查 ID，再批量取关联，避免 LIKE 全表扫描和大结果集 OOM。
+        List<String> ids = postRepository.searchIds(query, pageable.getPageSize(), pageable.getOffset());
+        long total = postRepository.searchCount(query);
+        List<Post> pagePosts = ids.isEmpty()
+                ? List.of()
+                : postRepository.findByIdInWithAuthorAndTags(ids);
+        Map<String, Post> postById = pagePosts.stream()
+                .collect(Collectors.toMap(Post::getId, post -> post));
+        List<PostSummaryVO> posts = ids.stream()
+                .map(postById::get)
+                .filter(Objects::nonNull)
                 .map(this::convertToPostSummaryVO)
                 .collect(Collectors.toList());
 
         SearchResultVO result = new SearchResultVO();
         result.setPosts(posts);
-        result.setTotal(postPage.getTotalElements());
+        result.setTotal(total);
         return result;
     }
 
@@ -406,3 +459,5 @@ public class PostServiceImpl implements PostService {
     }
 
 }
+
+

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,8 +24,33 @@ public interface PostRepository extends JpaRepository<Post, String> {
 
     Page<Post> findByStatus(String status, Pageable pageable);
 
-    @Query("SELECT p FROM Post p JOIN p.tags t WHERE p.status = :status AND t.slug = :tag")
-    Page<Post> findByStatusAndTags(@Param("status") String status, @Param("tag") String tag, Pageable pageable);
+    /**
+     * 标签筛选从 post_tags/tags 侧驱动，避免先扫描全部已发布文章再逐条判断标签。
+     * nativeQuery + countQuery 保留 Spring Data 的分页能力。
+     */
+    @Query(value = """
+            SELECT p.id
+            FROM posts p
+            JOIN post_tags pt ON pt.post_id = p.id
+            JOIN tags t ON t.id = pt.tag_id
+            WHERE p.status = 'PUBLISHED' AND t.slug = :tag
+            ORDER BY p.published_at DESC
+            """,
+            countQuery = """
+            SELECT COUNT(DISTINCT p.id)
+            FROM posts p
+            JOIN post_tags pt ON pt.post_id = p.id
+            JOIN tags t ON t.id = pt.tag_id
+            WHERE p.status = 'PUBLISHED' AND t.slug = :tag
+            """,
+            nativeQuery = true)
+    Page<String> findPublishedIdsByTag(@Param("tag") String tag, Pageable pageable);
+
+    @Query("SELECT p.id FROM Post p WHERE p.status = 'PUBLISHED' ORDER BY p.publishedAt DESC")
+    Page<String> findPublishedIds(Pageable pageable);
+
+    @Query("SELECT DISTINCT p FROM Post p LEFT JOIN FETCH p.author LEFT JOIN FETCH p.tags WHERE p.id IN :ids")
+    List<Post> findByIdInWithAuthorAndTags(@Param("ids") Collection<String> ids);
 
     Page<Post> findByAuthorIdAndStatus(String authorId, String status, Pageable pageable);
 
@@ -37,9 +63,6 @@ public interface PostRepository extends JpaRepository<Post, String> {
     Page<Post> findByAuthorIdAndStatusQuery(@Param("authorId") String authorId, @Param("status") String status,
             Pageable pageable);
 
-    @Query("SELECT p FROM Post p LEFT JOIN FETCH p.author LEFT JOIN FETCH p.tags WHERE p.status = 'PUBLISHED'")
-    Page<Post> findPublishedWithAuthorAndTags(Pageable pageable);
-
     @Query("SELECT p FROM Post p LEFT JOIN FETCH p.author LEFT JOIN FETCH p.tags WHERE p.status = 'PUBLISHED' AND p.slug = :slug")
     Optional<Post> findBySlugFull(@Param("slug") String slug);
 
@@ -50,13 +73,68 @@ public interface PostRepository extends JpaRepository<Post, String> {
     @Query("SELECT p FROM Post p WHERE p.status = 'PUBLISHED' ORDER BY p.publishedAt DESC")
     Page<Post> findLatestPublished(Pageable pageable);
 
+    @Query("SELECT p.slug FROM Post p WHERE p.status = 'PUBLISHED' ORDER BY p.viewCount DESC")
+    List<String> findTopPublishedSlugs(Pageable pageable);
+
     long countByStatus(String status);
+
+    @Query("SELECT COUNT(DISTINCT p) FROM Post p JOIN p.tags t WHERE p.status = 'PUBLISHED'")
+    long countTaggedPublished();
 
     @Query("SELECT COALESCE(SUM(p.viewCount), 0) FROM Post p WHERE p.status = 'PUBLISHED'")
     Long sumViewCount();
 
-    @Query("SELECT p FROM Post p LEFT JOIN FETCH p.author LEFT JOIN FETCH p.tags WHERE p.status = :status AND (p.title LIKE CONCAT('%', :keyword, '%') OR p.content LIKE CONCAT('%', :keyword, '%'))")
-    Page<Post> search(@Param("status") String status, @Param("keyword") String keyword, Pageable pageable);
+    /**
+     * FULLTEXT 与标签匹配拆成 UNION，避免 OR 让优化器放弃 FULLTEXT 索引。
+     * 两个分支都只返回 id，最后统一按发布时间排序和分页。
+     */
+    @Query(value = """
+            SELECT matched.id
+            FROM (
+                SELECT p.id, p.published_at
+                FROM posts p
+                WHERE p.status = 'PUBLISHED'
+                  AND MATCH(p.title, p.content) AGAINST (:keyword IN NATURAL LANGUAGE MODE)
+                UNION
+                SELECT p.id, p.published_at
+                FROM posts p
+                WHERE p.status = 'PUBLISHED'
+                  AND EXISTS (
+                      SELECT 1
+                      FROM post_tags pt
+                      JOIN tags t ON t.id = pt.tag_id
+                      WHERE pt.post_id = p.id
+                        AND (t.name LIKE CONCAT('%', :keyword, '%')
+                             OR t.slug LIKE CONCAT('%', :keyword, '%'))
+                  )
+            ) matched
+            ORDER BY matched.published_at DESC
+            LIMIT :limit OFFSET :offset
+            """, nativeQuery = true)
+    List<String> searchIds(@Param("keyword") String keyword, @Param("limit") int limit, @Param("offset") long offset);
+
+    @Query(value = """
+            SELECT COUNT(*)
+            FROM (
+                SELECT p.id
+                FROM posts p
+                WHERE p.status = 'PUBLISHED'
+                  AND MATCH(p.title, p.content) AGAINST (:keyword IN NATURAL LANGUAGE MODE)
+                UNION
+                SELECT p.id
+                FROM posts p
+                WHERE p.status = 'PUBLISHED'
+                  AND EXISTS (
+                      SELECT 1
+                      FROM post_tags pt
+                      JOIN tags t ON t.id = pt.tag_id
+                      WHERE pt.post_id = p.id
+                        AND (t.name LIKE CONCAT('%', :keyword, '%')
+                             OR t.slug LIKE CONCAT('%', :keyword, '%'))
+                  )
+            ) matched
+            """, nativeQuery = true)
+    long searchCount(@Param("keyword") String keyword);
 
     @Query("SELECT p FROM Post p WHERE p.status = 'PUBLISHED' ORDER BY p.publishedAt DESC")
     List<Post> findAllPublished();

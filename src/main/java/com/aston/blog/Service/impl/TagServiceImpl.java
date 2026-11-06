@@ -9,6 +9,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,6 +24,11 @@ public class TagServiceImpl implements TagService {
     @Override
     @Cacheable(value = "tags")
     public List<TagVO> getAllTags() {
+        // 一次 GROUP BY 拿到所有标签的计数，避免 500 个标签产生 500 次 count 查询。
+        Map<String, Long> counts = tagRepository.countPostsGroupByTag().stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
+                        row -> ((Number) row[1]).longValue()));
         return tagRepository.findAll().stream()
                 .map(tag -> {
                     TagVO vo = new TagVO();
@@ -30,7 +36,7 @@ public class TagServiceImpl implements TagService {
                     vo.setName(tag.getName());
                     vo.setSlug(tag.getSlug());
                     vo.setDescription(tag.getDescription());
-                    vo.setPostCount(tagRepository.countPostsByTagId(tag.getId()));
+                    vo.setPostCount(counts.getOrDefault(tag.getId(), 0L));
                     return vo;
                 })
                 .collect(Collectors.toList());

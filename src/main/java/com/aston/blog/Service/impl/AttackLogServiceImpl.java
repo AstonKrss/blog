@@ -7,6 +7,9 @@ import com.aston.blog.entity.LoginAttempt;
 import com.aston.blog.repository.AttackLogRepository;
 import com.aston.blog.repository.LoginAttemptRepository;
 import com.aston.blog.vo.security.SecurityStatsVO;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -21,21 +24,25 @@ import java.util.stream.Collectors;
 @Service
 public class AttackLogServiceImpl implements AttackLogService {
 
+    private static final Logger log = LoggerFactory.getLogger(AttackLogServiceImpl.class);
+
     private static final int FAILED_THRESHOLD = 10;
     private static final int WINDOW_MINUTES = 15;
     private final AttackLogRepository attackLogRepository;
     private final LoginAttemptRepository loginAttemptRepository;
     private final ThreatSignatureService threatSignatureService;
     private final StringRedisTemplate redisTemplate;
+    private final MeterRegistry meterRegistry;
 
     public AttackLogServiceImpl(AttackLogRepository attackLogRepository,
             LoginAttemptRepository loginAttemptRepository,
             ThreatSignatureService threatSignatureService,
-            StringRedisTemplate redisTemplate) {
+            StringRedisTemplate redisTemplate, MeterRegistry meterRegistry) {
         this.attackLogRepository = attackLogRepository;
         this.loginAttemptRepository = loginAttemptRepository;
         this.threatSignatureService = threatSignatureService;
         this.redisTemplate = redisTemplate;
+        this.meterRegistry = meterRegistry;
     }
 
     @Override
@@ -47,20 +54,24 @@ public class AttackLogServiceImpl implements AttackLogService {
         attempt.setUserAgent(userAgent);
         loginAttemptRepository.save(attempt);
 
-        // 失败才计数(给 isBruteForce 查)。用 INCR,首次设过期
-        if (!success) {
-            Long count = redisTemplate.opsForValue().increment("login:fail:ip:" + ip);
-            if (count != null && count == 1L) {
-                redisTemplate.expire("login:fail:ip:" + ip, Duration.ofMinutes(WINDOW_MINUTES));
+        try {
+            // 失败才计数(给 isBruteForce 查)。用 INCR,首次设过期
+            if (!success) {
+                Long count = redisTemplate.opsForValue().increment("login:fail:ip:" + ip);
+                if (count != null && count == 1L) {
+                    redisTemplate.expire("login:fail:ip:" + ip, Duration.ofMinutes(WINDOW_MINUTES));
+                }
+                Long userCount = redisTemplate.opsForValue().increment("login:fail:user:" + username);
+                if (userCount != null && userCount == 1L) {
+                    redisTemplate.expire("login:fail:user:" + username, Duration.ofMinutes(WINDOW_MINUTES));
+                }
+            } else {
+                // 成功登录清零,避免之前失败累积导致后续正常登录被误判
+                redisTemplate.delete("login:fail:ip:" + ip);
+                redisTemplate.delete("login:fail:user:" + username);
             }
-            Long userCount = redisTemplate.opsForValue().increment("login:fail:user:" + username);
-            if (userCount != null && userCount == 1L) {
-                redisTemplate.expire("login:fail:user:" + username, Duration.ofMinutes(WINDOW_MINUTES));
-            }
-        } else {
-            // 成功登录清零,避免之前失败累积导致后续正常登录被误判
-            redisTemplate.delete("login:fail:ip:" + ip);
-            redisTemplate.delete("login:fail:user:" + username);
+        } catch (RuntimeException e) {
+            onRedisFailure("record", ip, e);
         }
     }
 
@@ -87,26 +98,47 @@ public class AttackLogServiceImpl implements AttackLogService {
 
     @Override
     public boolean isBruteForce(String ip, String username) {
-        // 只查不增(计数在 recordLoginAttempt 里)
-        String ipCountStr = redisTemplate.opsForValue().get("login:fail:ip:" + ip);
-        long ipCount = ipCountStr != null ? Long.parseLong(ipCountStr) : 0;
-        if (ipCount >= FAILED_THRESHOLD) {
-            return true;
+        try {
+            // 只查不增(计数在 recordLoginAttempt 里)
+            String ipCountStr = redisTemplate.opsForValue().get("login:fail:ip:" + ip);
+            long ipCount = ipCountStr != null ? Long.parseLong(ipCountStr) : 0;
+            if (ipCount >= FAILED_THRESHOLD) {
+                return true;
+            }
+            String userCountStr = redisTemplate.opsForValue().get("login:fail:user:" + username);
+            long userCount = userCountStr != null ? Long.parseLong(userCountStr) : 0;
+            return userCount >= FAILED_THRESHOLD;
+        } catch (RuntimeException e) {
+            onRedisFailure("check", ip, e);
+            return false;
         }
-        String userCountStr = redisTemplate.opsForValue().get("login:fail:user:" + username);
-        long userCount = userCountStr != null ? Long.parseLong(userCountStr) : 0;
-        return userCount >= FAILED_THRESHOLD;
     }
 
     @Override
     public void blockIp(String ip) {
-        // 用 Redis SETEX 替代进程内 Map:多实例部署时也共享封禁状态
-        redisTemplate.opsForValue().set("login:blocked:ip:" + ip, "1", Duration.ofMinutes(WINDOW_MINUTES));
+        try {
+            // 用 Redis SETEX 替代进程内 Map:多实例部署时也共享封禁状态
+            redisTemplate.opsForValue().set("login:blocked:ip:" + ip, "1", Duration.ofMinutes(WINDOW_MINUTES));
+        } catch (RuntimeException e) {
+            onRedisFailure("block", ip, e);
+        }
     }
 
     @Override
     public boolean isIpBlocked(String ip) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey("login:blocked:ip:" + ip));
+        try {
+            return Boolean.TRUE.equals(redisTemplate.hasKey("login:blocked:ip:" + ip));
+        } catch (RuntimeException e) {
+            onRedisFailure("blocked_check", ip, e);
+            return false;
+        }
+    }
+
+    private void onRedisFailure(String operation, String target, RuntimeException ex) {
+        meterRegistry.counter("redis.login_guard.failures", "operation", operation).increment();
+        meterRegistry.counter("redis.login_guard.fail_open", "operation", operation).increment();
+        log.warn("登录防护 Redis 操作失败，fail-open operation={} target={} reason={}",
+                operation, target, ex.getMessage());
     }
 
     private int calculateRiskLevel(String attackType) {

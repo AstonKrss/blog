@@ -2,10 +2,13 @@ package com.aston.blog.Service.impl;
 
 import com.aston.blog.Service.VisitLogService;
 import com.aston.blog.entity.VisitLog;
+import com.aston.blog.repository.VisitLogAnalyticsRepository;
 import com.aston.blog.repository.VisitLogRepository;
 import com.aston.blog.util.IpLocationUtil;
 import com.aston.blog.vo.analytics.VisitAnalyticsVO;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.Cursor;
@@ -22,11 +25,22 @@ import java.util.stream.Collectors;
 @Service
 public class VisitLogServiceImpl implements VisitLogService {
 
-    @Autowired
-    private VisitLogRepository visitLogRepository;
+    private static final Logger log = LoggerFactory.getLogger(VisitLogServiceImpl.class);
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
+    private final VisitLogRepository visitLogRepository;
+    private final VisitLogAnalyticsRepository analyticsRepository;
+    private final StringRedisTemplate redisTemplate;
+    private final MeterRegistry meterRegistry;
+
+    public VisitLogServiceImpl(VisitLogRepository visitLogRepository,
+            VisitLogAnalyticsRepository analyticsRepository,
+            StringRedisTemplate redisTemplate,
+            MeterRegistry meterRegistry) {
+        this.visitLogRepository = visitLogRepository;
+        this.analyticsRepository = analyticsRepository;
+        this.redisTemplate = redisTemplate;
+        this.meterRegistry = meterRegistry;
+    }
 
     // 在线判定窗口:5 分钟内有活动算"在线"
     private static final Duration ONLINE_TTL = Duration.ofMinutes(5);
@@ -55,6 +69,8 @@ public class VisitLogServiceImpl implements VisitLogService {
             visitLogRepository.save(log);
         } catch (Exception e) {
             // 记录失败不影响正常请求
+            meterRegistry.counter("redis.online.mark.failures").increment();
+            log.warn("在线人数标记失败，允许降级 ip={} reason={}", ipAddress, e.getMessage());
         }
     }
 
@@ -71,29 +87,51 @@ public class VisitLogServiceImpl implements VisitLogService {
 
         VisitAnalyticsVO vo = new VisitAnalyticsVO();
 
+        // 优先查小时聚合表，避免 visit_logs 增长后全表扫描。
+        long total = analyticsRepository.totalVisits(since);
+        if (total == 0 && visitLogRepository.countSince(since) > 0) {
+            // 聚合尚未完成时回退到明细，保证后台面板不空白。
+            return legacyAnalytics(since);
+        }
+
+        vo.setTotalVisits(total);
+        vo.setUniqueIps(analyticsRepository.uniqueIps(since));
+        vo.setTopCountries(convertToMapList(analyticsRepository.topCities(since), "city", "count"));
+        vo.setTopIsps(convertToMapList(analyticsRepository.topIsps(since), "isp", "count"));
+        vo.setTopPages(convertToMapList(analyticsRepository.topPages(since), "path", "count"));
+        vo.setTopIps(convertToMapList(analyticsRepository.topIps(since), "ip", "count"));
+
+        List<Map<String, Object>> hourly = new ArrayList<>();
+        for (Object[] h : analyticsRepository.hourlyDistribution(since)) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("hour", h[0]);
+            item.put("count", ((Number) h[1]).intValue());
+            hourly.add(item);
+        }
+        vo.setHourlyDistribution(hourly);
+        return vo;
+    }
+
+    private VisitAnalyticsVO legacyAnalytics(LocalDateTime since) {
+        VisitAnalyticsVO vo = new VisitAnalyticsVO();
         long total = visitLogRepository.countSince(since);
         vo.setTotalVisits(total);
 
         List<Object[]> ips = visitLogRepository.topIpsSince(since);
         vo.setUniqueIps(ips.size());
-
-        // 按城市统计（更精确）
         vo.setTopCountries(convertToMapList(visitLogRepository.countByCitySince(since), "city", "count"));
         vo.setTopIsps(convertToMapList(visitLogRepository.countByIspSince(since), "isp", "count"));
         vo.setTopPages(convertToMapList(visitLogRepository.countByPathSince(since), "path", "count"));
         vo.setTopIps(convertToMapList(ips, "ip", "count"));
 
-        // 处理每小时分布
-        List<Object[]> hours = visitLogRepository.countByHourSince(since);
         List<Map<String, Object>> hourly = new ArrayList<>();
-        for (Object[] h : hours) {
+        for (Object[] h : visitLogRepository.countByHourSince(since)) {
             Map<String, Object> item = new HashMap<>();
             item.put("hour", h[0]);
-            item.put("count", ((Long) h[1]).intValue());
+            item.put("count", ((Number) h[1]).intValue());
             hourly.add(item);
         }
         vo.setHourlyDistribution(hourly);
-
         return vo;
     }
 
@@ -113,6 +151,8 @@ public class VisitLogServiceImpl implements VisitLogService {
             }
         } catch (Exception e) {
             // Redis 挂了,降级返回 0(不影响主流程)
+            meterRegistry.counter("redis.online.count.failures").increment();
+            log.warn("在线人数统计失败，降级返回 0 reason={}", e.getMessage());
             return 0;
         }
         return count;
