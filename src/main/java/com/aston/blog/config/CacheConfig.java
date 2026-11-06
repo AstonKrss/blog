@@ -48,7 +48,7 @@ public class CacheConfig {
         GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(mapper);
 
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(10))
+                .entryTtl(new JitterTtlFunction(Duration.ofMinutes(8), Duration.ofMinutes(12)))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair
                         .fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair
@@ -78,3 +78,4 @@ public class CacheConfig {
         return new NoOpCacheManager();
     }
 }
+
