@@ -1,6 +1,7 @@
 package com.aston.blog.Service.impl;
 
 import com.aston.blog.Service.VisitLogService;
+import com.aston.blog.event.VisitLogRecordedEvent;
 import com.aston.blog.entity.VisitLog;
 import com.aston.blog.repository.VisitLogAnalyticsRepository;
 import com.aston.blog.repository.VisitLogRepository;
@@ -48,30 +49,40 @@ public class VisitLogServiceImpl implements VisitLogService {
 
     @Override
     @Async
-    public void logVisit(String ipAddress, String userAgent, String referer, String path) {
+    public void markOnline(String ipAddress) {
         try {
-            // 1. Redis 在线标记:SETEX 自动覆盖并续期
+            // 在线状态是低价值瞬时数据，失败时允许少计，不影响业务请求。
             redisTemplate.opsForValue().set(ONLINE_KEY_PREFIX + ipAddress, "1", ONLINE_TTL);
-
-            // 2. 异步写 visit_logs(后台分析面板还在用)
-            VisitLog log = new VisitLog();
-            log.setIpAddress(ipAddress);
-            log.setUserAgent(userAgent);
-            log.setReferer(referer);
-            log.setPath(path);
-
-            IpLocationUtil.IpInfo ipInfo = IpLocationUtil.lookup(ipAddress);
-            log.setCountry(ipInfo.getCountry());
-            log.setProvince(ipInfo.getProvince());
-            log.setCity(ipInfo.getCity());
-            log.setIsp(ipInfo.getIsp());
-
-            visitLogRepository.save(log);
         } catch (Exception e) {
-            // 记录失败不影响正常请求
             meterRegistry.counter("redis.online.mark.failures").increment();
             log.warn("在线人数标记失败，允许降级 ip={} reason={}", ipAddress, e.getMessage());
         }
+    }
+
+    @Override
+    public void persistVisit(VisitLogRecordedEvent event) {
+        IpLocationUtil.IpInfo ipInfo = IpLocationUtil.lookup(event.ip());
+        LocalDateTime occurredAt = event.occurredAt() == null ? LocalDateTime.now() : event.occurredAt();
+
+        // 唯一键由数据库兜底；重复消息会执行无副作用更新，消费端随后照常 ACK。
+        visitLogRepository.insertIfAbsent(
+                event.eventId(),
+                truncate(event.ip(), 45),
+                truncate(event.userAgent(), 500),
+                truncate(event.referer(), 500),
+                truncate(event.path(), 255),
+                truncate(ipInfo.getCountry(), 50),
+                truncate(ipInfo.getProvince(), 50),
+                truncate(ipInfo.getCity(), 50),
+                truncate(ipInfo.getIsp(), 50),
+                occurredAt);
+    }
+
+    private String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength);
     }
 
     @Override

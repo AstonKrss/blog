@@ -56,12 +56,18 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: Aston123@@blog
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-blog}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-blog123}
 
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_started
+      rabbitmq:
+        condition: service_healthy
     networks:
       - blog-network
 
@@ -111,6 +117,25 @@ services:
         condition: service_healthy
     networks:
       - blog-network
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: blog-rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-blog}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-blog123}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - blog-network
   redis:
     image: redis:7-alpine
     container_name: blog-redis
@@ -124,6 +149,7 @@ services:
 volumes:
   mysql_data:
   redis_data:
+  rabbitmq_data:
 networks:
   blog-network:
     driver: bridge

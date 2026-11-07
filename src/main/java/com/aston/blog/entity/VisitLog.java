@@ -15,6 +15,9 @@ public class VisitLog {
     @Column(length = 36)
     private String id;
 
+    @Column(name = "event_id", nullable = false, unique = true, length = 36)
+    private String eventId;
+
     @Column(name = "ip_address", length = 45)
     private String ipAddress;
 

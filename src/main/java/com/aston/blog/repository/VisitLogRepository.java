@@ -4,7 +4,10 @@ import com.aston.blog.entity.VisitLog;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,4 +39,28 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, String> {
 
     @Query("SELECT COUNT(DISTINCT v.ipAddress) FROM VisitLog v WHERE v.createdAt >= ?1")
     long countUniqueIpsSince(LocalDateTime since);
+
+    /**
+     * 以 event_id 唯一键做幂等插入；重复消息不会产生第二行。
+     */
+    @Modifying
+    @Transactional
+    @Query(value = """
+            INSERT INTO visit_logs
+                (id, event_id, ip_address, user_agent, referer, path, country, province, city, isp, created_at)
+            VALUES
+                (UUID(), :eventId, :ipAddress, :userAgent, :referer, :path,
+                 :country, :province, :city, :isp, :createdAt)
+            ON DUPLICATE KEY UPDATE event_id = :eventId
+            """, nativeQuery = true)
+    int insertIfAbsent(@Param("eventId") String eventId,
+            @Param("ipAddress") String ipAddress,
+            @Param("userAgent") String userAgent,
+            @Param("referer") String referer,
+            @Param("path") String path,
+            @Param("country") String country,
+            @Param("province") String province,
+            @Param("city") String city,
+            @Param("isp") String isp,
+            @Param("createdAt") LocalDateTime createdAt);
 }
