@@ -2,6 +2,9 @@ spring:
   application:
     name: blog
 
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
   # 文件上传大小限制（这个优先级更高）
   servlet:
     multipart:
@@ -143,6 +146,7 @@ logging:
 # 服务器配置
 server:
   port: 8080
+  shutdown: graceful
   # 文件上传大小限制
   servlet:
     multipart:
@@ -173,6 +177,9 @@ blog:
       # 消费者总尝试次数；失败后 NACK 进入 DLQ
       max-attempts: ${BLOG_VISIT_LOG_MQ_MAX_ATTEMPTS:3}
       backoff-ms: ${BLOG_VISIT_LOG_MQ_BACKOFF_MS:1000}
+      batch-size: ${BLOG_VISIT_LOG_MQ_BATCH_SIZE:20}
+      batch-receive-timeout-ms: ${BLOG_VISIT_LOG_MQ_BATCH_RECEIVE_TIMEOUT_MS:500}
+      shutdown-timeout-ms: ${BLOG_VISIT_LOG_MQ_SHUTDOWN_TIMEOUT_MS:10000}
     # 明细保留天数；聚合数据保留天数
     retention-days: ${BLOG_VISIT_LOG_RETENTION_DAYS:90}
     aggregate-retention-days: ${BLOG_VISIT_LOG_AGGREGATE_RETENTION_DAYS:400}
@@ -198,6 +205,15 @@ blog:
       top-n: ${BLOG_CACHE_WARMUP_TOP_N:50}
       interval-ms: ${BLOG_CACHE_WARMUP_INTERVAL_MS:600000}
       initial-delay-ms: ${BLOG_CACHE_WARMUP_INITIAL_DELAY_MS:120000}
+  rabbitmq:
+    management:
+      url: ${SPRING_RABBITMQ_MANAGEMENT_URL:http://localhost:15672}
+      username: ${SPRING_RABBITMQ_USERNAME:guest}
+      password: ${SPRING_RABBITMQ_PASSWORD:guest}
+    metrics:
+      enabled: ${BLOG_RABBITMQ_METRICS_ENABLED:true}
+      interval-ms: ${BLOG_RABBITMQ_METRICS_INTERVAL_MS:10000}
+      initial-delay-ms: ${BLOG_RABBITMQ_METRICS_INITIAL_DELAY_MS:10000}
   site:
     url: ${BLOG_SITE_URL:http://localhost:8080}
   owner:

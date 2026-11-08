@@ -4,18 +4,18 @@
 > 技术栈：Next.js 15 + Spring Boot 4 + Java 21 + MySQL 8 + Redis + Docker  
 > 目标岗位：Java 后端工程师  
 > 文档日期：2026-11-02  
-> 状态：执行中（最后更新：2026-11-07）
+> 状态：执行中（最后更新：2026-11-08）
 
 ---
 
-## 0. 执行状态总览（2026-11-07）
+## 0. 执行状态总览（2026-11-08）
 
 | 阶段 | 状态 | 完成度 | 已完成 | 未完成 / 风险 |
 |---|---|---:|---|---|
 | 阶段 0：可观测性与压测基线 | ✅ 已完成 | 100% | Actuator、Micrometer、Prometheus、Grafana、traceId、k6、慢查询、Hikari/Redis/任务指标、基线报告 | 无阻断项；基线数据已补充大数据量实验 |
 | 阶段 1：数据库与查询路径优化 | ✅ 已完成 | 100% | 文章两段式分页、笔记 N+1、标签统计 N+1、FULLTEXT UNION 搜索、标签筛选执行计划、索引前后对比、Testcontainers 集成测试、`BENCHMARK_QUERY.md` | 本机无 Docker，Testcontainers 4 个用例自动跳过；需在 Docker/CI 环境执行一次真实容器测试 |
 | 阶段 2：缓存与热点写优化 | ✅ 已完成 | 100% | TTL 抖动、精确缓存失效、热点 Key 互斥回源、点赞原子计数与周期校准、Redis Cache 统一降级、浏览量幂等+允许少计、Hikari min10/max20、在线/限流/登录防护/分布式锁故障策略、`CACHE_AND_HOT_WRITE_REPORT.md` | 本机未做四项收尾改动后的正式高并发 A/B 压测；跨实例 Redis 抢锁失败时采用可用性优先降级，不是严格全局互斥 |
-| 阶段 3：RabbitMQ 可靠异步链路 | 🟡 核心链路已实现 | 约 75% | RabbitMQ Compose、direct exchange、DLQ、Producer Confirm、手动 ACK、有限重试、event_id 幂等、访问日志 fail-open、离线烟测、`RABBITMQ_VISIT_LOG.md` | 真实 RabbitMQ 端到端、停服 30 秒恢复、重复消息重投、DLQ 手动重放、积压面板、批量落库、优雅停机等待消费 |
+| 阶段 3：RabbitMQ 可靠异步链路 | ✅ 已完成 | 100% | RabbitMQ 真实投递、批量消费者、拆批隔离失败、event_id 幂等、DLQ、手工重放、停服 30 秒恢复、队列 ready/unacked/consumer 指标、优雅停机、`RABBITMQ_VISIT_LOG.md` | 生产端仍是 fail-open，事件可能丢失；消费者重试为进程内重试；未实现 Outbox；真实 RabbitMQ 使用 WSL 原生服务验证 |
 | 阶段 4：多实例部署与故障演练（可选） | 🟡 部分完成 | 约 55% | Nginx 配置、JWT 无状态、MinIO 存储抽象、Redis 分布式锁、健康/就绪检查、双实例故障转移演练 | 真实 Nginx 加载、真实 MinIO 上传、优雅停机、Redis/RabbitMQ 故障演练、完整一致性记录 |
 | 阶段 5：文档、数据与简历包装 | 🟡 部分完成 | 约 25% | `BENCHMARK_BASELINE.md`、k6 脚本、阶段 1/2 报告、N+1/Hikari 专项报告 | `ARCHITECTURE.md`、`ADR.md`、`BENCHMARK_RESULT.md`、`RUNBOOK.md`、`FAILOVER_DRILL.md`、架构图/时序图、README 优化亮点重写 |
 
@@ -24,17 +24,16 @@
 - 阶段 0 已完成，并且已经用大数据量实验验证了真实瓶颈：连接池等待、索引缺失、缓存掩盖数据库压力。
 - 阶段 1 已完成：核心查询改造、执行计划对比、Testcontainers 测试和 `BENCHMARK_QUERY.md` 均已落地；本机无 Docker，容器测试需在 CI 或安装 Docker 后执行。
 - 阶段 2 已完成：TTL 抖动、版本号精确失效、热点 Key 回源保护、点赞原子计数与周期校准均已落地；统一验收见 `docs/CACHE_AND_HOT_WRITE_REPORT.md`。
-- 阶段 3 核心链路已完成：访问日志通过 RabbitMQ 异步写入 MySQL，Publisher Confirm、手动 ACK、有限重试、DLQ 和 event_id 幂等已落地；真实 Broker 联调与故障演练仍待 Docker 环境验证。
+- 阶段 3 已完成：真实 RabbitMQ 投递、批量消费、重复 eventId 幂等、停服 30 秒恢复、DLQ 重放、队列指标和优雅停机均已验证；见 `docs/RABBITMQ_VISIT_LOG.md`。
 - 阶段 4 已有可演示的多实例资产，但真实 Nginx/MinIO 和完整故障矩阵还没验证。
 - 阶段 5 的专项报告已经不少，但还缺统一的架构、ADR、Runbook 和 README 包装。
 
 ### 下一步建议（按顺序）
 
-1. **P0：启动真实 RabbitMQ，完成阶段 3 端到端和故障演练**：正常投递、重复投递、停服 30 秒、恢复消费、DLQ 重放。
-2. **P0：在 Docker/CI 环境执行 Testcontainers 测试**，补齐阶段 1 和 RabbitMQ 的容器验证证据。
-3. **P1：增加队列积压、unacked、consumer count 和 DLQ 数量监控面板**。
-4. **P2：真实 Nginx + MinIO 验证和优雅停机**，把多实例从“可演示”提升到“可复现”。
-5. **最后：阶段 5 文档与 README 重写**，统一架构图、ADR、Benchmark、Runbook 和简历表述。
+1. **P0：在 Docker/CI 环境执行 Testcontainers 测试**，补齐阶段 1 的容器验证证据。
+2. **P1：把 RabbitMQ 队列指标接入 Grafana 面板并补充告警规则**。
+3. **P2：真实 Nginx + MinIO 验证和优雅停机**，把多实例从“可演示”提升到“可复现”。
+4. **最后：阶段 5 文档与 README 重写**，统一架构图、ADR、Benchmark、Runbook 和简历表述。
 
 ---
 
@@ -382,20 +381,20 @@ Nginx
 **周期：5～7 天**  
 **优先级：P1**
 
-### 执行状态（2026-11-07）
+### 执行状态（2026-11-08）
 
 - [x] RabbitMQ Compose 服务和 `spring-boot-starter-amqp` 依赖。
 - [x] `blog.events` direct exchange、`visit.log.write` 队列和 `blog.dlx` / `visit.log.write.dlq`。
 - [x] 事件结构、Producer Confirm、持久化消息和 Producer fail-open。
-- [x] Consumer 手动 ACK、最多 3 次进程内重试，耗尽后 NACK 进入 DLQ。
-- [x] `visit_logs.event_id` 唯一键和幂等插入。
+- [x] Consumer 批量消费、手动 ACK、最多 3 次进程内重试，失败拆批后进入 DLQ。
+- [x] `visit_logs.event_id` 唯一键和批量幂等插入。
 - [x] RabbitMQ 离线时业务健康检查保持 UP，失败由指标告警。
-- [x] 93 个测试通过（4 个 Testcontainers 跳过），RabbitMQ 离线 5/5 请求返回 200。
-- [ ] 真实 RabbitMQ 启动、正常投递和重复消息重投验证。
-- [ ] RabbitMQ 停止 30 秒后恢复消费演练。
-- [ ] DLQ 手动重放脚本文档。
-- [ ] 队列积压 / unacked / consumer count / DLQ 面板。
-- [ ] 消费者批量写 MySQL和优雅停机等待消费。
+- [x] 94 个测试通过（4 个 Testcontainers 跳过），RabbitMQ 离线 10/10 请求返回 200。
+- [x] 真实 RabbitMQ 正常投递、重复 eventId、停服 30 秒恢复和恢复消费验证。
+- [x] 非法消息进入 DLQ，修复后手工重放成功。
+- [x] 队列 messages/ready/unacked/consumers/DLQ 指标。
+- [x] 预存消息一次批量消费 20 条并全部落库。
+- [x] Rabbit 消费者等待 workers 完成，Tomcat 优雅停机日志验证。
 - 详细说明见 `docs/RABBITMQ_VISIT_LOG.md`。
 
 ### 场景选择

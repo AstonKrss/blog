@@ -1,8 +1,8 @@
 # RabbitMQ 访问日志异步链路
 
-> 完成日期：2026-11-07
+> 完成日期：2026-11-08
 > 阶段：3
-> 状态：核心链路已实现，真实 RabbitMQ 联调、积压监控和 DLQ 重放演练待完成
+> 状态：已完成；真实 RabbitMQ、批量消费、DLQ 重放和优雅停机均已验证
 
 ---
 
@@ -258,6 +258,8 @@ event_id 已存在
 
 ```yaml
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:localhost}
     port: ${SPRING_RABBITMQ_PORT:5672}
@@ -273,6 +275,24 @@ spring:
         acknowledge-mode: manual
         prefetch: 10
         default-requeue-rejected: false
+
+server:
+  shutdown: graceful
+
+blog:
+  visit-log:
+    mq:
+      batch-size: 20
+      batch-receive-timeout-ms: 500
+      shutdown-timeout-ms: 10000
+  rabbitmq:
+    management:
+      url: ${SPRING_RABBITMQ_MANAGEMENT_URL:http://localhost:15672}
+      username: ${SPRING_RABBITMQ_USERNAME:guest}
+      password: ${SPRING_RABBITMQ_PASSWORD:guest}
+    metrics:
+      enabled: true
+      interval-ms: 10000
 ```
 
 ### 8.2 Compose
@@ -314,6 +334,11 @@ RabbitMQ 是否正常应通过 `rabbit.visit.publish.failures`、Publisher Confi
 | `rabbit.visit.consume.retries` | 消费重试次数 |
 | `rabbit.visit.consume.dlq` | 重试耗尽、NACK 进 DLQ 次数 |
 | `rabbit.visit.consume.duration` | 消费耗时 Timer |
+| `rabbit.visit.batch.size` | 消费批次大小 DistributionSummary |
+| `rabbit.queue.messages` | 正常队列总消息数 |
+| `rabbit.queue.ready` | 正常队列 ready 消息数 |
+| `rabbit.queue.unacked` | 正常队列未 ACK 消息数 |
+| `rabbit.queue.consumers` | 队列消费者数 |
 | `visit.log.interceptor.failures` | 拦截器采集阶段异常次数 |
 
 ---
@@ -323,7 +348,7 @@ RabbitMQ 是否正常应通过 `rabbit.visit.publish.failures`、Publisher Confi
 ### 10.1 单元/上下文测试
 
 ```text
-25 个测试类，93 个测试，0 失败，0 错误
+25 个测试类，94 个测试，0 失败，0 错误
 4 个 Testcontainers 用例因本机无 Docker 跳过
 ```
 
@@ -360,23 +385,79 @@ rabbit_visit_publish_failures_total = 5
 
 ---
 
-## 11. 已知限制与下一步
+## 10.3 批量消费与真实 Broker 验证
 
-当前未完成：
+### 批量策略
 
-1. 真实 RabbitMQ 容器启动后的消息端到端验证；
-2. RabbitMQ 停止 30 秒、恢复后新消息继续消费的演练；
-3. 重复消息的真实 Broker 重投验证；
-4. DLQ 消息查看与手动重放脚本；
-5. 队列积压、unacked、consumer count 的 Grafana 面板；
-6. 消费者批量写 MySQL。
+采用方案二：
 
-当前明确取舍：
+```text
+一批最多 20 条消息
+  -> 整批一个事务
+  -> 失败后二分拆批
+  -> 成功子批继续落库
+  -> 最终失败单条 NACK 到 DLQ
+  -> 批量事务提交后才 ACK
+```
 
-- 生产端是 fail-open，RabbitMQ 故障期间事件可能丢失；
-- 消费者重试是进程内重试，不是独立的延迟重试队列；
-- 未实现 Outbox；若要求访问日志绝对不丢，必须升级为 Outbox + 后台发布任务。
+配置：
 
+```yaml
+blog:
+  visit-log:
+    mq:
+      batch-size: 20
+      batch-receive-timeout-ms: 500
+      shutdown-timeout-ms: 10000
+```
+
+### 真实验证结果
+
+| 验证 | 结果 |
+|---|---|
+| RabbitMQ 正常投递 | 固定 eventId 消息成功写入 `visit_logs` |
+| 重复 eventId | 同一 eventId 在数据库中仍只有 1 行 |
+| RabbitMQ 停止 30 秒 | 10/10 次文章列表请求 HTTP 200，失败指标增至 10 |
+| RabbitMQ 恢复 | 消费者重新连接，恢复消息成功落库 |
+| 非法 eventId=null | 消息进入 `visit.log.write.dlq` |
+| 手工 DLQ 重放 | 修复 eventId 后重新投递，成功写入数据库 |
+| 批量消费 | 预存消息后一次批次大小为 20，20 条全部落库 |
+| 队列指标 | 已暴露 messages/ready/unacked/consumers/DLQ 数量 |
+| 优雅停机 | 日志出现 `Waiting for workers to finish` 和 `Graceful shutdown complete` |
+
+批量指标实测：
+
+```text
+rabbit_visit_batch_size_count = 1
+rabbit_visit_batch_size_sum = 20
+rabbit_visit_batch_size_max = 20
+rabbit_visit_consume_success_total = 20
+```
+
+当前 RabbitMQ 使用 WSL 原生服务验证，不是 Docker；应用通过 `localhost:5672` 投递，Management API 通过 `localhost:15672` 采集指标。
+
+---
+## 11. 已知限制与后续动作
+
+### 已完成
+
+- RabbitMQ 真实投递、消费和批量落库。
+- 重复 eventId 幂等。
+- RabbitMQ 停止 30 秒后的 fail-open。
+- RabbitMQ 恢复后的消费者自动重连。
+- 非法消息进入 DLQ。
+- DLQ 手工修复并重放。
+- 队列 ready/unacked/consumers 指标。
+- batch listener 实际形成 20 条批次。
+- Rabbit listener 和 Web 容器优雅停机。
+
+### 明确保留的取舍
+
+1. 生产端仍是 fail-open，RabbitMQ 故障期间事件可能丢失；若要求零丢失，需要 Outbox。
+2. 批量消费者的重试是进程内重试，不是独立延迟重试队列；重试耗尽后进入 DLQ。
+3. 一批中一条消息失败会触发二分拆批；坏消息可能经历多次数据库尝试，适用于访问日志，不适合高价值写业务。
+4. 消费者批量写入降低了数据库 round trip，但单条消息仍然要经过 IP 归属地查询。
+5. RabbitMQ 队列监控依赖 Management HTTP API，管理账号或端口不可用时只会产生失败指标，不影响业务。
 ---
 
 ## 12. 启动与验证命令

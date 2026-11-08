@@ -15,7 +15,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -31,21 +33,32 @@ public class VisitLogServiceImpl implements VisitLogService {
     private final VisitLogRepository visitLogRepository;
     private final VisitLogAnalyticsRepository analyticsRepository;
     private final StringRedisTemplate redisTemplate;
+    private final JdbcTemplate jdbcTemplate;
     private final MeterRegistry meterRegistry;
 
     public VisitLogServiceImpl(VisitLogRepository visitLogRepository,
             VisitLogAnalyticsRepository analyticsRepository,
             StringRedisTemplate redisTemplate,
+            JdbcTemplate jdbcTemplate,
             MeterRegistry meterRegistry) {
         this.visitLogRepository = visitLogRepository;
         this.analyticsRepository = analyticsRepository;
         this.redisTemplate = redisTemplate;
+        this.jdbcTemplate = jdbcTemplate;
         this.meterRegistry = meterRegistry;
     }
 
     // 在线判定窗口:5 分钟内有活动算"在线"
     private static final Duration ONLINE_TTL = Duration.ofMinutes(5);
     private static final String ONLINE_KEY_PREFIX = "online:ip:";
+    private static final String INSERT_SQL = """
+            INSERT INTO visit_logs
+                (id, event_id, ip_address, user_agent, referer, path, country, province, city, isp, created_at)
+            VALUES
+                (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE event_id = ?
+            """;
+
 
     @Override
     @Async
@@ -85,6 +98,28 @@ public class VisitLogServiceImpl implements VisitLogService {
         return value.substring(0, maxLength);
     }
 
+    @Override
+    @Transactional
+    public void persistVisits(List<VisitLogRecordedEvent> events) {
+        if (events == null || events.isEmpty()) {
+            return;
+        }
+        jdbcTemplate.batchUpdate(INSERT_SQL, events, events.size(), (ps, event) -> {
+            IpLocationUtil.IpInfo ipInfo = IpLocationUtil.lookup(event.ip());
+            LocalDateTime occurredAt = event.occurredAt() == null ? LocalDateTime.now() : event.occurredAt();
+            ps.setString(1, event.eventId());
+            ps.setString(2, truncate(event.ip(), 45));
+            ps.setString(3, truncate(event.userAgent(), 500));
+            ps.setString(4, truncate(event.referer(), 500));
+            ps.setString(5, truncate(event.path(), 255));
+            ps.setString(6, truncate(ipInfo.getCountry(), 50));
+            ps.setString(7, truncate(ipInfo.getProvince(), 50));
+            ps.setString(8, truncate(ipInfo.getCity(), 50));
+            ps.setString(9, truncate(ipInfo.getIsp(), 50));
+            ps.setObject(10, occurredAt);
+            ps.setString(11, event.eventId());
+        });
+    }
     @Override
     public Page<VisitLog> getRecentLogs(int page, int size) {
         return visitLogRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(page, size));
