@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RabbitMQ 可视化实验室</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: #0d1b2e;
+      --panel-2: #12233a;
+      --line: #254462;
+      --text: #e6f0f7;
+      --muted: #91a9bd;
+      --cyan: #59e1d4;
+      --blue: #62a8ff;
+      --amber: #ffc857;
+      --red: #ff6b7a;
+      --green: #69e59b;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .28);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(89, 225, 212, .14), transparent 30rem),
+        radial-gradient(circle at 90% 20%, rgba(98, 168, 255, .12), transparent 28rem),
+        var(--bg);
+      font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+      line-height: 1.6;
+    }
+
+    button, select, input { font: inherit; }
+
+    button {
+      color: var(--text);
+      border: 1px solid var(--line);
+      background: #152b44;
+      border-radius: 10px;
+      padding: .62rem .9rem;
+      cursor: pointer;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); border-color: var(--cyan); }
+    button:active { transform: translateY(0); }
+    button.primary { background: linear-gradient(135deg, #126e77, #1c8d83); border-color: #35b6aa; }
+    button.danger { border-color: #8f3a4b; background: #401c2b; }
+    button.ghost { background: transparent; }
+
+    select, input[type="text"] {
+      color: var(--text);
+      background: #0a1524;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: .62rem .75rem;
+      outline: none;
+    }
+
+    select:focus, input[type="text"]:focus, button:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+
+    code, .mono {
+      font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+      font-size: .92em;
+      color: #b7f4e9;
+    }
+
+    .shell { width: min(1180px, calc(100% - 2rem)); margin: 0 auto; padding: 2.5rem 0 4rem; }
+
+    .hero {
+      padding: clamp(1.5rem, 4vw, 3rem);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      background:
+        linear-gradient(125deg, rgba(13, 27, 46, .96), rgba(10, 28, 47, .84)),
+        repeating-linear-gradient(0deg, transparent 0 32px, rgba(89,225,212,.04) 33px);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 18rem;
+      height: 18rem;
+      border: 1px solid rgba(89, 225, 212, .25);
+      border-radius: 50%;
+      right: -5rem;
+      top: -8rem;
+      box-shadow: 0 0 0 2rem rgba(89, 225, 212, .025), 0 0 0 4rem rgba(89, 225, 212, .02);
+    }
+
+    .eyebrow {
+      color: var(--cyan);
+      font-size: .78rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(2rem, 6vw, 4.6rem); letter-spacing: -.05em; line-height: 1.02; max-width: 850px; margin-bottom: 1rem; }
+    h2 { font-size: clamp(1.35rem, 3vw, 2rem); letter-spacing: -.025em; }
+    h3 { font-size: 1.05rem; }
+
+    .hero p { color: var(--muted); max-width: 760px; font-size: 1.05rem; margin-bottom: 0; }
+
+    .jump-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .55rem;
+      margin: 1rem 0 1.25rem;
+    }
+
+    .jump-nav a {
+      color: var(--muted);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: .38rem .75rem;
+      font-size: .84rem;
+      background: rgba(13, 27, 46, .7);
+    }
+
+    .jump-nav a:hover { color: var(--cyan); border-color: var(--cyan); }
+
+    .lesson-card {
+      margin-top: 1.2rem;
+      padding: clamp(1.1rem, 3vw, 1.8rem);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(13, 27, 46, .88);
+      box-shadow: var(--shadow);
+    }
+
+    .muted { color: var(--muted); }
+    .small { font-size: .86rem; }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+      gap: .8rem;
+      margin-top: 1rem;
+    }
+
+    .concept {
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(18, 35, 58, .96), rgba(11, 25, 42, .9));
+    }
+
+    .concept .icon { font-size: 1.5rem; display: block; margin-bottom: .45rem; }
+    .concept strong { display: block; margin-bottom: .2rem; color: var(--cyan); }
+    .concept p { color: var(--muted); font-size: .88rem; margin: 0; }
+
+    .lab-toolbar {
+      display: flex;
+      gap: .65rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin: 1rem 0 1.15rem;
+    }
+
+    .pipeline {
+      min-height: 250px;
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      align-items: center;
+      padding: 3.6rem 1rem 2.2rem;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(8, 22, 38, .9), rgba(8, 18, 31, .96)),
+        repeating-linear-gradient(90deg, transparent 0 70px, rgba(98,168,255,.035) 71px);
+      overflow: hidden;
+    }
+
+    .pipeline::before {
+      content: "";
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      top: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--blue), var(--cyan));
+      opacity: .5;
+      z-index: 0;
+    }
+
+    .node {
+      position: relative;
+      z-index: 1;
+      min-height: 112px;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #10263f;
+      text-align: center;
+      box-shadow: 0 12px 24px rgba(0,0,0,.16);
+      transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+    }
+
+    .node.active { border-color: var(--cyan); box-shadow: 0 0 0 4px rgba(89,225,212,.12); transform: translateY(-3px); }
+    .node .node-kicker { color: var(--muted); font-size: .74rem; text-transform: uppercase; letter-spacing: .09em; }
+    .node .node-title { color: var(--cyan); font-weight: 800; margin: .25rem 0 .15rem; }
+    .node .node-sub { color: var(--muted); font-size: .82rem; }
+
+    .packet {
+      position: absolute;
+      z-index: 4;
+      top: calc(50% - 16px);
+      left: 8%;
+      min-width: 62px;
+      padding: .38rem .55rem;
+      color: #06201d;
+      background: var(--cyan);
+      border-radius: 9px;
+      font-weight: 800;
+      font-size: .78rem;
+      text-align: center;
+      box-shadow: 0 0 0 5px rgba(89,225,212,.12), 0 12px 25px rgba(0,0,0,.35);
+      transition: left .58s ease, top .58s ease, opacity .35s ease;
+      pointer-events: none;
+    }
+
+    .packet.unrouted { background: var(--red); color: #21060b; }
+
+    .queue-strip {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      flex-wrap: wrap;
+      margin-top: .7rem;
+      color: var(--muted);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: .32rem .7rem;
+      color: var(--muted);
+      font-size: .8rem;
+      background: rgba(18, 35, 58, .7);
+    }
+
+    .chip strong { color: var(--text); }
+
+    .log {
+      margin-top: .8rem;
+      min-height: 2.5rem;
+      padding: .75rem .9rem;
+      border-left: 3px solid var(--blue);
+      border-radius: 0 10px 10px 0;
+      background: rgba(98, 168, 255, .08);
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .segmented { display: flex; gap: .5rem; flex-wrap: wrap; margin: .8rem 0; }
+    .segmented button.active { border-color: var(--cyan); background: #163d4e; color: var(--cyan); }
+
+    .type-explain {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .formula {
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #091629;
+      color: var(--muted);
+    }
+
+    .formula strong { color: var(--cyan); }
+    .arrow { color: var(--cyan); font-weight: 900; }
+
+    .failure-lab {
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #091629;
+      margin-top: 1rem;
+    }
+
+    .mini-flow {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      flex-wrap: wrap;
+      margin: .9rem 0;
+    }
+
+    .mini-node {
+      padding: .55rem .7rem;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #10263f;
+      font-size: .82rem;
+      color: var(--muted);
+      transition: border-color .2s ease, background .2s ease, color .2s ease;
+    }
+
+    .mini-node.active { border-color: var(--cyan); color: var(--cyan); background: #163d4e; }
+    .mini-node.danger { border-color: var(--red); color: #ffadb8; background: #3a1a28; }
+
+    .failure-status {
+      min-height: 3.1rem;
+      padding: .8rem;
+      border-radius: 10px;
+      background: rgba(255, 107, 122, .08);
+      border: 1px solid rgba(255, 107, 122, .25);
+      color: #ffbdc3;
+      font-size: .88rem;
+    }
+
+    .toggle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: .75rem;
+      margin: 1rem 0;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      padding: .85rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0a1729;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .toggle input { accent-color: var(--cyan); width: 1.05rem; height: 1.05rem; }
+    .toggle strong { color: var(--text); display: block; font-size: .9rem; }
+    .toggle small { display: block; margin-top: .12rem; font-size: .78rem; }
+
+    .reliability-output {
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #07111f;
+      color: var(--muted);
+      min-height: 4.4rem;
+    }
+
+    .db-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: .75rem;
+      font-size: .86rem;
+    }
+
+    .db-table th, .db-table td { padding: .55rem .65rem; border-bottom: 1px solid var(--line); text-align: left; }
+    .db-table th { color: var(--muted); font-weight: 600; }
+    .db-table td { color: var(--text); }
+
+    .code-card {
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #07111f;
+      overflow: auto;
+    }
+
+    pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+    pre code { color: #c7f5e9; font-size: .82rem; line-height: 1.7; }
+
+    .glossary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: .65rem;
+    }
+
+    .glossary div { padding: .75rem; border: 1px solid var(--line); border-radius: 10px; background: #091629; }
+    .glossary dt { color: var(--cyan); font-weight: 800; }
+    .glossary dd { margin: .2rem 0 0; color: var(--muted); font-size: .86rem; }
+
+    .checklist { display: grid; gap: .55rem; padding: 0; list-style: none; }
+    .checklist li { padding-left: 1.5rem; position: relative; color: var(--muted); }
+    .checklist li::before { content: "→"; color: var(--cyan); position: absolute; left: 0; font-weight: 900; }
+
+    .footer-note { color: var(--muted); font-size: .82rem; text-align: center; margin-top: 1.5rem; }
+
+    @media (max-width: 720px) {
+      .shell { width: min(100% - 1rem, 1180px); padding-top: 1rem; }
+      .pipeline { grid-template-columns: 1fr; gap: .65rem; padding-top: 1.2rem; }
+      .pipeline::before { left: 50%; top: 8%; bottom: 8%; width: 2px; height: auto; background: linear-gradient(180deg, var(--cyan), var(--blue), var(--cyan)); }
+      .packet { left: 50%; top: 4%; }
+      .type-explain { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <div class="eyebrow">RabbitMQ learning lab / 从零看懂</div>
+      <h1>一条消息，究竟走了哪条路？</h1>
+      <p>你只需要先记住一句话：<strong>Producer 发消息，Exchange 做路由，Queue 存消息，Consumer 处理消息，最后 ACK。</strong> 下面的实验会把这句话变成可以点击的流程。</p>
+    </header>
+
+    <nav class="jump-nav" aria-label="页面目录">
+      <a href="#model">01 四个对象</a>
+      <a href="#routing">02 发送实验</a>
+      <a href="#exchange">03 Exchange 类型</a>
+      <a href="#dlq">04 失败与 DLQ</a>
+      <a href="#reliability">05 持久化与 ACK</a>
+      <a href="#idempotency">06 幂等</a>
+      <a href="#code">07 项目代码</a>
+    </nav>
+
+    <main>
+      <section id="model" class="lesson-card">
+        <div class="eyebrow">01 / mental model</div>
+        <h2>先把 Exchange 和 Queue 分开</h2>
+        <p class="muted">很多初学者把它们混成一个东西。可以这样理解：Queue 是快递柜，Exchange 是分拣中心，Binding 是分拣规则，Routing Key 是包裹上的目的地标签。</p>
+        <div class="concept-grid">
+          <div class="concept"><span class="icon">📤</span><strong>Producer</strong><p>产生消息的应用代码。它不直接把消息塞进 Queue，而是交给 Exchange。</p></div>
+          <div class="concept"><span class="icon">🧭</span><strong>Exchange</strong><p>路由器。它根据类型、Binding 和 Routing Key，决定消息去哪个 Queue。</p></div>
+          <div class="concept"><span class="icon">📥</span><strong>Queue</strong><p>真正保存消息的地方。消息可以在这里等待消费者处理。</p></div>
+          <div class="concept"><span class="icon">👷</span><strong>Consumer</strong><p>读取 Queue 的应用代码。处理成功后发送 ACK，RabbitMQ 才会删除消息。</p></div>
+          <div class="concept"><span class="icon">🔗</span><strong>Binding</strong><p>Exchange 和 Queue 之间的绑定关系，相当于“这个路由规则通向这个快递柜”。</p></div>
+          <div class="concept"><span class="icon">🏷️</span><strong>Routing Key</strong><p>消息携带的路由标签。direct 要求完全匹配，topic 可以使用通配符。</p></div>
+        </div>
+      </section>
+
+      <section id="routing" class="lesson-card">
+        <div class="eyebrow">02 / route lab</div>
+        <h2>发送一条访问日志</h2>
+        <p class="muted">选择 Routing Key，然后点击发送。只有和绑定规则匹配的 Key，消息才会进入 <code>visit.log.write</code>。</p>
+        <div class="lab-toolbar">
+          <label for="routingKey">Routing Key</label>
+          <select id="routingKey">
+            <option value="visit.recorded">visit.recorded</option>
+            <option value="visit.unknown">visit.unknown</option>
+          </select>
+          <button id="sendBtn" class="primary">发送消息</button>
+          <button id="resetBtn" class="ghost">重置实验</button>
+        </div>
+
+        <div id="pipeline" class="pipeline" aria-label="消息路由动画">
+          <div class="node" data-node="producer">
+            <div class="node-kicker">source</div>
+            <div class="node-title">Producer</div>
+            <div class="node-sub">VisitLogEventProducer</div>
+          </div>
+          <div class="node" data-node="exchange">
+            <div class="node-kicker">router</div>
+            <div class="node-title">Exchange</div>
+            <div class="node-sub">blog.events · direct</div>
+          </div>
+          <div class="node" data-node="queue">
+            <div class="node-kicker">mailbox</div>
+            <div class="node-title">Queue</div>
+            <div class="node-sub">visit.log.write</div>
+          </div>
+          <div id="packet" class="packet">message</div>
+        </div>
+
+        <div class="queue-strip">
+          <span class="chip">当前 Exchange <strong>blog.events</strong></span>
+          <span class="chip">Binding <strong>visit.recorded → visit.log.write</strong></span>
+          <span class="chip">队列消息数 <strong id="queueCount">0</strong></span>
+        </div>
+        <div id="routeLog" class="log" aria-live="polite">等待发送一条消息。</div>
+      </section>
+    </main>
+
+    <section id="exchange" class="lesson-card">
+      <div class="eyebrow">03 / exchange types</div>
+      <h2>Exchange 不是“一个名字”，它是路由策略</h2>
+      <p class="muted">名字只是标识，真正决定消息去哪的是 Exchange 的类型和 Binding。这就像同一个快递分拣中心，可以采用不同的分拣规则。</p>
+      <div class="segmented" role="tablist" aria-label="Exchange 类型">
+        <button data-exchange="direct" class="active">direct</button>
+        <button data-exchange="topic">topic</button>
+        <button data-exchange="fanout">fanout</button>
+      </div>
+      <div class="type-explain">
+        <div class="formula" id="exchangeExplain"></div>
+        <div class="formula">
+          <strong>当前项目为什么用 direct？</strong><br>
+          因为目前只有一条明确的事件：<code>visit.recorded</code>。使用 direct 可以做到“精确、简单、不容易误投”。等事件类型变多，再考虑 topic。
+        </div>
+      </div>
+    </section>
+
+    <section id="dlq" class="lesson-card">
+      <div class="eyebrow">04 / failure path</div>
+      <h2>DLX 和 DLQ：失败消息的转运中心</h2>
+      <p class="muted"><code>DLX</code> 是 Dead Letter Exchange，负责接收“处理失败后被拒绝”的消息；<code>DLQ</code> 是 Dead Letter Queue，真正存放这些消息。它们不是额外的业务功能，而是失败消息的隔离区。</p>
+      <div class="failure-lab">
+        <div class="lab-toolbar">
+          <button id="consumeOk" class="primary">模拟正常消费</button>
+          <button id="consumeFail" class="danger">模拟消费失败</button>
+          <button id="resetFailure" class="ghost">重置</button>
+        </div>
+        <div class="mini-flow">
+          <div id="normalQueue" class="mini-node active">visit.log.write</div>
+          <span class="arrow">→</span>
+          <div id="consumerNode" class="mini-node">Consumer</div>
+          <span class="arrow">→</span>
+          <div id="dbNode" class="mini-node">MySQL</div>
+          <span class="arrow">→</span>
+          <div id="ackNode" class="mini-node">ACK</div>
+        </div>
+        <div class="mini-flow">
+          <div id="failureNode" class="mini-node">失败 / 重试耗尽</div>
+          <span class="arrow">→</span>
+          <div id="dlxNode" class="mini-node">blog.dlx</div>
+          <span class="arrow">→</span>
+          <div id="dlqNode" class="mini-node">visit.log.write.dlq</div>
+        </div>
+        <div id="failureStatus" class="failure-status" aria-live="polite">当前消息等待处理。</div>
+      </div>
+      <div class="code-card" style="margin-top:1rem">
+        <pre><code>QueueBuilder.durable("visit.log.write")
+    .deadLetterExchange("blog.dlx")
+    .deadLetterRoutingKey("visit.log.write.dead")
+    .build();</code></pre>
+      </div>
+      <p class="small muted">这里的“死信”不是必然代表代码有 bug。消息格式错误、数据库持续不可用、重试次数耗尽，都可能让消息进入 DLQ。</p>
+    </section>
+
+    <section id="reliability" class="lesson-card">
+      <div class="eyebrow">05 / delivery guarantees</div>
+      <h2>durable、persistent、ACK 到底在保护什么？</h2>
+      <p class="muted">这三个词不是同一个东西。Queue 的 durable 保护“队列定义”，Message 的 persistent 保护“消息内容”，ACK 保护“消费者是否真的处理完”。</p>
+      <div class="toggle-grid">
+        <label class="toggle"><input id="durableToggle" type="checkbox" checked><span><strong>Queue durable</strong><small>Broker 重启后，队列还存在。</small></span></label>
+        <label class="toggle"><input id="persistentToggle" type="checkbox" checked><span><strong>Message persistent</strong><small>Broker 重启后，消息尽量保留。</small></span></label>
+        <label class="toggle"><input id="manualAckToggle" type="checkbox" checked><span><strong>Manual ACK</strong><small>消费者处理成功后，才主动确认。</small></span></label>
+      </div>
+      <div class="lab-toolbar">
+        <button id="restartBtn">模拟 Broker 重启</button>
+        <button id="crashBtn" class="danger">模拟 Consumer 崩溃</button>
+      </div>
+      <div id="reliabilityOutput" class="reliability-output" aria-live="polite">调整开关，然后模拟一次故障。</div>
+      <p class="small muted">注意：durable 和 persistent 解决“Broker 重启”；Manual ACK 解决“消费者处理到一半崩溃”。它们要配合使用才有意义。</p>
+    </section>
+
+    <section id="idempotency" class="lesson-card">
+      <div class="eyebrow">06 / duplicate delivery</div>
+      <h2>为什么重复消息不会重复写日志？</h2>
+      <p class="muted">RabbitMQ 通常保证的是“至少一次投递”，所以同一条消息可能被投递两次。解决办法不是祈祷不发生，而是让消费者使用稳定的 <code>eventId</code> 做幂等。</p>
+      <div class="lab-toolbar">
+        <label for="eventId">eventId</label>
+        <input id="eventId" type="text" value="evt-1001" aria-label="eventId">
+        <button id="duplicateBtn" class="primary">重复投递同一 eventId</button>
+        <button id="newEventBtn" class="ghost">投递新 eventId</button>
+      </div>
+      <div id="idempotencyStatus" class="log" aria-live="polite">数据库目前有 0 条事件。</div>
+      <table class="db-table">
+        <thead><tr><th>event_id</th><th>path</th><th>结果</th></tr></thead>
+        <tbody id="dbRows"></tbody>
+      </table>
+      <div class="code-card" style="margin-top:1rem">
+        <pre><code>INSERT INTO visit_logs (id, event_id, path, ...)
+VALUES (..., :eventId, ..., ...)
+ON DUPLICATE KEY UPDATE event_id = :eventId;</code></pre>
+      </div>
+      <p class="small muted">真正拦截重复的是数据库唯一索引 <code>uk_visit_log_event(event_id)</code>，不是先 SELECT 再 INSERT。</p>
+    </section>
+
+    <section id="code" class="lesson-card">
+      <div class="eyebrow">07 / project map</div>
+      <h2>回到你的项目代码</h2>
+      <div class="concept-grid">
+        <div class="concept"><strong>拦截器</strong><p><code>VisitLoggingInterceptor</code> 从 HTTP 请求采集 IP、路径、UA、Referer。</p></div>
+        <div class="concept"><strong>生产者</strong><p><code>VisitLogEventProducer</code> 生成 eventId，发送到 direct exchange。</p></div>
+        <div class="concept"><strong>消费者</strong><p><code>VisitLogEventConsumer</code> 做重试、手动 ACK，失败后进入 DLQ。</p></div>
+        <div class="concept"><strong>落库</strong><p><code>VisitLogRepository</code> 用 event_id 唯一键做幂等插入。</p></div>
+      </div>
+      <div class="code-card" style="margin-top:1rem">
+        <pre><code>afterCompletion()
+  -> visitLogService.markOnline(ip)
+  -> visitLogEventProducer.publish(...)
+
+Producer
+  -> eventId = UUID
+  -> convertAndSend("blog.events", "visit.recorded", event, ..., correlationData)
+
+Consumer
+  -> processWithRetry(event)
+  -> 数据库事务提交
+  -> basicAck(deliveryTag, false)
+
+失败重试耗尽
+  -> basicNack(deliveryTag, false, false)
+  -> blog.dlx
+  -> visit.log.write.dlq</code></pre>
+      </div>
+      <ul class="checklist" style="margin-top:1rem">
+        <li><strong>Publisher Confirm</strong>：Broker 收到了消息，不等于消费者写完了数据库。</li>
+        <li><strong>Consumer ACK</strong>：消费者处理完了，RabbitMQ 可以删除消息。</li>
+        <li><strong>At-least-once</strong>：消息可能重复，所以消费者必须幂等。</li>
+        <li><strong>Fail-open</strong>：当前访问日志在 RabbitMQ 故障时允许丢失，优先保证博客业务可用。</li>
+      </ul>
+    </section>
+
+    <section class="lesson-card">
+      <div class="eyebrow">glossary</div>
+      <h2>术语小抄</h2>
+      <dl class="glossary">
+        <div><dt>Exchange</dt><dd>分拣中心。根据路由策略把消息送到一个或多个 Queue。</dd></div>
+        <div><dt>Routing Key</dt><dd>消息上的目的地标签。</dd></div>
+        <div><dt>Binding</dt><dd>Exchange 与 Queue 之间的路由规则。</dd></div>
+        <div><dt>DLX</dt><dd>接收被拒绝、过期或超过重试次数消息的 Exchange。</dd></div>
+        <div><dt>DLQ</dt><dd>保存死信的 Queue，方便排查、告警和手动重放。</dd></div>
+        <div><dt>ACK</dt><dd>消费者告诉 Broker“我处理完了”。</dd></div>
+        <div><dt>Persistent Message</dt><dd>消息写入磁盘，Broker 重启后有机会恢复。</dd></div>
+        <div><dt>Idempotency</dt><dd>同一个事件处理多次，数据库最终只产生一次业务结果。</dd></div>
+      </dl>
+    </section>
+
+    <p class="footer-note">记住这张图：<strong>Exchange routes → Queue stores → Consumer handles → ACK confirms.</strong></p>
+  </div>
+
+  <script>
+    (() => {
+      const $ = (selector) => document.querySelector(selector);
+      const $$ = (selector) => [...document.querySelectorAll(selector)];
+      const routeLog = $('#routeLog');
+      const packet = $('#packet');
+      const queueCount = $('#queueCount');
+      const pipeline = $('#pipeline');
+      const nodes = {
+        producer: $('[data-node="producer"]'),
+        exchange: $('[data-node="exchange"]'),
+        queue: $('[data-node="queue"]')
+      };
+
+      let queueSize = 0;
+      let busy = false;
+
+      function setLog(element, message, color = 'blue') {
+        element.textContent = message;
+        element.style.borderLeftColor = color === 'red' ? 'var(--red)' : color === 'green' ? 'var(--green)' : 'var(--blue)';
+        element.style.background = color === 'red' ? 'rgba(255,107,122,.09)' : color === 'green' ? 'rgba(105,229,155,.08)' : 'rgba(98,168,255,.08)';
+      }
+
+      function clearActive() {
+        Object.values(nodes).forEach((node) => node.classList.remove('active'));
+      }
+
+      function resetPacket() {
+        packet.className = 'packet';
+        packet.style.left = '8%';
+        packet.style.top = 'calc(50% - 16px)';
+        packet.style.opacity = '1';
+        packet.textContent = 'message';
+      }
+
+      $('#resetBtn').addEventListener('click', () => {
+        queueSize = 0;
+        queueCount.textContent = '0';
+        busy = false;
+        clearActive();
+        resetPacket();
+        setLog(routeLog, '实验已重置。当前 Queue 为空。');
+      });
+
+      $('#sendBtn').addEventListener('click', async () => {
+        if (busy) return;
+        busy = true;
+        clearActive();
+        resetPacket();
+        const key = $('#routingKey').value;
+        const routed = key === 'visit.recorded';
+        nodes.producer.classList.add('active');
+        packet.textContent = key;
+        setLog(routeLog, `Producer 发出消息，Routing Key = ${key}。`, 'blue');
+        await wait(120);
+        nodes.producer.classList.remove('active');
+        nodes.exchange.classList.add('active');
+        packet.style.left = '47%';
+        await wait(650);
+        setLog(routeLog, `Exchange blog.events 正在按 direct 规则匹配 ${key}。`, 'blue');
+        await wait(520);
+        if (routed) {
+          nodes.exchange.classList.remove('active');
+          nodes.queue.classList.add('active');
+          packet.style.left = '88%';
+          await wait(650);
+          queueSize += 1;
+          queueCount.textContent = String(queueSize);
+          setLog(routeLog, `匹配成功：visit.recorded → visit.log.write。消息已进入 Queue。`, 'green');
+        } else {
+          packet.classList.add('unrouted');
+          packet.style.top = '17%';
+          packet.style.left = '47%';
+          setLog(routeLog, `没有 Queue 绑定 ${key}，消息不可路由。项目里的 mandatory 返回机制会记录 unroutable 指标。`, 'red');
+        }
+        await wait(550);
+        nodes.queue.classList.remove('active');
+        packet.style.opacity = '0';
+        await wait(350);
+        resetPacket();
+        busy = false;
+      });
+
+      const exchangeCopy = {
+        direct: '<strong>direct：精确匹配</strong><br><code>visit.recorded</code> 只会路由到绑定了完全相同字符串的 Queue。当前项目使用这种模式。',
+        topic: '<strong>topic：模式匹配</strong><br>例如绑定 <code>visit.*</code>，可以匹配 <code>visit.recorded</code> 和 <code>visit.failed</code>。事件种类多时更灵活。',
+        fanout: '<strong>fanout：广播</strong><br>忽略 Routing Key，消息会复制到所有绑定 Queue。适合一个事件需要被多个独立消费者同时处理的场景。'
+      };
+
+      $$('.segmented button').forEach((button) => {
+        button.addEventListener('click', () => {
+          $$('.segmented button').forEach((b) => b.classList.remove('active'));
+          button.classList.add('active');
+          $('#exchangeExplain').innerHTML = exchangeCopy[button.dataset.exchange];
+        });
+      });
+      $('#exchangeExplain').innerHTML = exchangeCopy.direct;
+
+      const failure = {
+        normalQueue: $('#normalQueue'),
+        consumer: $('#consumerNode'),
+        db: $('#dbNode'),
+        ack: $('#ackNode'),
+        failure: $('#failureNode'),
+        dlx: $('#dlxNode'),
+        dlq: $('#dlqNode'),
+        status: $('#failureStatus')
+      };
+
+      function resetFailure() {
+        Object.values(failure).forEach((node) => {
+          if (node !== failure.status) node.classList.remove('active', 'danger');
+        });
+        failure.normalQueue.classList.add('active');
+        setLog(failure.status, '当前消息等待处理。', 'blue');
+      }
+
+      $('#resetFailure').addEventListener('click', resetFailure);
+
+      $('#consumeOk').addEventListener('click', async () => {
+        resetFailure();
+        failure.normalQueue.classList.remove('active');
+        failure.consumer.classList.add('active');
+        setLog(failure.status, 'Consumer 正在处理消息，准备写入 MySQL。', 'blue');
+        await wait(500);
+        failure.consumer.classList.remove('active');
+        failure.db.classList.add('active');
+        await wait(500);
+        failure.db.classList.remove('active');
+        failure.ack.classList.add('active');
+        setLog(failure.status, '数据库提交成功，Consumer 发送 ACK。消息处理完成。', 'green');
+      });
+
+      $('#consumeFail').addEventListener('click', async () => {
+        resetFailure();
+        failure.normalQueue.classList.remove('active');
+        failure.consumer.classList.add('active');
+        for (let attempt = 1; attempt <= 3; attempt += 1) {
+          setLog(failure.status, `Consumer 第 ${attempt} 次处理失败。${attempt < 3 ? '等待退避后重试。' : '重试次数耗尽。'}`, 'red');
+          failure.consumer.classList.add('danger');
+          await wait(700);
+          failure.consumer.classList.remove('danger');
+        }
+        failure.consumer.classList.remove('active');
+        failure.failure.classList.add('danger');
+        await wait(500);
+        failure.failure.classList.remove('danger');
+        failure.dlx.classList.add('active');
+        setLog(failure.status, 'Consumer 发送 NACK(requeue=false)，消息进入 blog.dlx。', 'red');
+        await wait(650);
+        failure.dlx.classList.remove('active');
+        failure.dlq.classList.add('active');
+        setLog(failure.status, 'DLX 根据死信 Routing Key 将消息放入 visit.log.write.dlq。需要排查后再手动重放。', 'red');
+      });
+
+      function reliabilityMessage(action) {
+        const durable = $('#durableToggle').checked;
+        const persistent = $('#persistentToggle').checked;
+        const manualAck = $('#manualAckToggle').checked;
+        let message = '';
+        if (action === 'restart') {
+          message = durable && persistent
+            ? 'Queue 是 durable，Message 是 persistent：Broker 重启后，队列定义和消息都有机会保留。'
+            : durable && !persistent
+              ? 'Queue 定义会保留，但消息不是 persistent，Broker 重启后消息可能丢失。'
+              : 'Queue 不是 durable，Broker 重启后队列本身就可能消失。';
+        } else {
+          message = manualAck
+            ? 'Consumer 在 ACK 前崩溃：消息没有被确认，RabbitMQ 会重新投递；消费端必须用 eventId 幂等。'
+            : 'Consumer 使用自动 ACK：消息一投递就可能被删除，Consumer 写库前崩溃会丢消息。';
+        }
+        setLog($('#reliabilityOutput'), message, manualAck ? 'green' : 'red');
+      }
+
+      $('#restartBtn').addEventListener('click', () => reliabilityMessage('restart'));
+      $('#crashBtn').addEventListener('click', () => reliabilityMessage('crash'));
+
+      const dbRows = $('#dbRows');
+      const seenEvents = new Set();
+      let idempotencyCount = 0;
+      function renderRows() {
+        dbRows.innerHTML = '';
+        [...seenEvents].forEach((eventId) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td><code>${eventId}</code></td><td>/api/public/posts</td><td>已写入</td>`;
+          dbRows.appendChild(tr);
+        });
+        $('#idempotencyStatus').textContent = `数据库目前有 ${seenEvents.size} 条事件。`;
+      }
+      function deliver(eventId) {
+        if (seenEvents.has(eventId)) {
+          setLog($('#idempotencyStatus'), `eventId=${eventId} 已存在：ON DUPLICATE KEY 不新增行，消费者仍然 ACK。`, 'green');
+        } else {
+          seenEvents.add(eventId);
+          renderRows();
+          setLog($('#idempotencyStatus'), `eventId=${eventId} 第一次出现：插入一行 visit_logs。`, 'green');
+        }
+      }
+      $('#duplicateBtn').addEventListener('click', () => {
+        const eventId = $('#eventId').value.trim() || 'evt-empty';
+        deliver(eventId);
+      });
+      $('#newEventBtn').addEventListener('click', () => {
+        idempotencyCount += 1;
+        const eventId = `evt-${1001 + idempotencyCount}`;
+        $('#eventId').value = eventId;
+        deliver(eventId);
+      });
+      renderRows();
+
+      function wait(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+    })();
+  </script>
+</body>
+</html>
