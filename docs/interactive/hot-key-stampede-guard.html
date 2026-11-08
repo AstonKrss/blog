@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>热点 Key 防击穿实验室</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: #0d1b2e;
+      --panel2: #10263f;
+      --line: #28455f;
+      --text: #e7f2f7;
+      --muted: #94aabd;
+      --cyan: #55e2d1;
+      --blue: #67a9ff;
+      --amber: #ffca62;
+      --red: #ff7585;
+      --green: #70e6a0;
+      --shadow: 0 18px 50px rgba(0,0,0,.3);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 16% 0%, rgba(85,226,209,.14), transparent 30rem),
+        radial-gradient(circle at 90% 14%, rgba(103,169,255,.12), transparent 28rem),
+        var(--bg);
+      font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+      line-height: 1.6;
+    }
+    code, pre { font-family: "Cascadia Code", Consolas, monospace; }
+    button { font: inherit; color: var(--text); background: #152d47; border: 1px solid var(--line); border-radius: 10px; padding: .62rem .9rem; cursor: pointer; transition: .16s ease; }
+    button:hover { border-color: var(--cyan); transform: translateY(-1px); }
+    button:active { transform: none; }
+    button.primary { background: linear-gradient(135deg,#146e79,#1b8c83); border-color: #37b7aa; }
+    button.warn { background: #3f2c17; border-color: #8d6a31; color: #ffd98d; }
+    button.ghost { background: transparent; }
+    button:disabled { opacity: .45; cursor: wait; transform: none; }
+    .shell { width: min(1180px, calc(100% - 2rem)); margin: auto; padding: 2rem 0 4rem; }
+    .hero { position: relative; overflow: hidden; padding: clamp(1.5rem,4vw,3rem); border: 1px solid var(--line); border-radius: 26px; background: linear-gradient(125deg,rgba(13,27,46,.97),rgba(10,28,47,.88)); box-shadow: var(--shadow); }
+    .hero::after { content:""; position:absolute; width:20rem; height:20rem; border:1px solid rgba(85,226,209,.22); border-radius:50%; right:-7rem; top:-9rem; box-shadow:0 0 0 2rem rgba(85,226,209,.02),0 0 0 4rem rgba(85,226,209,.015); }
+    .eyebrow { color: var(--cyan); font-size:.78rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+    h1 { margin:.35rem 0 1rem; max-width:900px; font-size:clamp(2rem,6vw,4.5rem); line-height:1.03; letter-spacing:-.055em; }
+    h2 { font-size:clamp(1.35rem,3vw,2rem); letter-spacing:-.03em; }
+    h3 { font-size:1.03rem; }
+    p { color: var(--muted); }
+    .nav { display:flex; flex-wrap:wrap; gap:.55rem; margin:1rem 0; }
+    .nav a { color:var(--muted); text-decoration:none; border:1px solid var(--line); border-radius:999px; padding:.35rem .7rem; font-size:.82rem; background:rgba(13,27,46,.75); }
+    .nav a:hover { color:var(--cyan); border-color:var(--cyan); }
+    .card { margin-top:1.1rem; padding:clamp(1rem,3vw,1.7rem); border:1px solid var(--line); border-radius:18px; background:rgba(13,27,46,.9); box-shadow:var(--shadow); }
+    .muted { color:var(--muted); }
+    .small { font-size:.85rem; }
+    .grid { display:grid; gap:.8rem; }
+    .four { grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); }
+    .concept { padding:1rem; border:1px solid var(--line); border-radius:14px; background:linear-gradient(180deg,var(--panel2),#09172a); }
+    .concept strong { display:block; color:var(--cyan); margin-bottom:.25rem; }
+    .concept p { margin:0; font-size:.88rem; }
+    .formula { padding:1rem; border:1px solid var(--line); border-radius:14px; background:#071426; }
+    .formula strong { color:var(--cyan); }
+    .toolbar { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin:1rem 0; }
+    .scenario-list { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:.8rem; }
+    .scenario { background:#0b192b; color:var(--muted); }
+    .scenario.active { color:var(--cyan); border-color:var(--cyan); background:#163d4e; }
+    .lab { border:1px solid var(--line); border-radius:16px; background:#071426; padding:1rem; overflow:hidden; }
+    .instance-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1rem; }
+    .instance { min-height:180px; border:1px solid var(--line); border-radius:14px; background:#0d2238; padding:1rem; position:relative; }
+    .instance h3 { margin:0 0 .25rem; color:var(--cyan); }
+    .instance-state { min-height:1.8rem; color:var(--muted); font-size:.86rem; }
+    .requests { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.8rem; }
+    .request { display:inline-flex; align-items:center; justify-content:center; min-width:2rem; height:2rem; padding:0 .45rem; border-radius:999px; border:1px solid var(--line); background:#09172a; color:var(--muted); font-size:.75rem; transition:.2s ease; }
+    .request.running { border-color:var(--blue); color:#bcd8ff; background:#112d4d; animation:pulse 1s infinite alternate; }
+    .request.winner { border-color:var(--cyan); color:#071f1d; background:var(--cyan); }
+    .request.waiting { border-color:var(--amber); color:#ffd98d; background:#3b2c13; }
+    .request.hit { border-color:var(--green); color:#071f14; background:var(--green); }
+    .request.dup { border-color:var(--red); color:#27070c; background:var(--red); }
+    @keyframes pulse { from { transform:scale(.97); } to { transform:scale(1.05); } }
+    .shared { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:.7rem; margin-top:.9rem; }
+    .shared-card { padding:.8rem; border:1px solid var(--line); border-radius:12px; background:#0b192b; }
+    .shared-card .label { display:block; color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; }
+    .shared-card .value { color:var(--cyan); font-weight:800; margin-top:.2rem; }
+    .log { min-height:4rem; margin-top:.9rem; padding:.85rem 1rem; border-left:3px solid var(--blue); border-radius:0 10px 10px 0; background:rgba(103,169,255,.08); color:var(--muted); font-size:.9rem; }
+    .log.warn { border-left-color:var(--amber); background:rgba(255,202,98,.08); }
+    .log.danger { border-left-color:var(--red); background:rgba(255,117,133,.08); }
+    .log.success { border-left-color:var(--green); background:rgba(112,230,160,.08); }
+    .metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.7rem; margin-top:.8rem; }
+    .metric { padding:.8rem; border:1px solid var(--line); border-radius:12px; background:#0a1729; }
+    .metric span { display:block; color:var(--muted); font-size:.78rem; }
+    .metric strong { display:block; color:var(--text); font-size:1.4rem; margin-top:.15rem; }
+    .code-tabs { display:flex; flex-wrap:wrap; gap:.45rem; margin:1rem 0 .6rem; }
+    .code-tabs button.active { color:var(--cyan); border-color:var(--cyan); background:#163d4e; }
+    .code-panel { max-height:640px; overflow:auto; border:1px solid var(--line); border-radius:14px; background:#07111f; padding:1rem; }
+    pre { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; color:#c9f5e9; font-size:.82rem; line-height:1.7; }
+    .comparison { width:100%; border-collapse:collapse; font-size:.86rem; margin-top:.75rem; }
+    .comparison th, .comparison td { padding:.65rem; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    .comparison th { color:var(--muted); font-weight:600; }
+    .comparison td { color:var(--text); }
+    .pill { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:.12rem .5rem; margin-right:.3rem; color:var(--muted); font-size:.76rem; }
+    .footer { color:var(--muted); font-size:.85rem; text-align:center; margin-top:1.4rem; }
+    @media (max-width:720px) { .shell{width:calc(100% - 1rem);padding-top:1rem;} .shared{grid-template-columns:1fr;} }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="hero">
+    <div class="eyebrow">Hot key lab / Cache stampede</div>
+    <h1>缓存失效的一瞬间，谁去查数据库？</h1>
+    <p>热点 Key 防击穿的目标不是“让缓存永不失效”，而是让大量并发请求同时发现缓存未命中时，不要一起冲向 MySQL。这个实验展示你项目里的实际实现，以及它的边界。</p>
+  </header>
+
+  <nav class="nav">
+    <a href="#model">01 问题模型</a>
+    <a href="#sim">02 并发实验</a>
+    <a href="#compare">03 单机 vs 多实例</a>
+    <a href="#code">04 真实源码</a>
+    <a href="#strict">05 严格互斥方案</a>
+  </nav>
+
+  <section id="model" class="card">
+    <div class="eyebrow">01 / mental model</div>
+    <h2>缓存击穿是什么</h2>
+    <div class="grid four">
+      <div class="concept"><strong>Cache hit</strong><p>缓存有值，直接返回，不查数据库。</p></div>
+      <div class="concept"><strong>Cache miss</strong><p>缓存没值，一个请求应该回源数据库。</p></div>
+      <div class="concept"><strong>Stampede</strong><p>缓存刚过期，大量请求同时 miss，一起查数据库。</p></div>
+      <div class="concept"><strong>Mutex</strong><p>只让一个请求执行 loader，其他请求等待或稍后重新读缓存。</p></div>
+    </div>
+    <div class="formula" style="margin-top:1rem">
+      <strong>你项目里的关键顺序：</strong>
+      <pre>ResilientCache.get(key, loader)
+  -> 查缓存
+  -> CacheStampedeGuard.load(...)
+      -> 本地锁
+      -> 尝试 Redis 锁
+      -> 二次检查缓存
+      -> loader.call()  // 查 MySQL
+      -> put(key, value)
+      -> 释放锁</pre>
+    </div>
+  </section>
+
+  <section id="sim" class="card">
+    <div class="eyebrow">02 / simulation</div>
+    <h2>并发实验：点一下，看数据库被查几次</h2>
+    <div class="scenario-list" role="group" aria-label="实验场景">
+      <button class="scenario active" data-scenario="single">单实例并发</button>
+      <button class="scenario" data-scenario="dual">双实例抢锁</button>
+      <button class="scenario" data-scenario="redisdown">Redis 锁不可用</button>
+      <button class="scenario" data-scenario="strict">严格互斥设想</button>
+      <button class="scenario" data-scenario="ttl">Loader 超过锁 TTL</button>
+    </div>
+    <div class="toolbar">
+      <button id="runBtn" class="primary">运行当前场景</button>
+      <button id="resetBtn" class="ghost">重置</button>
+      <span id="scenarioHint" class="small muted"></span>
+    </div>
+
+    <div class="lab">
+      <div class="instance-grid">
+        <div class="instance" id="instanceA">
+          <h3>实例 A</h3>
+          <div class="instance-state" id="stateA">等待运行</div>
+          <div class="requests" id="requestsA"></div>
+        </div>
+        <div class="instance" id="instanceB">
+          <h3>实例 B</h3>
+          <div class="instance-state" id="stateB">等待运行</div>
+          <div class="requests" id="requestsB"></div>
+        </div>
+      </div>
+
+      <div class="shared">
+        <div class="shared-card"><span class="label">Redis distributed lock</span><span class="value" id="lockState">idle</span></div>
+        <div class="shared-card"><span class="label">Shared cache</span><span class="value" id="cacheState">MISS</span></div>
+        <div class="shared-card"><span class="label">MySQL loader calls</span><span class="value" id="dbState">0</span></div>
+      </div>
+
+      <div id="simLog" class="log">选择一个场景，然后点击“运行当前场景”。</div>
+      <div class="metrics">
+        <div class="metric"><span>请求数</span><strong id="metricRequests">0</strong></div>
+        <div class="metric"><span>数据库回源</span><strong id="metricDb">0</strong></div>
+        <div class="metric"><span>缓存命中</span><strong id="metricHit">0</strong></div>
+        <div class="metric"><span>跨实例重复</span><strong id="metricDup">0</strong></div>
+      </div>
+    </div>
+    <p class="small muted" style="margin-top:.8rem">当前代码是<b>可用性优先</b>：抢不到 Redis 锁时，不会阻塞重试，而是继续执行本地 loader。因此单实例能保护，多实例只能降低风险，不能保证全局只回源一次。</p>
+  </section>
+
+  <section id="compare" class="card">
+    <div class="eyebrow">03 / compare</div>
+    <h2>单实例、双实例和 Redis 故障</h2>
+    <table class="comparison">
+      <thead><tr><th>场景</th><th>本地锁</th><th>Redis 锁</th><th>当前结果</th></tr></thead>
+      <tbody>
+        <tr><td>单实例 20 并发</td><td>同一 key 只有一个线程进入</td><td>只是额外尝试</td><td><b>1 次</b>数据库回源，其他请求等待后读缓存</td></tr>
+        <tr><td>双实例同时 miss</td><td>A、B 各自有独立锁</td><td>一个实例拿到锁，另一个拿不到</td><td>当前实现可能 <b>2 次</b>回源，这是已知边界</td></tr>
+        <tr><td>Redis 正常，但 key 很热</td><td>有效降低单机 stampede</td><td>尝试跨实例协调</td><td>单机强保护，多机 best-effort</td></tr>
+        <tr><td>Redis 锁服务不可用</td><td>仍然存在</td><td>不可用，返回 null</td><td>每个实例各自本地回源，优先保证可用</td></tr>
+        <tr><td>loader 超过 10 秒</td><td>锁仍然存在</td><td>TTL 到期后其他实例可进入</td><td>可能出现重复 loader，需要让 loader 远短于 TTL 或续租</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="code" class="card">
+    <div class="eyebrow">04 / source</div>
+    <h2>实际源码逐段看</h2>
+    <div class="code-tabs">
+      <button class="active" data-code="guard">CacheStampedeGuard.java</button>
+      <button data-code="redis">RedisDistributedLock.java</button>
+      <button data-code="cache">ResilientCache 关键方法</button>
+      <button data-code="test">测试</button>
+    </div>
+    <div class="code-panel"><pre id="codeView"></pre></div>
+    <p class="small muted">源码按当前项目文件内容嵌入。页面只读展示，不会执行 Java 代码。</p>
+  </section>
+
+  <section id="strict" class="card">
+    <div class="eyebrow">05 / strict mode</div>
+    <h2>如果要严格跨实例互斥，代码要加什么？</h2>
+    <p>当前实现故意没有让拿不到 Redis 锁的实例阻塞，因为那会把锁故障或锁竞争转换成 HTTP 延迟。严格互斥的骨架通常是：</p>
+    <div class="formula">
+      <pre>本地锁
+  -> 获取缓存
+  -> 尝试 Redis 锁
+  -> 如果没拿到：
+       轮询等待锁释放 / 短暂 sleep
+       重新检查缓存
+       超时后降级回源
+  -> 拿到锁的请求执行 loader
+  -> 写缓存
+  -> 释放锁</pre>
+    </div>
+    <table class="comparison">
+      <thead><tr><th>方案</th><th>数据库回源</th><th>请求延迟</th><th>故障行为</th></tr></thead>
+      <tbody>
+        <tr><td>当前：本地锁 + 尝试 Redis 锁</td><td>单实例 1 次，多实例可能 2 次</td><td>通常不额外等待</td><td>Redis 故障时仍然可用</td></tr>
+        <tr><td>严格：等待 Redis 锁</td><td>跨实例通常 1 次</td><td>可能增加几十到几百毫秒</td><td>需要设置等待上限和超时降级</td></tr>
+        <tr><td>只使用 Spring `sync=true`</td><td>只保护当前 JVM</td><td>低</td><td>多实例仍可能重复回源</td></tr>
+      </tbody>
+    </table>
+    <p class="small muted">这也是为什么页面要同时展示“当前实现”和“严格互斥设想”：两者不是同一个可靠性级别。</p>
+  </section>
+
+  <section class="card">
+    <div class="eyebrow">check yourself</div>
+    <h2>你应该能回答的三个问题</h2>
+    <ol>
+      <li>为什么单实例内，20 个并发请求通常只执行一次 loader？</li>
+      <li>为什么双实例下，Redis 锁抢不到时仍可能查两次数据库？</li>
+      <li>如果要求“全局只查一次”，代价是什么？</li>
+    </ol>
+  </section>
+
+  <p class="footer">核心记忆：<b>本地锁保护 JVM，Redis 锁尝试跨实例协调；当前实现优先可用性，不追求严格全局互斥。</b></p>
+</div>
+
+<script type="text/plain" id="source-guard">
+package com.aston.blog.config;
+
+import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+import java.util.concurrent.Callable;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * 热点 Key 回源保护。
+ *
+ * 同一实例内按 key hash 使用固定数量的本地锁，避免每个查询都创建锁对象；
+ * 跨实例时再尝试 Redis 分布式锁。Redis 故障时退化为本地锁，不阻断回源。
+ */
+@Component
+public class CacheStampedeGuard {
+
+    private static final int LOCK_COUNT = 256;
+    private static final Duration REDIS_LOCK_TTL = Duration.ofSeconds(10);
+
+    private final ReentrantLock[] localLocks;
+    private final RedisDistributedLock distributedLock;
+
+    public CacheStampedeGuard(RedisDistributedLock distributedLock) {
+        this.distributedLock = distributedLock;
+        this.localLocks = new ReentrantLock[LOCK_COUNT];
+        for (int i = 0; i < LOCK_COUNT; i++) {
+            this.localLocks[i] = new ReentrantLock();
+        }
+    }
+
+    public <T> T load(String cacheName, Object key, Callable<T> loader) throws Exception {
+        String lockKey = cacheName + ":" + String.valueOf(key);
+        ReentrantLock localLock = localLocks[Math.floorMod(lockKey.hashCode(), LOCK_COUNT)];
+        localLock.lock();
+        String token = null;
+        try {
+            token = distributedLock.tryLock("cache-load:" + lockKey, REDIS_LOCK_TTL);
+            return loader.call();
+        } finally {
+            if (token != null) {
+                distributedLock.unlock("cache-load:" + lockKey, token);
+            }
+            localLock.unlock();
+        }
+    }
+}
+</script>
+
+<script type="text/plain" id="source-redis">
+package com.aston.blog.config;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.UUID;
+
+@Component
+public class RedisDistributedLock {
+
+    private static final String PREFIX = "blog:lock:";
+    private static final DefaultRedisScript<Long> RELEASE_SCRIPT = new DefaultRedisScript<>(
+            "if redis.call('GET', KEYS[1]) == ARGV[1] then " +
+                    "return redis.call('DEL', KEYS[1]) end; return 0",
+            Long.class);
+
+    private final StringRedisTemplate redisTemplate;
+    private final MeterRegistry meterRegistry;
+
+    public RedisDistributedLock(StringRedisTemplate redisTemplate, MeterRegistry meterRegistry) {
+        this.redisTemplate = redisTemplate;
+        this.meterRegistry = meterRegistry;
+    }
+
+    public String tryLock(String name, Duration ttl) {
+        String token = UUID.randomUUID().toString();
+        try {
+            Boolean acquired = redisTemplate.opsForValue()
+                    .setIfAbsent(PREFIX + name, token, ttl);
+            if (Boolean.TRUE.equals(acquired)) {
+                return token;
+            }
+            meterRegistry.counter("redis.lock.skipped", "lock", name, "reason", "held").increment();
+            return null;
+        } catch (RuntimeException ex) {
+            meterRegistry.counter("redis.lock.failures", "operation", "acquire", "lock", name).increment();
+            log.warn("分布式锁获取失败，跳过本轮任务 lock={} reason={}", name, ex.getMessage());
+            return null;
+        }
+    }
+
+    public void unlock(String name, String token) {
+        if (token == null) {
+            return;
+        }
+        try {
+            redisTemplate.execute(RELEASE_SCRIPT, List.of(PREFIX + name), token);
+        } catch (RuntimeException ex) {
+            meterRegistry.counter("redis.lock.failures", "operation", "release", "lock", name).increment();
+            log.warn("分布式锁释放失败，等待 TTL 自动释放 lock={} reason={}", name, ex.getMessage());
+        }
+    }
+}
+</script>
+
+<script type="text/plain" id="source-cache">
+    @Override
+    @Nullable
+    public <T> T get(Object key, Callable<T> valueLoader) {
+        if (stampedeGuard == null) {
+            return loadWithoutStampedeGuard(key, valueLoader);
+        }
+
+        ValueWrapper existing = get(key);
+        if (existing != null) {
+            return castValue(existing);
+        }
+
+        try {
+            return stampedeGuard.load(getName(), key, () -> {
+                ValueWrapper latest = get(key);
+                if (latest != null) {
+                    return castValue(latest);
+                }
+                T value = valueLoader.call();
+                if (value != null) {
+                    put(key, value);
+                }
+                return value;
+            });
+        } catch (RuntimeException ex) {
+            if (ex instanceof ValueRetrievalException) {
+                throw ex;
+            }
+            throw ex;
+        } catch (Exception ex) {
+            throw new ValueRetrievalException(key, valueLoader, ex);
+        }
+    }
+</script>
+
+<script type="text/plain" id="source-test">
+class CacheStampedeGuardTest {
+
+    @Test
+    void loadsUnderLockAndReleasesLock() throws Exception {
+        when(distributedLock.tryLock(anyString(), any(Duration.class))).thenReturn("token");
+
+        String value = guard.load("postDetail", "hot-post", () -> "db-value");
+
+        assertThat(value).isEqualTo("db-value");
+        verify(distributedLock).unlock(
+                eq("cache-load:postDetail:hot-post"), eq("token"));
+    }
+
+    @Test
+    void loadsEvenWhenRedisLockIsUnavailable() throws Exception {
+        when(distributedLock.tryLock(anyString(), any(Duration.class))).thenReturn(null);
+
+        String value = guard.load("postDetail", "hot-post", () -> "db-value");
+
+        // Redis 锁拿不到，业务仍会回源，不会把请求卡死。
+        assertThat(value).isEqualTo("db-value");
+    }
+}
+</script>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => [...document.querySelectorAll(s)];
+  const source = {
+    guard: $('#source-guard').textContent.trim(),
+    redis: $('#source-redis').textContent.trim(),
+    cache: $('#source-cache').textContent.trim(),
+    test: $('#source-test').textContent.trim()
+  };
+  const scenarioConfig = {
+    single: { instances: 1, redis: 'up', strict: false, ttlExpired: false, hint: '同一实例的 20 个请求共享一把本地锁。' },
+    dual: { instances: 2, redis: 'up', strict: false, ttlExpired: false, hint: '两个实例各自有本地锁；Redis 锁一个成功，一个失败。' },
+    redisdown: { instances: 2, redis: 'down', strict: false, ttlExpired: false, hint: 'Redis 锁不可用，两个实例都退化为本地保护。' },
+    strict: { instances: 2, redis: 'up', strict: true, ttlExpired: false, hint: '教学设想：没抢到锁的实例等待、复查缓存，再决定是否回源。' },
+    ttl: { instances: 2, redis: 'up', strict: false, ttlExpired: true, hint: '教学加速：loader 超过 10 秒锁 TTL，锁已过期。' }
+  };
+  let current = 'single';
+  let running = false;
+  let metrics = { requests: 0, db: 0, hit: 0, dup: 0 };
+  const metricsNode = { requests: $('#metricRequests'), db: $('#metricDb'), hit: $('#metricHit'), dup: $('#metricDup') };
+  const stateA = $('#stateA'), stateB = $('#stateB');
+  const requestsA = $('#requestsA'), requestsB = $('#requestsB');
+  const lockState = $('#lockState'), cacheState = $('#cacheState'), dbState = $('#dbState');
+  const simLog = $('#simLog');
+
+  function setLog(text, type = '') {
+    simLog.className = 'log ' + type;
+    simLog.textContent = text;
+  }
+  function setMetric() {
+    Object.entries(metrics).forEach(([key, value]) => { metricsNode[key].textContent = String(value); });
+    dbState.textContent = String(metrics.db);
+  }
+  function resetView() {
+    requestsA.innerHTML = ''; requestsB.innerHTML = '';
+    stateA.textContent = '等待运行'; stateB.textContent = '等待运行';
+    lockState.textContent = 'idle'; cacheState.textContent = 'MISS'; dbState.textContent = '0';
+    metrics = { requests: 0, db: 0, hit: 0, dup: 0 }; setMetric();
+    setLog('选择一个场景，然后点击“运行当前场景”。');
+  }
+  function addRequests(target, count, prefix) {
+    for (let i = 1; i <= count; i++) {
+      const el = document.createElement('span');
+      el.className = 'request'; el.textContent = `${prefix}${i}`;
+      target.appendChild(el);
+    }
+  }
+  function chips(target) { return [...target.querySelectorAll('.request')]; }
+  function setChip(chip, cls, text) {
+    chip.className = 'request ' + cls;
+    if (text) chip.textContent = text;
+  }
+  function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function chooseScenario(name) {
+    if (running) return;
+    current = name;
+    $$('.scenario').forEach(b => b.classList.toggle('active', b.dataset.scenario === name));
+    $('#scenarioHint').textContent = scenarioConfig[name].hint;
+    resetView();
+    $('#instanceB').style.display = name === 'single' ? 'none' : '';
+  }
+
+  async function runSingle() {
+    const all = chips(requestsA);
+    metrics.requests = all.length; all.forEach(c => setChip(c, 'running'));
+    stateA.textContent = '缓存 miss，本地锁排队';
+    cacheState.textContent = 'MISS'; lockState.textContent = 'local lock: A';
+    setLog('实例 A 的所有请求发现缓存 miss。第一个请求进入本地锁，其余请求等待。');
+    await wait(700);
+    setChip(all[0], 'winner', 'loader');
+    metrics.db = 1; metrics.hit = all.length - 1;
+    all.slice(1).forEach(c => setChip(c, 'waiting'));
+    stateA.textContent = '一个请求查 MySQL，其他等待';
+    setMetric();
+    setLog('loader 正在查 MySQL。其他请求被 ReentrantLock 挡住，不会同时回源。');
+    await wait(900);
+    cacheState.textContent = 'HIT';
+    all.slice(1).forEach(c => setChip(c, 'hit'));
+    stateA.textContent = '缓存已写回';
+    setMetric();
+    setLog('loader 写回缓存并释放锁；等待的请求醒来后命中缓存。', 'success');
+  }
+
+  async function runDual(strict) {
+    const a = chips(requestsA), b = chips(requestsB);
+    const all = [...a, ...b]; metrics.requests = all.length;
+    all.forEach(c => setChip(c, 'running'));
+    stateA.textContent = '缓存 miss'; stateB.textContent = '缓存 miss';
+    cacheState.textContent = 'MISS'; lockState.textContent = 'A owns token';
+    setLog('两个实例几乎同时发现缓存 miss，各自先进入自己的本地锁。');
+    await wait(650);
+    setChip(a[0], 'winner', 'A loader');
+    if (strict) {
+      setChip(b[0], 'waiting', 'B wait');
+      metrics.db = 1; metrics.dup = 0; setMetric();
+      stateA.textContent = 'A 持有 Redis 锁并回源';
+      stateB.textContent = 'B 等待锁 / 复查缓存';
+      setMetric();
+      setLog('严格设想：B 没抢到 Redis 锁，不立即回源，而是等待并复查缓存。');
+      await wait(1000);
+      setChip(b[0], 'hit', 'B hit');
+      metrics.hit = all.length - 1;
+      setMetric();
+    } else {
+      setChip(b[0], 'dup', 'B loader');
+      metrics.db = 2; metrics.dup = 1;
+      stateA.textContent = 'A 持有 Redis 锁并回源';
+      stateB.textContent = 'B 抢锁失败，但当前实现继续回源';
+      setMetric();
+      setLog('当前实现：B 的 tryLock 返回 null，但它仍执行本地 loader。单实例保护有效，跨实例出现重复回源。', 'danger');
+      await wait(1000);
+    }
+    cacheState.textContent = 'HIT';
+    metrics.hit = Math.max(metrics.hit, all.length - (strict ? 1 : 2));
+    all.slice(1).forEach(c => { if (!c.classList.contains('dup') && !c.classList.contains('hit')) setChip(c, 'hit'); });
+    stateA.textContent = '缓存写回'; stateB.textContent = strict ? '等待后命中缓存' : '也写回了缓存';
+    setMetric();
+    setLog(strict ? 'B 等到 A 写回后命中缓存，数据库共 1 次回源；代价是 B 的请求延迟增加。' : '两个 loader 都可能写回缓存；数据库共 2 次回源，锁 TTL 到期后会自然释放。', strict ? 'success' : 'warn');
+  }
+
+  async function runRedisDown() {
+    const a = chips(requestsA), b = chips(requestsB);
+    const all = [...a, ...b]; metrics.requests = all.length;
+    all.forEach(c => setChip(c, 'running'));
+    stateA.textContent = '本地锁生效'; stateB.textContent = '本地锁生效';
+    lockState.textContent = 'UNAVAILABLE'; cacheState.textContent = 'MISS';
+    setLog('Redis 锁不可用：tryLock 返回 null，但本地锁仍然保护每个实例。');
+    await wait(700);
+    setChip(a[0], 'winner', 'A loader'); setChip(b[0], 'dup', 'B loader');
+    metrics.db = 2; metrics.dup = 1; setMetric();
+    stateA.textContent = 'A 回源'; stateB.textContent = 'B 回源';
+    setLog('两个实例各自执行了一次 loader。这是可用性优先，不是全局互斥。', 'warn');
+    await wait(900);
+    cacheState.textContent = 'HIT'; stateA.textContent = '缓存写回'; stateB.textContent = '缓存写回';
+  }
+
+  async function runTtl() {
+    const a = chips(requestsA), b = chips(requestsB);
+    const all = [...a, ...b]; metrics.requests = all.length;
+    all.forEach(c => setChip(c, 'running'));
+    stateA.textContent = 'A 获取锁，开始长 loader'; stateB.textContent = '等待锁';
+    lockState.textContent = 'A owns token (TTL 10s)'; cacheState.textContent = 'MISS';
+    setChip(a[0], 'winner', 'A long loader');
+    setLog('时间加速演示：A 的 loader 超过 Redis 锁 TTL。');
+    await wait(900);
+    lockState.textContent = 'expired'; stateB.textContent = 'B 获得新锁';
+    setChip(b[0], 'dup', 'B loader');
+    metrics.db = 2; metrics.dup = 1; setMetric();
+    setLog('锁 TTL 是 10 秒；如果 loader 超过它，B 可以重新获取锁并回源。释放时 Lua 会比较 token，避免 A 误删 B 的锁。', 'danger');
+    await wait(900);
+    cacheState.textContent = 'HIT'; stateA.textContent = 'A 完成'; stateB.textContent = 'B 完成';
+    setLog('所以热点 loader 必须远短于锁 TTL，或者实现锁续租。当前代码没有续租。', 'warn');
+  }
+
+  async function run() {
+    if (running) return;
+    const cfg = scenarioConfig[current];
+    running = true; $('#runBtn').disabled = true; resetView();
+    $('#instanceB').style.display = cfg.instances === 1 ? 'none' : '';
+    addRequests(requestsA, 12, 'A');
+    if (cfg.instances === 2) addRequests(requestsB, 9, 'B');
+    if (current === 'single') await runSingle();
+    else if (current === 'strict') await runDual(true);
+    else if (current === 'redisdown') await runRedisDown();
+    else if (current === 'ttl') await runTtl();
+    else await runDual(false);
+    running = false; $('#runBtn').disabled = false;
+  }
+
+  $$('.scenario').forEach(button => button.addEventListener('click', () => chooseScenario(button.dataset.scenario)));
+  $('#runBtn').addEventListener('click', run);
+  $('#resetBtn').addEventListener('click', () => { if (!running) { resetView(); }});
+  $$('.code-tabs button').forEach(button => button.addEventListener('click', () => {
+    $$('.code-tabs button').forEach(b => b.classList.remove('active'));
+    button.classList.add('active');
+    $('#codeView').textContent = source[button.dataset.code];
+  }));
+  $('#codeView').textContent = source.guard;
+  chooseScenario('single');
+})();
+</script>
+</body>
+</html>
