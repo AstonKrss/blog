@@ -3,9 +3,34 @@
 > 日期：2026-11-09  
 > 前置状态：阶段 0～3 已完成  
 > 目标：把当前“可演示的多实例基础”提升为“可复现的双实例部署与故障演练”  
-> 当前完成度：约 55%
+> 当前完成度：约 60%
 
 ---
+
+## 执行进度（2026-11-09）
+
+### Step 0 已完成
+
+- MySQL 已在 Windows 运行。
+- Redis 已在 WSL 运行，Windows 通过 localhost relay 访问。
+- RabbitMQ 已在 WSL 运行，Windows 通过 localhost relay 访问。
+- 两个 backend 实例使用同一个 jar 启动：
+  - backend-1：`8081`
+  - backend-2：`8082`
+- RabbitMQ `visit.log.write` 当前有 2 个消费者。
+- 启动脚本已去除硬编码数据库密码，并启用 RabbitMQ 访问日志和队列指标。
+
+### Step 1 已完成
+
+- 在 WSL 安装并使用真实 Nginx。
+- 使用 `nginx -t` 验证配置。
+- Nginx 监听 `8088`，转发到 Windows 宿主机上的两个后端实例。
+- 修复 `/actuator/health` location 缺少 `proxy_set_header` 导致 Tomcat 拒绝 Host 的问题。
+- 验证：
+  - Nginx 文章接口 HTTP 200；
+  - Nginx 健康检查 HTTP 200；
+  - 停止 backend-1 后，Nginx 自动切换到 backend-2，接口仍 HTTP 200；
+  - 恢复 backend-1 后双实例健康检查均为 UP。
 
 ## 1. 目标与原则
 
@@ -38,8 +63,8 @@ Prometheus / Grafana
 
 | 资产 | 位置 | 状态 |
 |---|---|---|
-| Nginx 双实例配置 | `ops/nginx/nginx.conf` | 已编写，真实 Nginx 加载未验证 |
-| 双实例启动脚本 | `ops/multi-instance/start-backends.ps1` | 已有，需更新 RabbitMQ/MinIO 环境 |
+| Nginx 双实例配置 | `ops/nginx/nginx.conf` | 已编写并通过真实 Nginx `nginx -t`、双实例代理、单实例宕机切换验证 |
+| 双实例启动脚本 | `ops/multi-instance/start-backends.ps1` | 已更新，启用 RabbitMQ 访问日志和队列指标，去除硬编码数据库密码 |
 | 故障演练脚本 | `ops/multi-instance/drill.ps1` | 已有 Node 替代代理演练，需改真实 Nginx |
 | Node failover proxy | `ops/multi-instance/failover-proxy.js` | 仅用于无 Nginx 环境的等价验证 |
 | MinIO 存储抽象 | `src/main/java/com/aston/blog/storage/` | 已实现，真实上传未端到端验证 |
@@ -335,11 +360,11 @@ Step 0 环境与端口
 
 阶段 4 完成时必须满足：
 
-- [ ] 真实 Nginx 配置通过 `nginx -t` 并加载运行。
-- [ ] 两个 backend 实例通过 Nginx 对外提供服务。
-- [ ] 停止任一 backend，请求自动切换且成功率达标。
+- [x] 真实 Nginx 配置通过 `nginx -t` 并加载运行。
+- [x] 两个 backend 实例通过 Nginx 对外提供服务。
+- [x] 停止 backend-1 后请求自动切换到 backend-2，文章接口与健康检查均 HTTP 200。
 - [ ] MinIO 模式下两实例共享上传文件。
-- [ ] Redis、RabbitMQ、MinIO 均为共享外部依赖。
+- [x] Redis、RabbitMQ 已作为共享外部依赖验证；MinIO 待 Step 2。
 - [ ] 定时任务在双实例下只执行一次。
 - [ ] Prometheus/Grafana 能区分两个实例。
 - [ ] Rabbit queue / unacked / DLQ 指标可观测。

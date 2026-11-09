@@ -314,11 +314,11 @@ docker compose up -d --build
 |---|---|---|
 | `SPRING_DATASOURCE_URL` | `jdbc:mysql://localhost:3306/myblog...` | MySQL 地址 |
 | `SPRING_DATASOURCE_USERNAME` | `root` | 数据库用户 |
-| `SPRING_DATASOURCE_PASSWORD` | `root` | 数据库密码 |
+| `SPRING_DATASOURCE_PASSWORD` | `<通过环境变量注入>` | 数据库密码 |
 | `SPRING_DATA_REDIS_HOST` | `localhost` | Redis 地址 |
 | `SPRING_RABBITMQ_HOST` | `localhost` | RabbitMQ 地址 |
 | `SPRING_RABBITMQ_USERNAME` | `guest` | RabbitMQ 用户 |
-| `SPRING_RABBITMQ_PASSWORD` | `guest` | RabbitMQ 密码 |
+| `SPRING_RABBITMQ_PASSWORD` | `<通过环境变量注入>` | RabbitMQ 密码 |
 | `SPRING_RABBITMQ_MANAGEMENT_URL` | `http://localhost:15672` | RabbitMQ Management API |
 | `BLOG_CACHE_ENABLED` | `true` | 缓存开关 |
 | `BLOG_VISIT_LOG_ENABLED` | `true` | 访问日志链路开关 |
