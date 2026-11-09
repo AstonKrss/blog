@@ -1,98 +1,280 @@
 # Aston's Blog
 
-![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs)
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=111)
+![Java](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=fff)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-6DB33F?logo=springboot&logoColor=fff)
-![Java](https://img.shields.io/badge/Java-17%2B-007396?logo=openjdk&logoColor=fff)
-![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.11-009688?logo=fastapi&logoColor=fff)
-![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=fff)
-![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=fff)
-![License](https://img.shields.io/badge/License-MIT-blue)
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs)
+![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=fff)
+![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=fff)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-4-FF6600?logo=rabbitmq&logoColor=fff)
+![k6](https://img.shields.io/badge/k6-Load%20Test-7D64FF?logo=grafana&logoColor=fff)
 
-一个偏 DevSecOps 风格的全栈个人博客系统。项目包含博客内容管理、相册、旅行地图、留言板、友链、RSS、在线工具、安全工具箱、终端学习中心和后台管理。
+**Aston's Blog** 是一个面向高读低写内容平台的全栈博客系统，同时也是一个 Java 后端性能与可靠性改造案例。项目保持**模块化单体**架构，不为了“分布式”而拆微服务，而是用可观测性、压测数据、SQL 优化、Redis 降级、RabbitMQ 可靠异步和多实例演练来证明每一项改造的价值。
 
-前端使用 **Next.js 15 App Router**，后端使用 **Spring Boot 4.0**，安全工具服务使用 **Python FastAPI**，数据持久化使用 **MySQL 8.0**。
+前端为 **Next.js 15 App Router**，后端为 **Spring Boot 4 / Java 21**，数据层为 **MySQL 8 + Flyway + Redis 7**，异步链路使用 **RabbitMQ**，可选共享文件存储使用 **MinIO**。
+
+---
 
 ## 目录
 
-- [功能亮点](#功能亮点)
-- [技术栈](#技术栈)
+- [项目定位](#项目定位)
+- [系统架构](#系统架构)
+- [核心工程亮点](#核心工程亮点)
+- [性能与可靠性数据](#性能与可靠性数据)
+- [简历可写表述](#简历可写表述)
 - [快速开始](#快速开始)
-- [环境变量](#环境变量)
-- [项目结构](#项目结构)
-- [页面路由](#页面路由)
-- [核心 API](#核心-api)
-- [开发命令](#开发命令)
-- [部署说明](#部署说明)
-- [安全说明](#安全说明)
+- [关键配置](#关键配置)
+- [测试与验证](#测试与验证)
+- [当前边界与后续计划](#当前边界与后续计划)
 - [相关文档](#相关文档)
 
-## 功能亮点
+---
 
-- **博客系统**：文章发布、草稿、标签、归档、搜索、评论、点赞、阅读目录。
-- **后台管理**：文章、项目、相册、友链、站点设置、访问统计等管理入口。
-- **认证系统**：JWT 登录、注册验证码、邮箱验证、用户资料、密码修改。
-- **旅行地图**：基于 ECharts 的中国地图足迹展示，支持登录后标记足迹。
-- **RSS 订阅**：提供 `/rss` 展示页和 `/rss.xml` 订阅入口。
-- **默认背景图主题**：全站默认使用背景图主题，也可手动切换浅色/深色。
-- **Command Palette**：按 `⌘K` 或 `/` 打开命令面板，快速跳转页面、切换主题、使用工具。
-- **终端学习中心**：内置类 Linux 终端，支持 `learn docker`、`learn linux`、`learn git` 等学习命令。
-- **安全工具箱**：XSS/SQLi 检测、OSS 扫描、路径模糊测试、端口扫描、编码解码、哈希计算等。
-- **代码审计 Agent 规划**：已提供代码审计 Agent 的后端搭建文档和前端入口页面。
+## 项目定位
 
-## 技术栈
+这个项目不只是“功能叠加”，而是围绕一个明确目标改造：
 
-| 模块 | 技术 |
-| --- | --- |
-| 前端 | Next.js 15, React 19, TypeScript, Tailwind CSS, next-themes, ECharts, Lucide Icons |
-| 后端 | Spring Boot 4.0, Spring Security, Spring Data JPA, Jakarta Validation, JJWT, Lombok |
-| 安全工具服务 | Python 3.11, FastAPI, Uvicorn, Pydantic, HTTPX, PyMySQL |
-| 数据库 | MySQL 8.0 |
-| 部署 | Docker, Docker Compose, GitHub Actions |
+> 在读多写少的博客场景下，建立可观测、可压测、可降级、可回放、可解释取舍的后端工程链路。
 
-> 说明：`pom.xml` 当前配置 `java.version=17`，后端 Docker 镜像使用 Java 21。建议本地至少使用 Java 17，生产镜像按 Dockerfile 使用 Java 21。
+因此当前技术路线是：
+
+```text
+先观测和压测
+  -> 修复 SQL / N+1 / 分页 / 索引
+  -> 设计缓存边界、失效和降级
+  -> 用一条 RabbitMQ 链路验证可靠异步
+  -> 再进入双实例部署和故障演练
+```
+
+没有做以下事情，并且这是有意取舍：
+
+- 不拆微服务；
+- 不引入 Kubernetes；
+- 不把所有业务都塞进 MQ；
+- 不宣称“精通高并发”；
+- 不使用没有压测数据的 QPS 结论。
+
+---
+
+## 系统架构
+
+```text
+                ┌──────────────┐
+                │   Next.js    │
+                │  App Router  │
+                └──────┬───────┘
+                       │ HTTP API
+                       ▼
+              ┌─────────────────┐
+              │   Spring Boot   │
+              │ Modular Monolith│
+              └──┬───┬───┬───┬──┘
+                 │   │   │   │
+        MySQL ◄──┘   │   │   └──► RabbitMQ
+        Redis  ◄─────┘   └────► MinIO（可选共享文件）
+                       │
+                 Prometheus / Grafana
+```
+
+### 访问日志异步链路
+
+```text
+HTTP afterCompletion
+  -> VisitLoggingInterceptor
+  -> VisitLogEventProducer
+  -> blog.events (direct exchange)
+       routing key: visit.recorded
+  -> visit.log.write (durable queue)
+  -> Batch Consumer
+  -> MySQL visit_logs
+  -> transaction commit
+  -> manual ACK
+```
+
+失败路径：
+
+```text
+visit.log.write
+  -> NACK(requeue=false)
+  -> blog.dlx
+       routing key: visit.log.write.dead
+  -> visit.log.write.dlq
+  -> 人工修复后重放
+```
+
+---
+
+## 核心工程亮点
+
+### 1. 可观测性与压测基线
+
+已接入：
+
+- Spring Boot Actuator
+- Micrometer + Prometheus + Grafana
+- HTTP 请求量、P50/P95/P99
+- Hikari active / pending / acquire time / timeout
+- Redis 命令与缓存命中率
+- 定时任务耗时
+- RabbitMQ Publisher / Consumer / queue 指标
+- traceId 请求日志
+
+压测工具：
+
+- k6 覆盖文章列表、详情、标签、搜索、登录、点赞、留言等场景。
+- 独立脚本采样 Hikari pending，避免 Prometheus 抓取间隔漏掉短峰值。
+
+### 2. 数据库查询优化
+
+在 50,000 篇文章、200,000 条文章标签关联、100,000 条笔记评论的数据集上完成：
+
+- 文章列表从 `JOIN FETCH + Page` 改为两段式分页；
+- 笔记列表 N+1 改为当前页批量查询；
+- 标签统计从循环 `COUNT` 改为一次 `GROUP BY`；
+- 搜索从 `LIKE '%keyword%'` 改为 MySQL FULLTEXT + UNION；
+- 为笔记评论、标签、搜索等路径补充索引；
+- 使用 `EXPLAIN FORMAT=JSON` 对比执行计划。
+
+### 3. 缓存与热点写
+
+缓存体系包含：
+
+- 8～12 分钟 TTL 随机抖动，缓解同时过期；
+- 文章详情、标签、归档、统计精确失效；
+- 文章列表和搜索使用版本号逻辑失效，避免 `allEntries=true`；
+- 单实例 256 个分段本地锁防止热点 Key 击穿；
+- Redis 故障时 Spring Cache 统一回源 MySQL；
+- 浏览量使用 Redis 增量 + batchId + MySQL 唯一键幂等落库；
+- 点赞计数使用数据库原子更新 + 周期校准。
+
+### 4. RabbitMQ 可靠异步
+
+访问日志链路实现：
+
+- Publisher Confirm；
+- durable exchange / durable queue / persistent message；
+- 手动 ACK；
+- 最多 20 条批量消费；
+- 批量失败后二分拆批，隔离坏消息；
+- `event_id` 数据库唯一键幂等；
+- 失败消息进入 DLQ；
+- Management API 采集 queue messages / ready / unacked / consumers；
+- Rabbit listener 与 Web 容器优雅停机。
+
+### 5. 多实例基础
+
+已具备：
+
+- JWT 无状态认证，不依赖 Sticky Session；
+- Redis 分布式锁保护定时任务；
+- MinIO 存储抽象，为共享文件做准备；
+- Nginx 双实例配置；
+- 双实例启动与故障转移脚本；
+- 后端和 Rabbit listener 优雅停机配置。
+
+阶段 4 仍需完成真实 Nginx、真实 MinIO、双实例指标和完整故障矩阵验证。
+
+---
+
+## 性能与可靠性数据
+
+以下数据来自本地压测和真实故障演练，具体条件见对应报告。
+
+| 场景 | 优化前 | 优化后 / 验证结果 |
+|---|---:|---:|
+| 文章列表 P95（50k 文章数据集） | 6.78s | 3.14ms |
+| 文章列表 P99 | 8.09s | 4.25ms |
+| 笔记列表 SELECT 次数 | 约 42 次/请求 | 4 次/请求 |
+| 搜索冷查询 | 约 6.19s | 0.3～0.6s |
+| 搜索缓存后 P95 | - | 约 2.06ms |
+| 笔记评论扫描行数 | 约 100,200 行/次 | 200 行/次 |
+| `publicPosts` 缓存命中率 | - | 99.95% |
+| `search` 缓存命中率 | - | 99.98% |
+| Hikari 10 连接 / 100 VU P95 | 71.45ms，最大 pending 23 | - |
+| Hikari 20 连接 / 100 VU P95 | - | 40.64ms，pending 0 |
+| RabbitMQ 批量消费 | - | 一次 batch size 20，20 条全部落库 |
+| RabbitMQ 停止 30 秒 | - | 10/10 业务请求 HTTP 200 |
+| 重复 eventId | - | 数据库仍只有 1 行 |
+| 坏消息 | - | 进入 DLQ，人工修复后重放成功 |
+| 优雅停机 | - | Waiting for workers + graceful shutdown complete |
+
+注意事项：
+
+- 本地测试不能直接等同生产容量；
+- 6.78s 到 3.14ms 的文章列表对比发生在缓存开启的大数据量实验中；
+- 缓存关闭时数据库路径会明显饱和，这正是缓存成为当前系统容量边界的原因；
+- RabbitMQ 访问日志生产端采用 fail-open，故障期间允许日志丢失。
+
+---
+
+## 简历可写表述
+
+以下表述可以直接改写进简历，建议选择 2～3 条，不要全部堆上。
+
+### 数据库与查询优化
+
+> 针对文章列表 `JOIN FETCH + Page`、笔记列表 N+1 和 `LIKE` 全表扫描问题，基于 5 万文章 / 20 万标签关联 / 10 万评论数据集完成两段式分页、批量加载、索引和 MySQL FULLTEXT 改造；使用 `EXPLAIN FORMAT=JSON` 与 k6 验证，文章列表 P95 从 6.78s 降至 3.14ms，笔记列表 SELECT 从约 42 次/请求降至 4 次/请求。
+
+### 缓存与连接池
+
+> 设计 Redis 缓存与热点写方案，实现 8～12 分钟 TTL 抖动、版本号精确失效、热点 Key 分段本地锁和 Redis 故障回源 MySQL；文章列表缓存命中率达 99.95%，搜索缓存命中率达 99.98%。通过 Hikari pending 采样将连接池从 10/100VU 的 P95 71.45ms、pending 23 调整为 20 连接下的 P95 40.64ms、pending 0。
+
+### RabbitMQ 可靠异步
+
+> 使用 RabbitMQ 解耦访问日志写入，设计 direct exchange、durable queue、Publisher Confirm、手动 ACK、批量消费、有限重试、DLQ 和 `event_id` 唯一键幂等；一批 20 条消息批量落库，坏消息二分拆批并进入 DLQ，人工修复后重放成功；RabbitMQ 停止 30 秒期间 10/10 业务请求返回 HTTP 200，恢复后消费者自动重连并继续落库。
+
+### 工程化与测试
+
+> 使用 Actuator、Micrometer、Prometheus、Grafana 和 k6 建立性能观测与压测基线，覆盖 HTTP、Hikari、Redis、RabbitMQ 和定时任务指标；后端 94 个测试通过，真实故障演练覆盖 Redis 降级、RabbitMQ 停服恢复、DLQ 重放和优雅停机。
+
+### 面试时要能讲清的取舍
+
+- 为什么保持模块化单体，而不是拆微服务；
+- 为什么访问日志使用 fail-open，而不是 Outbox；
+- 为什么 RabbitMQ Publisher Confirm 不等于业务处理完成；
+- 为什么消费端必须 `event_id` 幂等；
+- 为什么批量消费失败采用二分拆批；
+- 为什么热点 Key 当前是单实例强保护、多实例可用性优先；
+- 为什么没有引入 Elasticsearch、Kubernetes 或 Kafka。
+
+---
 
 ## 快速开始
 
-### 方式一：Docker Compose
+### 环境要求
 
-```bash
-docker compose up -d --build
-```
+| 组件 | 版本 / 说明 |
+|---|---|
+| Java | 21+ |
+| Node.js | 22+ |
+| MySQL | 8.0 |
+| Redis | 7.x |
+| RabbitMQ | 4.x / 3.13-management |
+| Maven | 3.9+ |
 
-默认端口：
-
-| 服务 | 地址 |
-| --- | --- |
-| 前端 | http://localhost:3000 或 compose 映射后的 http://localhost |
-| 后端 | http://localhost:8080 |
-| Python 安全工具 | http://localhost:8000 |
-| MySQL | localhost:3306 |
-
-### 方式二：本地开发
-
-启动 MySQL 后，分别启动后端、前端和 Python 服务。
-
-后端：
+### 启动后端
 
 ```bash
 mvn spring-boot:run
 ```
 
-前端：
+默认端口：
+
+```text
+http://localhost:8080
+```
+
+健康检查：
+
+```bash
+curl http://localhost:8080/actuator/health
+```
+
+### 启动前端
 
 ```bash
 cd frontend
 npm install
 npm run dev
-```
-
-Python 安全工具：
-
-```bash
-cd python
-pip install -r requirements.txt
-python app.py
 ```
 
 访问：
@@ -101,275 +283,125 @@ python app.py
 http://localhost:3000
 ```
 
-## 环境变量
+### 启动 RabbitMQ（WSL / Ubuntu）
 
-### 后端
+```bash
+sudo apt update
+sudo apt install rabbitmq-server
+sudo rabbitmq-plugins enable rabbitmq_management
+sudo service rabbitmq-server start
+```
 
-| 变量 | 默认值 | 说明 |
-| --- | --- | --- |
-| `SPRING_DATASOURCE_URL` | `jdbc:mysql://localhost:3306/myblog...` | MySQL 连接地址 |
-| `SPRING_DATASOURCE_USERNAME` | `root` | 数据库用户名 |
-| `SPRING_DATASOURCE_PASSWORD` | `root` | 数据库密码 |
-| `JWT_SECRET` | 代码内默认值 | JWT 签名密钥，生产必须替换 |
-| `JWT_EXPIRATION` | `86400000` | Token 过期时间 |
-| `MAIL_HOST` | `smtp.qq.com` | 邮件服务器 |
-| `MAIL_PORT` | `587` | 邮件端口 |
-| `MAIL_USERNAME` | 空 | 邮箱账号 |
-| `MAIL_PASSWORD` | 空 | 邮箱授权码 |
-| `BLOG_SITE_URL` | `http://localhost:8080` | 后端站点地址 |
-| `BLOG_OWNER_EMAIL` | 空 | 站长邮箱 |
-| `BLOG_OWNER_NAME` | `Aston` | 站长名称 |
-
-### 前端
-
-| 变量 | 默认值 | 说明 |
-| --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8080` | 后端 API 地址 |
-| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | 前端站点地址 |
-| `PYTHON_API_URL` | `http://localhost:8000` | Python 安全工具服务地址 |
-
-### Python 服务
-
-| 变量 | 默认值 | 说明 |
-| --- | --- | --- |
-| `DB_HOST` | `localhost` | MySQL 主机 |
-| `DB_PORT` | `3306` | MySQL 端口 |
-| `DB_NAME` | `myblog` | 数据库名 |
-| `DB_USER` | `root` | 数据库用户 |
-| `DB_PASSWORD` | 空 | 数据库密码 |
-| `JWT_SECRET` | 空 | 与后端保持一致 |
-| `HOST` | `0.0.0.0` | 服务监听地址 |
-| `PORT` | `8000` | 服务端口 |
-| `CORS_ORIGINS` | `http://localhost:3000` | CORS 白名单 |
-
-## 项目结构
+管理页面：
 
 ```text
-blog/
-├── src/main/java/com/aston/blog/
-│   ├── Controller/          # REST Controller
-│   ├── Service/             # Service 接口
-│   ├── Service/impl/        # Service 实现
-│   ├── dto/                 # 请求 DTO
-│   ├── vo/                  # 响应 VO
-│   ├── entity/              # JPA 实体
-│   ├── repository/          # Spring Data JPA Repository
-│   ├── common/              # Result、JWT、异常处理等
-│   ├── config/              # Security、Web、拦截器配置
-│   └── util/                # 工具类
-├── src/main/resources/
-│   └── application.yml      # 后端配置
-├── frontend/
-│   ├── app/                 # Next.js App Router 页面
-│   ├── components/          # React 组件
-│   ├── lib/                 # 前端工具函数
-│   └── public/              # 静态资源
-├── python/
-│   ├── modules/             # 安全扫描模块
-│   ├── routers/             # FastAPI 路由
-│   ├── services/            # 任务、数据库、扫描服务
-│   └── utils/               # JWT、SSE 等工具
-├── docs/                    # 项目文档、审计报告、优化方案
-├── compose.yaml             # Docker Compose
-├── Dockerfile.backend       # 后端镜像
-└── README.md
+http://localhost:15672
 ```
 
-## 页面路由
-
-| 路径 | 功能 |
-| --- | --- |
-| `/` | 首页 |
-| `/blog` | 博客列表 |
-| `/blog/[slug]` | 博客详情 |
-| `/archive` | 文章归档 |
-| `/tags` | 标签 |
-| `/timeline` | 时间线 |
-| `/travel` | 旅行足迹地图 |
-| `/photos` | 相册 |
-| `/projects` | 项目展示 |
-| `/friends` | 友链 |
-| `/guestbook` | 留言板 |
-| `/search` | 搜索 |
-| `/tools` | 在线工具 |
-| `/security/tools` | 安全工具箱 |
-| `/security/tools/code-audit` | 代码审计 Agent 前端入口 |
-| `/terminal` | 终端学习中心 |
-| `/games` | 小游戏 |
-| `/notes` | 笔记 |
-| `/resources` | 资源导航 |
-| `/about` | 关于 |
-| `/dashboard/*` | 管理后台 |
-| `/login` | 登录 |
-| `/register` | 注册 |
-| `/verify` | 邮箱验证 |
-| `/rss` | RSS 订阅页 |
-
-## 核心 API
-
-### 公开 API
-
-| 接口 | 方法 | 说明 |
-| --- | --- | --- |
-| `/api/public/posts` | GET | 公开文章列表 |
-| `/api/public/posts/{slug}` | GET | 文章详情 |
-| `/api/public/tags` | GET | 标签 |
-| `/api/public/archive` | GET | 归档 |
-| `/api/public/comments/{postId}` | GET/POST | 评论 |
-| `/api/public/search` | GET | 搜索 |
-| `/api/public/online` | GET | 在线人数 |
-| `/api/public/footprints` | GET | 公开旅行足迹 |
-| `/api/public/photos` | GET | 公开相册 |
-| `/api/public/projects` | GET | 公开项目 |
-| `/api/public/friends` | GET | 公开友链 |
-| `/api/public/guestbook` | GET | 公开留言 |
-
-### 认证 API
-
-| 接口 | 方法 | 说明 |
-| --- | --- | --- |
-| `/api/auth/login` | POST | 登录 |
-| `/api/auth/register` | POST | 注册 |
-| `/api/auth/send-code` | POST | 发送验证码 |
-| `/api/auth/verify` | GET | 邮箱验证 |
-| `/api/auth/resend-verify` | POST | 重发验证邮件 |
-| `/api/auth/logout` | POST | 登出 |
-| `/api/auth/me` | GET | 当前用户 |
-
-### 管理与业务 API
-
-| 接口 | 方法 | 说明 |
-| --- | --- | --- |
-| `/api/posts` | GET/POST | 文章列表、创建 |
-| `/api/posts/{id}` | GET/PUT/DELETE | 文章详情、更新、删除 |
-| `/api/posts/{postId}/like` | GET/POST | 点赞状态、点赞 |
-| `/api/notes` | GET/POST | 笔记 |
-| `/api/photos/upload` | POST | 相册上传 |
-| `/api/projects` | GET/POST | 项目管理 |
-| `/api/friends` | GET | 友链管理 |
-| `/api/friends/apply` | POST | 友链申请 |
-| `/api/footprints` | GET/POST | 足迹管理 |
-| `/api/settings` | GET/PUT | 站点设置 |
-| `/api/users` | GET | 用户信息 |
-| `/api/users/profile` | PUT | 更新资料 |
-| `/api/users/password` | PUT | 修改密码 |
-| `/api/upload/image` | POST | 图片上传 |
-| `/api/upload/media` | POST | 媒体上传 |
-| `/api/admin/security/*` | GET/POST | 安全日志与威胁审查 |
-
-### 安全工具 API
-
-| 接口 | 方法 | 说明 |
-| --- | --- | --- |
-| `/api/tools/ip-info` | GET | IP 信息 |
-| `/api/tools/dns` | GET | DNS 查询 |
-| `/api/tools/whois` | GET | Whois 查询 |
-| `/api/tools/subdomains` | GET | 子域名枚举 |
-| `/api/tools/port-scan` | GET | 端口扫描 |
-| `/api/tools/http-headers` | GET | HTTP Header 检测 |
-| `/api/tools/cors-test` | GET | CORS 测试 |
-| `/api/tools/cve-search` | GET | CVE 搜索 |
-| `/api/tools/breach-check` | GET | 泄露检查 |
-
-## 开发命令
-
-### 后端
+### Docker Compose（如果本机有 Docker）
 
 ```bash
-mvn spring-boot:run
-mvn compile
+docker compose up -d --build
+```
+
+服务包括 MySQL、Redis、RabbitMQ、MinIO、backend、frontend。
+
+---
+
+## 关键配置
+
+| 配置 | 默认值 | 说明 |
+|---|---|---|
+| `SPRING_DATASOURCE_URL` | `jdbc:mysql://localhost:3306/myblog...` | MySQL 地址 |
+| `SPRING_DATASOURCE_USERNAME` | `root` | 数据库用户 |
+| `SPRING_DATASOURCE_PASSWORD` | `root` | 数据库密码 |
+| `SPRING_DATA_REDIS_HOST` | `localhost` | Redis 地址 |
+| `SPRING_RABBITMQ_HOST` | `localhost` | RabbitMQ 地址 |
+| `SPRING_RABBITMQ_USERNAME` | `guest` | RabbitMQ 用户 |
+| `SPRING_RABBITMQ_PASSWORD` | `guest` | RabbitMQ 密码 |
+| `SPRING_RABBITMQ_MANAGEMENT_URL` | `http://localhost:15672` | RabbitMQ Management API |
+| `BLOG_CACHE_ENABLED` | `true` | 缓存开关 |
+| `BLOG_VISIT_LOG_ENABLED` | `true` | 访问日志链路开关 |
+| `BLOG_VISIT_LOG_MQ_BATCH_SIZE` | `20` | 消费批次大小 |
+| `BLOG_STORAGE_TYPE` | `local` | `local` 或 `minio` |
+| `BLOG_DB_POOL_MIN_IDLE` | `10` | Hikari 最小空闲连接 |
+| `BLOG_DB_POOL_MAX_SIZE` | `20` | Hikari 最大连接数 |
+
+---
+
+## 测试与验证
+
+后端测试：
+
+```bash
 mvn test
-mvn clean package -DskipTests
 ```
 
-### 前端
+当前本机回归结果：
 
-```bash
-cd frontend
-npm install
-npm run dev
-npm run build
-npm run start
+```text
+25 个测试类
+94 个测试
+0 失败
+0 错误
+4 个 Testcontainers 用例因本机无 Docker 跳过
 ```
 
-### Python
+关键验证覆盖：
 
-```bash
-cd python
-pip install -r requirements.txt
-python app.py
-```
+- 文章分页与 FULLTEXT 搜索；
+- 缓存降级与 TTL；
+- 点赞原子计数；
+- 浏览量幂等落库；
+- RabbitMQ 批量消费与 DLQ；
+- RabbitMQ 停止 30 秒恢复；
+- 优雅停机。
 
-### Docker
+---
 
-```bash
-docker compose up -d --build
-docker compose logs -f
-docker compose down
-```
+## 当前边界与后续计划
 
-## 主题系统
+### 已知边界
 
-项目目前提供三种主题：
+1. RabbitMQ 生产端是 fail-open，故障期间访问日志可能丢失；若要求零丢失，需要 Outbox。
+2. 批量消费重试是进程内重试，不是独立延迟重试队列。
+3. 热点 Key 多实例回源是可用性优先，不保证严格全局只回源一次。
+4. Testcontainers 在本机无 Docker 时自动跳过。
+5. 真实 Nginx、真实 MinIO 和完整双实例故障矩阵尚未完成。
 
-- 背景图主题：默认主题，使用 `frontend/public/images/background.jpg`。
-- 浅色主题：适合阅读内容。
-- 深色主题：适合终端和安全工具页面。
+### 当前路线状态
 
-用户可以通过顶部主题按钮或 Command Palette 手动切换，选择会保存在浏览器本地。
+| 阶段 | 状态 |
+|---|---|
+| 阶段 0：可观测性与压测基线 | ✅ 100% |
+| 阶段 1：数据库与查询优化 | ✅ 100% |
+| 阶段 2：缓存与热点写优化 | ✅ 100% |
+| 阶段 3：RabbitMQ 可靠异步链路 | ✅ 100% |
+| 阶段 4：多实例部署与故障演练 | 🟡 约 55%，下一步 |
+| 阶段 5：架构文档与简历包装 | 🟡 进行中 |
 
-## 数据库
+阶段 4 详细执行计划见：
 
-当前配置位于 `src/main/resources/application.yml`：
+- [docs/PHASE4_EXECUTION_PLAN.md](docs/PHASE4_EXECUTION_PLAN.md)
 
-```yaml
-spring:
-  jpa:
-    hibernate:
-      ddl-auto: update
-```
-
-开发环境可以使用 `update` 快速迭代表结构。生产环境建议改为 `validate` 或 `none`，并使用 SQL 迁移工具管理表结构。
-
-## 部署说明
-
-项目支持 Docker Compose 一键部署：
-
-```bash
-docker compose up -d --build
-```
-
-生产部署建议：
-
-- 使用 `.env` 或平台 secrets 管理数据库密码、JWT 密钥、邮箱授权码。
-- 将 `NEXT_PUBLIC_API_URL` 配置成公网后端地址。
-- 将 `BLOG_SITE_URL` 配置成后端公网地址。
-- 将 `COOKIE_DOMAIN` 配置成正式域名。
-- 在反向代理层启用 HTTPS。
-- 对 `/api/tools/*` 这类可发起网络请求的接口增加鉴权和目标限制。
-
-## 安全说明
-
-这是一个学习和个人站点项目，当前仓库仍保留一些开发阶段配置。上线前请至少完成：
-
-- 替换 `compose.yaml` 中的示例密码、JWT 密钥和邮箱授权码。
-- 不要把生产 `.env`、数据库备份、上传目录敏感文件提交到 Git。
-- 生产环境关闭 Hibernate 自动改表，改用迁移脚本。
-- 收紧 Spring Security 的 `permitAll` 范围。
-- 为安全工具接口增加 SSRF 防护、速率限制和管理员权限校验。
-- 为上传接口增加文件类型、扩展名、大小、内容检测。
-
-更完整的审计建议见 `docs/CODE_REVIEW_SECURITY_2026-05-22.md`。
+---
 
 ## 相关文档
 
 | 文档 | 说明 |
-| --- | --- |
-| `docs/CODE_REVIEW_SECURITY_2026-05-22.md` | 项目安全代码审计报告 |
-| `docs/PERFORMANCE_OPTIMIZATION_PLAN_2026-05-22.md` | 性能优化方案 |
-| `docs/CODE_AUDIT_AGENT_BUILD_GUIDE_2026-05-22.md` | 代码审计 Agent 接入教程 |
-| `docs/SECURITY_TOOLS.md` | 安全工具接口说明 |
-| `docs/POSTMAN_PLAYWRIGHT_JMETER.md` | 接口、前端、压测工具说明 |
+|---|---|
+| [docs/BENCHMARK_BASELINE.md](docs/BENCHMARK_BASELINE.md) | 初始压测基线 |
+| [docs/BENCHMARK_QUERY.md](docs/BENCHMARK_QUERY.md) | SQL、N+1、索引和执行计划报告 |
+| [docs/BENCHMARK_PHASE1.md](docs/BENCHMARK_PHASE1.md) | 大数据量压测与缓存对照 |
+| [docs/CACHE_AND_HOT_WRITE_REPORT.md](docs/CACHE_AND_HOT_WRITE_REPORT.md) | 阶段 2 缓存与热点写正式报告 |
+| [docs/RABBITMQ_VISIT_LOG.md](docs/RABBITMQ_VISIT_LOG.md) | 阶段 3 RabbitMQ 验收报告 |
+| [docs/PHASE4_EXECUTION_PLAN.md](docs/PHASE4_EXECUTION_PLAN.md) | 阶段 4 多实例执行计划 |
+| [docs/REDIS_FAILURE_POLICIES.md](docs/REDIS_FAILURE_POLICIES.md) | Redis 故障策略 |
+| [docs/VIEW_COUNT_IDEMPOTENCY.md](docs/VIEW_COUNT_IDEMPOTENCY.md) | 浏览量幂等设计 |
+| [docs/SECURITY.md](docs/SECURITY.md) | 安全架构说明 |
+| [docs/SECURITY_TOOLS.md](docs/SECURITY_TOOLS.md) | 安全工具接口说明 |
+
+---
 
 ## License
 
