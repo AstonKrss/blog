@@ -287,7 +287,7 @@ health,info,prometheus,metrics
 2. MySQL 仍是主要单点；
 3. RabbitMQ 生产端没有 Outbox；
 4. 多实例严格全局热点回源未实现；
-5. 真实 MinIO 共享文件和停机演练未完成；
+5. 真实 MinIO 共享文件尚未完成；本轮已用 S3 兼容测试服务验证 `MinioFileStorage` 协议路径；
 6. 双实例 Prometheus/Grafana 实例级面板未完成；
 7. 真实多机水平扩容需要独立压测机和两台应用节点，当前只在单机资源隔离下验证；
 8. Testcontainers 需要 Docker/CI 环境才能完整执行。

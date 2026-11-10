@@ -368,7 +368,7 @@ mvn test
 2. 批量消费重试是进程内重试，不是独立延迟重试队列。
 3. 热点 Key 多实例回源是可用性优先，不保证严格全局只回源一次。
 4. Testcontainers 在本机无 Docker 时自动跳过。
-5. 真实 Nginx 双实例代理和单机资源隔离压测已完成；真实 MinIO 共享文件、独立多机扩容和完整双实例故障矩阵仍作为延期项。
+5. 单机应用级故障矩阵已完成；真实 MinIO 共享文件、独立多机扩容、物理主机故障和 MySQL 高可用仍作为延期项。
 
 ### 当前路线状态
 
@@ -378,8 +378,8 @@ mvn test
 | 阶段 1：数据库与查询优化 | ✅ 100% |
 | 阶段 2：缓存与热点写优化 | ✅ 100% |
 | 阶段 3：RabbitMQ 可靠异步链路 | ✅ 100% |
-| 阶段 4：多实例部署与故障演练 | 🟡 约 75%，单机验收完成，生产级多机项延期 |
-| 阶段 5：架构文档与简历包装 | 🟡 约 90%，文档与时序图已补齐 |
+| 阶段 4：多实例部署与故障演练 | 🟡 约 85%，单机应用级故障矩阵完成，真实 MinIO/多机项延期 |
+| 阶段 5：架构文档与简历包装 | 🟡 约 95%，故障矩阵报告已补齐 |
 
 阶段 4 详细执行计划见：
 
@@ -407,7 +407,7 @@ mvn test
 | [docs/ADR.md](docs/ADR.md) | 模块化单体、缓存、MQ、多实例等关键取舍 |
 | [docs/BENCHMARK_RESULT.md](docs/BENCHMARK_RESULT.md) | 全阶段性能结果、限制和简历安全表述 |
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | 启动、压测、日志、故障恢复和 DLQ 操作手册 |
-| [docs/FAILOVER_DRILL.md](docs/FAILOVER_DRILL.md) | Redis、RabbitMQ、Nginx 和优雅停机演练结果 |`n| [docs/INTERVIEW_QA.md](docs/INTERVIEW_QA.md) | Java 后端面试问答和项目表达边界 |
+| [docs/FAILOVER_DRILL.md](docs/FAILOVER_DRILL.md) | Redis、RabbitMQ、Nginx 和优雅停机演练结果 |`n| [docs/FAULT_MATRIX_RESULT.md](docs/FAULT_MATRIX_RESULT.md) | 单机 Redis/RabbitMQ/S3 兼容存储/优雅停机/Nginx 故障矩阵 |`n| [docs/INTERVIEW_QA.md](docs/INTERVIEW_QA.md) | Java 后端面试问答和项目表达边界 |
 | [docs/REDIS_FAILURE_POLICIES.md](docs/REDIS_FAILURE_POLICIES.md) | Redis 故障策略 |
 | [docs/VIEW_COUNT_IDEMPOTENCY.md](docs/VIEW_COUNT_IDEMPOTENCY.md) | 浏览量幂等设计 |
 | [docs/SECURITY.md](docs/SECURITY.md) | 安全架构说明 |

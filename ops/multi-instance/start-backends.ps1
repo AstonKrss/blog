@@ -7,7 +7,13 @@ param(
   [int]$RedisDatabase = 0,
   [bool]$CacheEnabled = $true,
   [string]$Affinity1 = '',
-  [string]$Affinity2 = ''
+  [string]$Affinity2 = '',
+  [ValidateSet('local', 'minio')]
+  [string]$StorageType = 'local',
+  [string]$MinioEndpoint = '',
+  [string]$MinioAccessKey = '',
+  [string]$MinioSecretKey = '',
+  [string]$MinioBucket = 'blog'
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
@@ -47,11 +53,17 @@ Stop-Port $Port1
 Stop-Port $Port2
 
 # 密码不写入脚本；如果当前 shell 已设置环境变量，子进程会继承。
-$javaExe
 $env:SPRING_DATASOURCE_URL = 'jdbc:mysql://localhost:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false'
 $env:SPRING_FLYWAY_ENABLED = 'true'
 $env:SPRING_DATA_REDIS_DATABASE = [string]$RedisDatabase
-$env:BLOG_STORAGE_TYPE = 'local'
+$env:BLOG_STORAGE_TYPE = $StorageType
+if ($StorageType -eq 'minio') {
+  if (-not [string]::IsNullOrWhiteSpace($MinioEndpoint)) { $env:BLOG_MINIO_ENDPOINT = $MinioEndpoint }
+  if (-not [string]::IsNullOrWhiteSpace($MinioAccessKey)) { $env:BLOG_MINIO_ACCESS_KEY = $MinioAccessKey }
+  if (-not [string]::IsNullOrWhiteSpace($MinioSecretKey)) { $env:BLOG_MINIO_SECRET_KEY = $MinioSecretKey }
+  if (-not [string]::IsNullOrWhiteSpace($MinioBucket)) { $env:BLOG_MINIO_BUCKET = $MinioBucket }
+  if ([string]::IsNullOrWhiteSpace($env:BLOG_MINIO_ENDPOINT)) { throw 'MinIO 模式缺少 BLOG_MINIO_ENDPOINT' }
+}
 $env:BLOG_UPLOAD_DIR = (Join-Path $repo 'uploads')
 $env:BLOG_CACHE_ENABLED = if ($CacheEnabled) { 'true' } else { 'false' }
 $env:BLOG_CACHE_WARMUP_ENABLED = if ($BackgroundTasksEnabled) { 'true' } else { 'false' }
@@ -80,7 +92,3 @@ Wait-Health $Port2
 
 Write-Host "backend-1 pid=$($p1.Id) port=$Port1 affinity=$Affinity1 cache=$CacheEnabled"
 Write-Host "backend-2 pid=$($p2.Id) port=$Port2 affinity=$Affinity2 cache=$CacheEnabled"
-
-
-
-

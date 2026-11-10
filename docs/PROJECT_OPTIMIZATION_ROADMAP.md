@@ -16,8 +16,8 @@
 | 阶段 1：数据库与查询路径优化 | ✅ 已完成 | 100% | 文章两段式分页、笔记 N+1、标签统计 N+1、FULLTEXT UNION 搜索、标签筛选执行计划、索引前后对比、Testcontainers 集成测试、`BENCHMARK_QUERY.md` | 本机无 Docker，Testcontainers 4 个用例自动跳过；需在 Docker/CI 环境执行一次真实容器测试 |
 | 阶段 2：缓存与热点写优化 | ✅ 已完成 | 100% | TTL 抖动、精确缓存失效、热点 Key 互斥回源、点赞原子计数与周期校准、Redis Cache 统一降级、浏览量幂等+允许少计、Hikari min10/max20、在线/限流/登录防护/分布式锁故障策略、`CACHE_AND_HOT_WRITE_REPORT.md` | 本机未做四项收尾改动后的正式高并发 A/B 压测；跨实例 Redis 抢锁失败时采用可用性优先降级，不是严格全局互斥 |
 | 阶段 3：RabbitMQ 可靠异步链路 | ✅ 已完成 | 100% | RabbitMQ 真实投递、批量消费者、拆批隔离失败、event_id 幂等、DLQ、手工重放、停服 30 秒恢复、队列 ready/unacked/consumer 指标、优雅停机、`RABBITMQ_VISIT_LOG.md` | 生产端仍是 fail-open，事件可能丢失；消费者重试为进程内重试；未实现 Outbox；真实 RabbitMQ 使用 WSL 原生服务验证 |
-| 阶段 4：多实例部署与故障演练 | 🟡 单机验收完成 | 约 75% | 真实 Nginx 双实例代理、`nginx -t`、backend-1 宕机自动切换、双实例共享 MySQL/Redis/RabbitMQ、Rabbit 2 消费者、Web/Rabbit 优雅停机、CPU 亲和性单双实例压测、缓存开关对照、`BENCHMARK_PHASE4_SCALING.md` | 真实 MinIO 上传、双实例 Prometheus/Grafana、完整故障矩阵、独立压测机/多应用节点、`ARCHITECTURE/FAILOVER_DRILL/RUNBOOK/ADR` |
-| 阶段 5：文档、数据与简历包装 | 🟡 进行中 | 约 90% | README、`ARCHITECTURE.md`（含 Mermaid 时序图）、`ADR.md`、`BENCHMARK_RESULT.md`、`RUNBOOK.md`、`FAILOVER_DRILL.md`、`INTERVIEW_QA.md`、阶段 0～4 专项报告和 k6 场景 | README 与简历定位最后校对；延期多机/MinIO/完整故障矩阵实验 |
+| 阶段 4：多实例部署与故障演练 | 🟡 单机验收完成 | 约 85% | 真实 Nginx 双实例代理、`nginx -t`、backend-1 宕机自动切换、CPU 亲和性单双实例压测、缓存开关对照、Redis/RabbitMQ/S3 兼容存储/优雅停机/故障矩阵、`BENCHMARK_PHASE4_SCALING.md`、`FAULT_MATRIX_RESULT.md` | 真实 MinIO 上传、双实例 Prometheus/Grafana、独立压测机/多应用节点、物理主机/网络分区、MySQL 高可用 |
+| 阶段 5：文档、数据与简历包装 | 🟡 进行中 | 约 95% | README、`ARCHITECTURE.md`（含 Mermaid 时序图）、`ADR.md`、`BENCHMARK_RESULT.md`、`RUNBOOK.md`、`FAILOVER_DRILL.md`、`INTERVIEW_QA.md`、`FAULT_MATRIX_RESULT.md`、阶段 0～4 专项报告和 k6 场景 | README 与简历定位最后校对；真实 MinIO/多机/网络分区实验延期 |
 
 ### 当前结论
 
@@ -25,14 +25,14 @@
 - 阶段 1 已完成：核心查询改造、执行计划对比、Testcontainers 测试和 `BENCHMARK_QUERY.md` 均已落地；本机无 Docker，容器测试需在 CI 或安装 Docker 后执行。
 - 阶段 2 已完成：TTL 抖动、版本号精确失效、热点 Key 回源保护、点赞原子计数与周期校准均已落地；统一验收见 `docs/CACHE_AND_HOT_WRITE_REPORT.md`。
 - 阶段 3 已完成：真实 RabbitMQ 投递、批量消费、重复 eventId 幂等、停服 30 秒恢复、DLQ 重放、队列指标和优雅停机均已验证；见 `docs/RABBITMQ_VISIT_LOG.md`。
-- 阶段 4 单机可验证部分完成：真实 Nginx、双实例分流、故障切换、CPU 资源隔离压测和缓存开关对照已完成；MinIO 共享文件、独立多机扩容和完整故障矩阵延期。
+- 阶段 4 单机应用级故障矩阵完成：Redis/RabbitMQ、DLQ、S3 兼容存储、优雅停机、backend-1 宕机和 Nginx 切换已验证；真实 MinIO、独立多机扩容、物理主机/网络分区延期。
 - 阶段 5 已补齐架构、ADR、性能汇总、Runbook、故障演练、Mermaid 时序图和 Java 后端面试问答；剩余为最终简历定位校对和延期实验。
 
 ### 下一步建议（按顺序）
 
 1. **P0：README / 简历最终校对**：确保每个数字、限制和岗位表述与报告一致。
 2. **P1：延期多机实验**：有独立压测机或两台应用节点后，重跑真实水平扩容实验。
-3. **P1：延期共享存储与故障矩阵**：真实 MinIO 上传/读取、双实例指标、Redis/RabbitMQ/MinIO 故障演练。
+3. **P1：延期共享存储与物理故障**：真实 MinIO 上传/读取、双实例指标、物理主机故障、网络分区和 MySQL 高可用。
 4. **P1：在 Docker/CI 环境执行 Testcontainers 测试**。
 
 ---
@@ -467,11 +467,11 @@ dead letter queue: visit.log.write.dlq
 - [x] 单机 CPU 亲和性隔离、单双实例固定到达率压测、缓存开启/关闭对照和局限记录。
 - [ ] 真实 MinIO 上传、读取和双实例共享验证。
 - [ ] 双实例 Prometheus/Grafana 面板和告警规则。
-- [ ] Redis/RabbitMQ/MinIO/单实例宕机完整故障矩阵。
+- [x] Redis/RabbitMQ、DLQ、S3 兼容存储、优雅停机和单实例宕机故障矩阵。`n- [ ] 真实 MinIO 和物理主机/网络分区故障。
 - [x] `ARCHITECTURE.md`、`FAILOVER_DRILL.md`、`RUNBOOK.md`、`ADR.md`。
 
 详细执行顺序、验收和风险见 `docs/PHASE4_EXECUTION_PLAN.md`。
-单机性能结果与延期边界见 `docs/BENCHMARK_PHASE4_SCALING.md`。
+单机性能结果与延期边界见 `docs/BENCHMARK_PHASE4_SCALING.md`。`n单机故障矩阵结果见 `docs/FAULT_MATRIX_RESULT.md`。
 
 ### 任务
 
