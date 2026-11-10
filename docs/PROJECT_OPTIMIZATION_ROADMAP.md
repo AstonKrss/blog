@@ -16,8 +16,9 @@
 | 阶段 1：数据库与查询路径优化 | ✅ 已完成 | 100% | 文章两段式分页、笔记 N+1、标签统计 N+1、FULLTEXT UNION 搜索、标签筛选执行计划、索引前后对比、Testcontainers 集成测试、`BENCHMARK_QUERY.md` | 本机无 Docker，Testcontainers 4 个用例自动跳过；需在 Docker/CI 环境执行一次真实容器测试 |
 | 阶段 2：缓存与热点写优化 | ✅ 已完成 | 100% | TTL 抖动、精确缓存失效、热点 Key 互斥回源、点赞原子计数与周期校准、Redis Cache 统一降级、浏览量幂等+允许少计、Hikari min10/max20、在线/限流/登录防护/分布式锁故障策略、`CACHE_AND_HOT_WRITE_REPORT.md` | 本机未做四项收尾改动后的正式高并发 A/B 压测；跨实例 Redis 抢锁失败时采用可用性优先降级，不是严格全局互斥 |
 | 阶段 3：RabbitMQ 可靠异步链路 | ✅ 已完成 | 100% | RabbitMQ 真实投递、批量消费者、拆批隔离失败、event_id 幂等、DLQ、手工重放、停服 30 秒恢复、队列 ready/unacked/consumer 指标、优雅停机、`RABBITMQ_VISIT_LOG.md` | 生产端仍是 fail-open，事件可能丢失；消费者重试为进程内重试；未实现 Outbox；真实 RabbitMQ 使用 WSL 原生服务验证 |
-| 阶段 4：多实例部署与故障演练 | 🟡 单机验收完成 | 约 85% | 真实 Nginx 双实例代理、`nginx -t`、backend-1 宕机自动切换、CPU 亲和性单双实例压测、缓存开关对照、Redis/RabbitMQ/S3 兼容存储/优雅停机/故障矩阵、`BENCHMARK_PHASE4_SCALING.md`、`FAULT_MATRIX_RESULT.md` | 真实 MinIO 上传、双实例 Prometheus/Grafana、独立压测机/多应用节点、物理主机/网络分区、MySQL 高可用 |
-| 阶段 5：文档、数据与简历包装 | ✅ 已完成 | 100% | README、`ARCHITECTURE.md`（含 Mermaid 时序图）、`ADR.md`、`BENCHMARK_RESULT.md`、`RUNBOOK.md`、`FAILOVER_DRILL.md`、`INTERVIEW_QA.md`、`FAULT_MATRIX_RESULT.md`、`RESUME_PROJECT.md`、阶段 0～4 专项报告和 k6 场景 | 无文档阻断项；真实 MinIO/多机/网络分区实验属于阶段 4 延期验证 |
+| 阶段 4：多实例部署与故障演练 | 🟡 单机验收完成 | 约 85% | 真实 Nginx 双实例代理、
+ginx -t`、backend-1 宕机自动切换、CPU 亲和性单双实例压测、缓存开关对照、Redis/RabbitMQ/S3 兼容存储/优雅停机/故障矩阵、`BENCHMARK_PHASE4_SCALING.md`、`FAULT_MATRIX_RESULT.md` | 真实 MinIO 上传、双实例 Prometheus/Grafana、独立压测机/多应用节点、物理主机/网络分区、MySQL 高可用 |
+| 阶段 5：文档、数据与简历包装 | ✅ 已完成 | 100% | README、`ARCHITECTURE.md`（含 Mermaid 时序图）、`ADR.md`、`BENCHMARK_RESULT.md`、`RUNBOOK.md`、`FAILOVER_DRILL.md`、`INTERVIEW_QA.md`、`FAULT_MATRIX_RESULT.md`、`RESUME_PROJECT.md`、`JAVA_BACKEND_RESUME_AND_INTERVIEW.md`、阶段 0～4 专项报告和 k6 场景 | 无文档阻断项；真实 MinIO/多机/网络分区实验属于阶段 4 延期验证 |
 
 ### 当前结论
 
@@ -290,7 +291,8 @@ Nginx
 
 2. 修复笔记列表 N+1
    - 批量查询一页笔记的评论。
-   - 按 `noteId` 分组后组装。
+   - 按
+oteId` 分组后组装。
    - 禁止在循环中逐条查询评论。
 
 3. 修复标签统计 N+1
@@ -463,15 +465,18 @@ dead letter queue: visit.log.write.dlq
 - [x] Web 容器和 Rabbit listener 优雅停机已验证。
 - [x] 双实例启动脚本和 Node 替代代理故障转移演练已具备。
 - [x] RabbitMQ queue messages/ready/unacked/consumers 指标已接入。
-- [x] 真实 Nginx `nginx -t` 加载和双实例代理验证。
+- [x] 真实 Nginx
+ginx -t` 加载和双实例代理验证。
 - [x] 单机 CPU 亲和性隔离、单双实例固定到达率压测、缓存开启/关闭对照和局限记录。
 - [ ] 真实 MinIO 上传、读取和双实例共享验证。
 - [ ] 双实例 Prometheus/Grafana 面板和告警规则。
-- [x] Redis/RabbitMQ、DLQ、S3 兼容存储、优雅停机和单实例宕机故障矩阵。`n- [ ] 真实 MinIO 和物理主机/网络分区故障。
+- [x] Redis/RabbitMQ、DLQ、S3 兼容存储、优雅停机和单实例宕机故障矩阵。
+- [ ] 真实 MinIO 和物理主机/网络分区故障。
 - [x] `ARCHITECTURE.md`、`FAILOVER_DRILL.md`、`RUNBOOK.md`、`ADR.md`。
 
 详细执行顺序、验收和风险见 `docs/PHASE4_EXECUTION_PLAN.md`。
-单机性能结果与延期边界见 `docs/BENCHMARK_PHASE4_SCALING.md`。`n单机故障矩阵结果见 `docs/FAULT_MATRIX_RESULT.md`。
+单机性能结果与延期边界见 `docs/BENCHMARK_PHASE4_SCALING.md`。
+单机故障矩阵结果见 `docs/FAULT_MATRIX_RESULT.md`。
 
 ### 任务
 

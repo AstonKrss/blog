@@ -209,7 +209,7 @@ visit.log.write
 
 ## 简历可写表述
 
-以下表述可以直接改写进简历，建议选择 2～3 条，不要全部堆上。完整投递版见：[docs/RESUME_PROJECT.md](docs/RESUME_PROJECT.md)。
+以下表述可以直接改写进简历，建议选择 2～3 条，不要全部堆上。完整投递版见：[docs/RESUME_PROJECT.md](docs/RESUME_PROJECT.md)；简历与面试合并版见：[docs/JAVA_BACKEND_RESUME_AND_INTERVIEW.md](docs/JAVA_BACKEND_RESUME_AND_INTERVIEW.md)。
 
 ### 数据库与查询优化
 
@@ -415,6 +415,7 @@ mvn test
 | [docs/FAULT_MATRIX_RESULT.md](docs/FAULT_MATRIX_RESULT.md) | 单机 Redis/RabbitMQ/S3 兼容存储/优雅停机/Nginx 故障矩阵 |
 | [docs/INTERVIEW_QA.md](docs/INTERVIEW_QA.md) | Java 后端面试问答和项目表达边界 |
 | [docs/RESUME_PROJECT.md](docs/RESUME_PROJECT.md) | Java 后端简历精简版、标准版、两分钟项目故事和关键词映射 |
+| [docs/JAVA_BACKEND_RESUME_AND_INTERVIEW.md](docs/JAVA_BACKEND_RESUME_AND_INTERVIEW.md) | 简历写法、表达理由、面试题答案和数字边界的合并版 |
 | [docs/REDIS_FAILURE_POLICIES.md](docs/REDIS_FAILURE_POLICIES.md) | Redis 故障策略 |
 | [docs/VIEW_COUNT_IDEMPOTENCY.md](docs/VIEW_COUNT_IDEMPOTENCY.md) | 浏览量幂等设计 |
 | [docs/SECURITY.md](docs/SECURITY.md) | 安全架构说明 |
