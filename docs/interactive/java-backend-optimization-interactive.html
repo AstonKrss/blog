@@ -56,6 +56,10 @@ html[data-theme="light"] pre{background:#152235;color:#eef8ff}
 pre code{background:transparent;border:0;padding:0;color:inherit}
 .code-head{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap}.code-head h4{margin:0}.code-head .copy-code{margin-left:auto}
 .code-why{display:grid;gap:.45rem;margin-top:.7rem}.code-why div{padding:.55rem .7rem;border-left:3px solid var(--cyan);background:rgba(92,225,212,.06);border-radius:0 9px 9px 0;color:var(--muted)}
+.bank-filters{display:flex;gap:.45rem;flex-wrap:wrap;margin:.8rem 0}.bank-filter{padding:.42rem .68rem;font-size:.84rem;border-radius:999px}.bank-filter.active{border-color:var(--cyan);background:rgba(92,225,212,.12);color:var(--cyan)}
+.question-card{scroll-margin-top:82px}.question-meta{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.35rem}.answer-grid{display:grid;gap:.55rem;margin-top:.65rem}.answer-grid>div{padding:.65rem .75rem;border-radius:10px;background:rgba(0,0,0,.1);border:1px solid var(--line)}.answer-grid b{color:var(--cyan)}
+.mock-setup{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.7rem;margin:.8rem 0}.mock-mode{border:1px solid var(--line);border-radius:13px;padding:1rem;background:var(--panel2);cursor:pointer;transition:.18s}.mock-mode:hover{border-color:var(--cyan);transform:translateY(-1px)}.mock-mode b{display:block;margin-bottom:.25rem}.mock-mode small{color:var(--muted)}
+.mock-live{display:none}.mock-live.show{display:block}.mock-progress{height:10px;border-radius:99px;overflow:hidden;background:var(--panel2);border:1px solid var(--line);margin:.55rem 0}.mock-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--blue));transition:width .35s}.mock-question{font-size:1.12rem;font-weight:800;margin:.8rem 0}.mock-meta{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:.86rem}.self-answer{width:100%;min-height:120px;resize:vertical;margin:.6rem 0;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:11px;padding:.75rem;outline:none}.self-answer:focus{border-color:var(--cyan)}.mock-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0}.mock-answer{display:none;margin:.75rem 0}.mock-answer.show{display:block}.assess-row{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.55rem}.assess-row button:nth-child(1){border-color:var(--red);background:rgba(255,113,133,.1)}.assess-row button:nth-child(2){border-color:var(--amber);background:rgba(255,200,87,.1)}.assess-row button:nth-child(3){border-color:var(--green);background:rgba(108,228,157,.1)}.mock-summary{display:none}.mock-summary.show{display:block}.score-circle{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;margin:1rem auto;background:conic-gradient(var(--cyan) var(--score-deg,0deg),var(--panel2) 0);position:relative}.score-circle:after{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--panel)}.score-circle span{position:relative;z-index:1;font-size:1.5rem;font-weight:900;color:var(--cyan)}.category-score{display:grid;gap:.45rem}.category-score-row{display:grid;grid-template-columns:minmax(120px,1fr) 2fr 52px;gap:.55rem;align-items:center;font-size:.9rem}.category-score-row .bar{height:8px;border-radius:99px;background:var(--panel2);overflow:hidden}.category-score-row .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green))}
 </style>
 </head>
 <body>
@@ -76,7 +80,7 @@ pre code{background:transparent;border:0;padding:0;color:inherit}
   <section class="hero">
     <span class="eyebrow">Phases 0–5 · Interactive Walkthrough</span>
     <h1>从“功能能做”到<span>能解释、能压测、能降级</span>的后端改造</h1>
-    <p>这不是一份只列技术栈的总结。页面按阶段梳理我们实际做了什么，并把最容易混淆的知识点做成可点击实验：Actuator、P95/P99、JVM/GC、Hikari、N+1、Redis 降级、热点 Key、浏览量幂等、RabbitMQ 路由/ACK/DLQ、双实例性能、MinIO 与故障矩阵。</p>
+    <p>这不是一份只列技术栈的总结。页面按阶段梳理我们实际做了什么，并把最容易混淆的知识点做成可点击实验：Actuator、P95/P99、JVM/GC、Hikari、N+1、Redis 降级、热点 Key、浏览量幂等、RabbitMQ 路由/ACK/DLQ、双实例性能、MinIO 与故障矩阵。页面还包含 41 道面试题库和可交互模拟面试。</p>
     <div class="hero-actions">
       <button class="primary" data-scroll="overview">先看全局路线</button>
       <button data-scroll="confusions">直接看我不理解的地方</button>
@@ -96,6 +100,8 @@ pre code{background:transparent;border:0;padding:0;color:inherit}
       <button class="nav-link" data-target="phase4"><span class="num">5</span><span>双实例与故障矩阵</span></button>
       <button class="nav-link" data-target="phase5"><span class="num">6</span><span>文档、简历、面试</span></button>
       <button class="nav-link" data-target="confusions"><span class="num">?</span><span>高频疑问总索引</span></button>
+      <button class="nav-link" data-target="question-bank"><span class="num">Q</span><span>面试题库与解析</span></button>
+      <button class="nav-link" data-target="mock-interview"><span class="num">▶</span><span>交互模拟面试</span></button>
       <button class="nav-link" data-target="glossary"><span class="num">A</span><span>术语词典</span></button>
       <button class="nav-link" data-target="quiz"><span class="num">✓</span><span>10 道自测题</span></button>
       <div class="sidebar-footer">
@@ -537,6 +543,78 @@ server {
         </div>
       </section>
 
+      <section id="question-bank" class="phase">
+        <div class="phase-head"><div class="phase-badge">Q</div><div><h2>面试题库与答案解析</h2><p>不是只给一句答案，而是拆成“参考答案 / 考察点 / 可能追问”。建议先自己回答，再看解析。</p></div></div>
+        <div class="bank-filters" id="bankFilters">
+          <button class="bank-filter active" data-bank-filter="all">全部</button>
+          <button class="bank-filter" data-bank-filter="项目架构">项目架构</button>
+          <button class="bank-filter" data-bank-filter="MySQL/JPA">MySQL/JPA</button>
+          <button class="bank-filter" data-bank-filter="Redis/缓存">Redis/缓存</button>
+          <button class="bank-filter" data-bank-filter="RabbitMQ">RabbitMQ</button>
+          <button class="bank-filter" data-bank-filter="并发/一致性">并发/一致性</button>
+          <button class="bank-filter" data-bank-filter="性能/观测">性能/观测</button>
+          <button class="bank-filter" data-bank-filter="多实例/故障">多实例/故障</button>
+          <button class="bank-filter" data-bank-filter="Java/Spring">Java/Spring</button>
+        </div>
+        <div id="questionBank" class="grid two"></div>
+      </section>
+
+      <section id="mock-interview" class="phase">
+        <div class="phase-head"><div class="phase-badge">▶</div><div><h2>交互模拟面试</h2><p>先输入自己的回答，再查看参考答案和考察点，最后按“不会 / 模糊 / 会”自评，系统会统计弱项。</p></div></div>
+        <div id="mockSetup">
+          <div class="mock-setup">
+            <div class="mock-mode" data-mock-mode="quick"><b>快速热身 · 5 题</b><small>从全部类别随机抽取，适合 5 分钟自测。</small></div>
+            <div class="mock-mode" data-mock-mode="project"><b>项目深入 · 10 题</b><small>聚焦性能、缓存、MQ、多实例和故障边界。</small></div>
+            <div class="mock-mode" data-mock-mode="java"><b>Java 后端混合 · 10 题</b><small>项目题 + Java/Spring + 并发一致性。</small></div>
+            <div class="mock-mode" data-mock-mode="category"><b>按类别练习</b><small>选择分类和题目数量，针对弱项反复练。</small></div>
+          </div>
+          <div class="controls">
+            <label>分类
+              <select id="mockCategory">
+                <option value="all">全部</option><option value="项目架构">项目架构</option><option value="MySQL/JPA">MySQL/JPA</option><option value="Redis/缓存">Redis/缓存</option><option value="RabbitMQ">RabbitMQ</option><option value="并发/一致性">并发/一致性</option><option value="性能/观测">性能/观测</option><option value="多实例/故障">多实例/故障</option><option value="Java/Spring">Java/Spring</option>
+              </select>
+            </label>
+            <label>题量 <select id="mockCount"><option>3</option><option selected>5</option><option>8</option><option>10</option><option>15</option></select></label>
+            <button id="mockStartCategory" class="primary">开始分类练习</button>
+          </div>
+        </div>
+
+        <div id="mockLive" class="mock-live">
+          <div class="mock-meta"><span id="mockCategoryLabel" class="badge"></span><span id="mockIndexLabel"></span><span id="mockTimer">00:00</span></div>
+          <div class="mock-progress"><i id="mockProgress"></i></div>
+          <div id="mockQuestion" class="mock-question"></div>
+          <textarea id="selfAnswer" class="self-answer" placeholder="先用自己的话回答：问题是什么、为什么这样设计、有什么效果和边界？"></textarea>
+          <div class="mock-actions">
+            <button id="revealAnswer" class="primary">查看参考答案</button>
+            <button id="showFollowup" class="small">显示可能追问</button>
+            <button id="quitMock" class="ghost small">结束模拟</button>
+          </div>
+          <div id="mockAnswer" class="mock-answer">
+            <div class="answer-grid">
+              <div><b>参考答案</b><p id="mockAnswerText"></p></div>
+              <div><b>考察点 / 解析</b><p id="mockAnalysisText"></p></div>
+              <div><b>可能追问</b><p id="mockFollowupText"></p></div>
+            </div>
+            <div class="assess-row">
+              <button data-assess="0">不会 / 需要复习</button>
+              <button data-assess="1">模糊 / 能说一点</button>
+              <button data-assess="2">会 / 能讲清楚</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="mockSummary" class="mock-summary">
+          <h3>模拟面试结果</h3>
+          <div class="score-circle" id="scoreCircle"><span id="scoreText">0%</span></div>
+          <div id="scoreHeadline" class="callout"></div>
+          <h4>分类表现</h4>
+          <div id="categoryScores" class="category-score"></div>
+          <h4>需要重点复习</h4>
+          <div id="weakQuestions"></div>
+          <div class="mock-actions"><button id="restartMock" class="primary">重新开始</button></div>
+        </div>
+      </section>
+
       <section id="glossary" class="phase">
         <div class="phase-head"><div class="phase-badge">A</div><div><h2>术语词典</h2><p>把缩写和概念用一句话说清楚。</p></div></div>
         <div class="term-grid">
@@ -794,6 +872,125 @@ function answerQuiz(qi,oi){
 function updateScore(){$('#quizScore').textContent=`得分：${quizScore} / ${quiz.length}`;}
 $('#quizReset').addEventListener('click',renderQuiz);renderQuiz();
 
+// Interview bank
+const interviewBank = [
+{id:1,category:'项目架构',q:'请用一分钟介绍这个项目。',answer:`这是一个面向高读低写内容平台的博客系统。我在基础功能之外完成了三阶段改造：先接 Actuator、Prometheus 和 k6 建立基线，再优化 SQL、N+1、索引和 Redis 缓存，最后用 RabbitMQ 解耦访问日志并完成 Nginx 双实例和故障矩阵。核心目标是让每项优化都有数据、取舍和边界。`,analysis:`考察你是否能先讲业务问题，再讲技术方案，而不是从 Spring Boot、Redis 技术栈开始背。`,followup:`你最大的技术贡献是什么？如果只保留一个改造，你保留哪个？`},
+{id:2,category:'项目架构',q:'为什么保持模块化单体，不拆微服务？',answer:`当前是个人项目，没有独立团队、独立发布和独立扩缩容需求。拆微服务会先引入服务发现、配置中心、分布式事务、链路追踪和运维复杂度，但没有对应收益。我先用包边界和模块职责把业务隔开，等出现真实边界再拆。`,analysis:`考察架构判断力。正确答案不是“单体永远好”，而是“当前问题是否需要微服务”。`,followup:`什么信号出现时你会拆？拆哪一块？`},
+{id:3,category:'项目架构',q:'项目中最大的技术难点是什么？',answer:`难点不是写出接口，而是保证缓存、消息和数据库之间的一致性边界。比如 Redis 和 MySQL 无法组成原子事务，所以浏览量使用 batchId 幂等；RabbitMQ 可能重复投递，所以消费端用 eventId 唯一键；多实例下还要区分高可用和性能扩容。`,analysis:`考察你是否理解分布式系统的边界，而不是只报技术名词。`,followup:`你为什么不直接上一个全局事务？`},
+{id:4,category:'项目架构',q:'你怎么证明这些优化真的有效？',answer:`先建立基线，再做同场景前后对比。查询优化看 P95/P99、SELECT 次数和 EXPLAIN；缓存看命中率、fallback、MySQL 回源；Hikari 看 pending 和 acquire；MQ 看 Confirm、ACK、DLQ 和停服恢复；多实例用固定到达率 k6 和 CPU 亲和性实验。`,analysis:`考察性能工程意识：指标、场景和对照缺一不可。`,followup:`哪些结论不能从当前数据中得出？`},
+{id:5,category:'MySQL/JPA',q:'JOIN FETCH 加 Page 有什么问题？',answer:`文章和标签是一对多或多对多，JOIN 会放大结果行。Hibernate 为了正确分页可能先加载大量数据再在内存处理，数据量大时会产生慢查询、计数和分页异常。我改成先分页查文章 ID，再按 ID 批量加载标签和作者。`,analysis:`考察 ORM 分页、集合 JOIN 和结果集放大的理解。`,followup:`两段式分页是否一定比一条 SQL 快？`},
+{id:6,category:'MySQL/JPA',q:'N+1 是什么？你怎么修？',answer:`N+1 是先查一页主对象，再在循环里对每个对象查关联数据。我把当前页 noteId 收集起来，批量查评论、评论作者和点赞，再按 noteId 分组回装。查询从约 42 次/请求降到约 4 次。`,analysis:`考察是否能识别 ORM 循环查询，并知道批量查询后还要正确组装。`,followup:`为什么不能查全表评论再缓存？`},
+{id:7,category:'MySQL/JPA',q:'笔记评论为什么先建树再截取前三条？',answer:`评论有父子层级。如果直接截原始评论，可能截到子评论或破坏树结构。先按 noteId 分组建完整树，再取前三个根节点，保证返回的是完整的前三条根评论及其子节点。`,analysis:`考察业务语义和数据组装细节，不只是 SQL 次数。`,followup:`如果评论量非常大，建树本身会不会成为瓶颈？`},
+{id:8,category:'MySQL/JPA',q:'为什么搜索用 FULLTEXT，不用 Elasticsearch？',answer:`当前搜索以标题、正文和标签为主，数据规模和复杂检索需求还不需要 ES。FULLTEXT 可以解决 LIKE 全表扫描，并且与 MySQL 同库、无同步一致性成本。出现复杂中文分词、相关性排序和大规模聚合后再评估 ES。`,analysis:`考察技术选型和成本意识。`,followup:`FULLTEXT 的局限是什么？`},
+{id:9,category:'MySQL/JPA',q:'你怎么验证索引有效？',answer:`用 EXPLAIN 或 EXPLAIN ANALYZE 看访问类型、扫描行数、临时表和 filesort，再结合真实数据量和接口 P95。索引不是看“有没有建”，而是看优化器是否使用、是否减少扫描、是否带来过多写放大。`,analysis:`考察是否会用执行计划，而不是凭感觉加索引。`,followup:`什么情况下索引会被优化器忽略？`},
+{id:10,category:'MySQL/JPA',q:'为什么需要 Testcontainers？',answer:`单元测试可以验证逻辑，但不能证明真实 MySQL、Redis、RabbitMQ 的 SQL、事务和协议行为。Testcontainers 用真实容器提供可重复的集成环境，适合覆盖分页、标签筛选、搜索、幂等和事务。当前本机无 Docker，4 个用例被跳过。`,analysis:`考察测试分层和对真实依赖的意识。`,followup:`Testcontainers 测试慢怎么办？`},
+{id:11,category:'Redis/缓存',q:'缓存边界怎么划？',answer:`优先缓存高读、低变化、可容忍短暂不一致的数据，比如文章列表、详情、标签、归档、搜索和公开设置。写操作后按版本或精确 Key 失效，并加 TTL 抖动。不能因为 Redis 快就缓存所有数据。`,analysis:`考察缓存收益和一致性成本的权衡。`,followup:`哪些数据你明确不缓存？为什么？`},
+{id:12,category:'Redis/缓存',q:'缓存命中率高就说明系统好吗？',answer:`不一定。命中率高说明缓存有效，但如果测试数据太少、Key 太集中或只测热缓存，就无法证明数据库和冷启动能力。要同时看缓存关闭、冷查询、回源 QPS、Hikari pending 和 P99。`,analysis:`考察你是否知道测试可能“把瓶颈藏起来”。`,followup:`如何设计冷热分离的压测？`},
+{id:13,category:'Redis/缓存',q:'TTL 随机抖动解决什么问题？',answer:`如果大量 Key 使用相同 TTL，它们可能在几乎同一时刻过期，造成集中回源数据库。给 TTL 加随机抖动可以打散过期时间，降低周期性缓存击穿。`,analysis:`考察缓存雪崩和过期策略。`,followup:`抖动范围怎么选？`},
+{id:14,category:'Redis/缓存',q:'为什么不做 allEntries 全量清空？',answer:`文章更新时全量清空会让所有缓存同时失效，造成大量回源。项目用版本号或精确 Key 让相关缓存失效，只影响真正变化的业务维度，减少数据库尖峰。`,analysis:`考察缓存失效粒度。`,followup:`版本号方案怎么保证旧数据不会被读到？`},
+{id:15,category:'Redis/缓存',q:'热点 Key 缓存击穿怎么处理？',answer:`单实例用固定分段 ReentrantLock 让同 Key 只有一个请求回源；跨实例尝试 Redis 分布式锁，拿到锁后再次检查缓存，再执行 loader。当前多实例抢锁失败采用可用性优先，允许少量重复回源，不是严格全局单飞。`,analysis:`考察并发控制和可用性取舍。`,followup:`为什么不让 B 实例一直等锁？`},
+{id:16,category:'Redis/缓存',q:'Redis 挂了，核心页面会怎样？',answer:`统一缓存包装捕获 get/put 异常，记录 fallback 指标并执行原方法查 MySQL；写回失败不影响返回。但直接使用 RedisTemplate 的在线人数、限流、登录防护、浏览量和分布式锁必须各自定义故障策略。`,analysis:`考察你是否知道 Spring Cache 默认行为和项目扩展行为的区别。`,followup:`如果 Redis 长时间挂掉，怎么保护 MySQL？`},
+{id:17,category:'RabbitMQ',q:'为什么只给访问日志引入 MQ？',answer:`访问日志是低优先级、可异步、允许短暂失败的链路，适合解耦。只做这一条可以完整验证 Confirm、ACK、批量事务、幂等、重试和 DLQ，同时避免把邮件、点赞、缓存失效全部塞进 MQ。`,analysis:`考察你是否能控制复杂度。`,followup:`哪些业务不适合异步？`},
+{id:18,category:'RabbitMQ',q:'Exchange、Routing Key、Binding、Queue 分别是什么？',answer:`Producer 把消息发到 Exchange，不直接发到 Queue。Exchange 根据类型、Routing Key 和 Binding 把消息路由到一个或多个 Queue。Direct 精确匹配，Topic 支持通配符，Fanout 广播。`,analysis:`考察 MQ 基础模型，而不是只会在注解里写队列名。`,followup:`direct 和 topic 如何选？`},
+{id:19,category:'RabbitMQ',q:'Publisher Confirm 和 Consumer ACK 有什么区别？',answer:`Confirm 方向是 Broker 到 Producer，表示 Broker 已收到并负责消息；ACK 方向是 Consumer 到 Broker，表示消费者完成处理。项目要求 MySQL 事务提交后再 ACK，Confirm 成功不代表数据库已写入。`,analysis:`考察两个确认机制的方向和语义。`,followup:`Confirm 和 ACK 都成功，为什么还要 eventId 幂等？`},
+{id:20,category:'RabbitMQ',q:'重复消息怎么防重？',answer:`Producer 第一次生成稳定 eventId，重试时不能重新生成；Consumer 把 eventId 写入带唯一索引的 visit_logs，数据库唯一键做最终兜底。不能只依赖消费者内存 Set，因为进程重启后就失效。`,analysis:`考察至少一次投递和消费端幂等。`,followup:`如果 eventId 本身重复但业务内容不同怎么办？`},
+{id:21,category:'RabbitMQ',q:'批量消费失败为什么要二分拆批？',answer:`一批消息整体事务失败时，全部重试会让正常消息重复处理。二分拆批可以逐步隔离坏消息，成功子批继续提交并 ACK，最终只把永久失败的单条消息 NACK 到 DLQ。`,analysis:`考察批处理失败隔离和重试成本。`,followup:`二分拆批的复杂度是多少？`},
+{id:22,category:'RabbitMQ',q:'RabbitMQ 挂了，消息会不会丢？',answer:`已经成功进入 Broker 并持久化的消息通常能在恢复后继续消费；但生产端 fail-open 期间根本没发送成功的日志不会自动补发，所以允许丢失。要保证零丢失，需要使用 Outbox 或本地事件表。`,analysis:`考察对可靠性和业务优先级的取舍。`,followup:`Outbox 怎么实现？`},
+{id:23,category:'并发/一致性',q:'Redis 分布式锁怎么做？',answer:`使用 SET NX PX 获取锁，随机 token 标识持有者；释放时用 Lua 脚本先比较 token 再 DEL，避免锁过期后误删其他实例的锁。锁 TTL 需要大于任务时间。`,analysis:`考察原子操作和误删锁问题。`,followup:`锁过期但任务没结束怎么办？`},
+{id:24,category:'并发/一致性',q:'为什么不能用 Redis 和 MySQL 做跨系统事务？',answer:`它们是独立系统，本地事务无法同时保证两边原子提交。项目不追求强一致，而是用稳定 batchId、MySQL 唯一键和重试实现最终幂等；失败时允许少计浏览量，优先保证页面可用。`,analysis:`考察分布式一致性边界。`,followup:`强一致场景可以怎么做？`},
+{id:25,category:'并发/一致性',q:'浏览量为什么要 batchId？',answer:`batchId 标识一次 Redis 增量批次。MySQL 用唯一键登记批次，成功后在同一事务里更新文章计数；重复执行同一批次会识别为 ALREADY_APPLIED，不会重复加浏览。`,analysis:`考察幂等键和事务边界。`,followup:`batchId 在哪里生成？`},
+{id:26,category:'并发/一致性',q:'点赞怎么保证不重复？',answer:`数据库保存用户和文章的唯一点赞记录，重复提交先判断是否已点赞；计数使用原子更新或校准任务，避免并发下 read-modify-write 丢失更新。`,analysis:`考察唯一约束和原子计数。`,followup:`取消点赞并发重复执行怎么办？`},
+{id:27,category:'性能/观测',q:'P95 和 P99 为什么比平均值重要？',answer:`平均值会被少数极慢请求稀释，也无法反映尾部体验。P95/P99 能显示最慢那部分用户的情况，但必须同时结合实际 RPS、错误率和 dropped iterations，否则可能只是压测机没打满。`,analysis:`考察性能指标解释能力。`,followup:`P99 很高但 P50 很低说明什么？`},
+{id:28,category:'性能/观测',q:'Hikari 连接池怎么调？',answer:`先通过 pending、acquire、timeout 指标判断等待，再看 MySQL 连接上限和 CPU。项目在 100 VU 下从 10 连接调到 min10/max20，pending 从 23 降到 0，P95 从 71.45ms 到 40.64ms。连接数不是越大越好。`,analysis:`考察连接池指标和数据库整体容量。`,followup:`如果连接数加大后 DB CPU 满了怎么办？`},
+{id:29,category:'性能/观测',q:'JVM GC 怎么选？',answer:`先从 G1 和实际 GC 日志开始，看停顿和吞吐是否满足业务。Parallel 偏吞吐，ZGC 偏低延迟大堆但成本更高，Serial 适合小堆。不能在没有停顿数据时盲目换算法。`,analysis:`考察 JVM 观测优先于参数迷信。`,followup:`你会看哪些 GC 指标？`},
+{id:30,category:'性能/观测',q:'你怎么发现真实瓶颈？',answer:`先用 Prometheus/Grafana 看 HTTP、JVM、Hikari、Redis、MySQL 和 MQ，再用 k6 固定到达率验证。项目发现过集合 JOIN、N+1、缺少索引、连接池等待、缓存掩盖数据库压力，以及单机上 k6 和 JVM 抢 CPU。`,analysis:`考察是否有“测量优先”的工程方法。`,followup:`如果所有指标都正常但用户仍说慢，怎么查？`},
+{id:31,category:'性能/观测',q:'dropped iterations 是什么？为什么要关注？',answer:`k6 计划每秒发 N 个请求，但机器资源不足或调度不及时，部分迭代没有按时发起。此时实际 RPS 没达标，不能直接拿延迟下结论。它说明压测机、VU 或被测系统可能已经成为瓶颈。`,analysis:`考察压测结果可信度。`,followup:`如何区分是压测机瓶颈还是服务瓶颈？`},
+{id:32,category:'多实例/故障',q:'双实例到底有没有提升性能？',answer:`要分高可用和性能。高可用上 Nginx + 双实例可以在 backend-1 宕机时切换；性能上，如果两个 JVM 共享一台机器和同一套 CPU，未必更快。通过 CPU 亲和性隔离后，双实例在 1000/1500 RPS 下无 dropped iterations，单实例多次掉迭代，但这仍不等于真实多机线性扩容。`,analysis:`考察是否能区分高可用、扩容和单机实验。`,followup:`真实扩容实验还需要什么？`},
+{id:33,category:'多实例/故障',q:'backend-1 宕机后请求怎么恢复？',answer:`Nginx upstream 配置两个 backend，proxy_next_upstream 在连接错误、超时或 5xx 时尝试下一个节点。实测 backend-1 强杀后 20/20 请求 HTTP 200，前两次约 3 秒完成故障检测，之后延迟恢复。`,analysis:`考察反向代理和故障切换成本。`,followup:`为什么首次切换要 3 秒？怎么降低？`},
+{id:34,category:'多实例/故障',q:'单机故障矩阵能证明什么？',answer:`可以证明 Redis 降级、RabbitMQ fail-open、DLQ、S3 兼容存储故障、优雅停机和 Nginx 进程级故障切换。不能证明物理主机宕机、网络分区、独立硬件扩容和 MySQL 高可用。`,analysis:`考察你是否会诚实描述实验边界。`,followup:`如果只有一台电脑，怎样设计最有价值的实验？`},
+{id:35,category:'多实例/故障',q:'MinIO 没验证成功，为什么不直接跳过？',answer:`代码里已经有 MinioFileStorage，但官方社区二进制下载已返回 410，所以使用 moto S3 兼容服务验证协议、上传、跨实例读取、停服和恢复。报告明确写“S3 兼容替身”，真实 MinIO 延期，没有伪造完成。`,analysis:`考察工程诚信和替代验证方案。`,followup:`S3 兼容替身不能证明什么？`},
+{id:36,category:'多实例/故障',q:'什么是优雅停机？',answer:`应用收到关闭信号后停止接收新请求，等待 Tomcat 当前请求、Rabbit listener 当前任务和数据库连接池正常结束，再退出。项目日志包含 waiting for workers、graceful shutdown complete 和 Hikari shutdown completed。`,analysis:`考察发布、重启和消息消费的可靠性。`,followup:`优雅停机和强制 kill 的区别？`},
+{id:37,category:'Java/Spring',q:'Spring 事务边界放在哪一层？',answer:`放在 Service 层，Controller 只做参数和响应，Repository 只做数据访问。跨多个写操作的业务必须在一个事务里，例如浏览量批次登记和计数更新。读操作可以标记 readOnly。`,analysis:`考察分层和事务职责。`,followup:`Controller 上放 Transactional 有什么问题？`},
+{id:38,category:'Java/Spring',q:'@Transactional 为什么可能失效？',answer:`常见原因包括同类方法自调用绕过代理、异常被吞掉、异常类型不触发回滚、方法不是 public、事务管理器不匹配、异步线程不在原事务里。排查要看调用是否经过 Spring 代理。`,analysis:`考察 Spring AOP 原理和事务实践。`,followup:`同类方法自调用怎么解决？`},
+{id:39,category:'Java/Spring',q:'JPA 懒加载和 open-in-view 有什么风险？',answer:`懒加载如果发生在事务外会抛 LazyInitializationException；open-in-view 让 Session 拖到视图层，容易隐藏 N+1 并长时间占用连接。项目在明确位置批量加载关联，不依赖视图层临时触发 SQL。`,analysis:`考察 JPA 生命周期和 N+1 关系。`,followup:`如何确认序列化时又触发了 SQL？`},
+{id:40,category:'Java/Spring',q:'JWT 为什么适合无状态多实例？',answer:`JWT 携带 userId 和 role，服务端通过签名验证，不需要把 Session 固定在某一台机器，所以 Nginx 不需要 Sticky Session。代价是注销和权限实时撤销更难，需要短 TTL 或黑名单/版本号。`,analysis:`考察认证状态与负载均衡的关系。`,followup:`JWT 被盗怎么办？`},
+{id:41,category:'Java/Spring',q:'线程池和 Hikari 连接池有什么区别？',answer:`线程池管理执行任务的线程，Hikari 管理到数据库的物理连接。线程拿到连接后才能执行 SQL；线程多但连接少，就会出现 Hikari pending；连接多但线程和数据库 CPU 不够，也只会把压力推给数据库。`,analysis:`考察两个池子的职责和常见混淆。`,followup:`高并发下应该先调哪个？`}
+];
+
+// Question bank
+let activeBankFilter='all';
+function renderQuestionBank(filter='all'){
+  activeBankFilter=filter;
+  const rows=filter==='all'?interviewBank:interviewBank.filter(x=>x.category===filter);
+  $('#questionBank').innerHTML=rows.map(item=>`<details class="qa-item question-card" data-category="${item.category}"><summary>${item.q}</summary><div class="question-meta"><span class="badge">${item.category}</span></div><div class="answer-grid"><div><b>参考答案</b><p>${item.answer}</p></div><div><b>考察点 / 解析</b><p>${item.analysis}</p></div><div><b>可能追问</b><p>${item.followup}</p></div></div></details>`).join('');
+  $$('.question-card').forEach(card=>{const first=card.querySelector('summary');first.addEventListener('click',()=>{setTimeout(()=>{if(card.open)$$('.question-card').forEach(x=>{if(x!==card)x.open=false})},0)})});
+}
+$$('.bank-filter').forEach(btn=>btn.addEventListener('click',()=>{$$('.bank-filter').forEach(b=>b.classList.toggle('active',b===btn));renderQuestionBank(btn.dataset.bankFilter);}));
+renderQuestionBank('all');
+
+// Mock interview
+let mockState=null, mockTimer=null;
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pickQuestions(mode, category, count){
+  let pool=[...interviewBank];
+  if(mode==='project') pool=pool.filter(x=>['项目架构','MySQL/JPA','Redis/缓存','RabbitMQ','性能/观测','多实例/故障'].includes(x.category));
+  if(mode==='java') pool=pool.filter(x=>['Java/Spring','并发/一致性','MySQL/JPA','Redis/缓存'].includes(x.category));
+  if(mode==='category' && category!=='all') pool=pool.filter(x=>x.category===category);
+  return shuffle(pool).slice(0,Math.min(count,pool.length));
+}
+function startMock(mode){
+  const category=$('#mockCategory').value;
+  const count=Number($('#mockCount').value);
+  const questions=pickQuestions(mode,category,count);
+  if(!questions.length){toast('该分类没有题目');return;}
+  mockState={mode,questions,index:0,ratings:[],answers:[],startAt:Date.now()};
+  $('#mockSetup').style.display='none';$('#mockSummary').classList.remove('show');$('#mockLive').classList.add('show');
+  clearInterval(mockTimer);mockTimer=setInterval(updateMockTimer,1000);updateMockTimer();renderMockQuestion();
+}
+$$('.mock-mode').forEach(card=>card.addEventListener('click',()=>{
+  const mode=card.dataset.mockMode;
+  if(mode==='category'){ $('#mockCategory').focus(); toast('选择分类和题量后点击开始分类练习'); return; }
+  startMock(mode);
+}));
+$('#mockStartCategory').addEventListener('click',()=>startMock('category'));
+function updateMockTimer(){
+  if(!mockState)return; const s=Math.floor((Date.now()-mockState.startAt)/1000); const m=String(Math.floor(s/60)).padStart(2,'0'); const sec=String(s%60).padStart(2,'0'); $('#mockTimer').textContent=`${m}:${sec}`;
+}
+function renderMockQuestion(){
+  const item=mockState.questions[mockState.index];
+  $('#mockCategoryLabel').textContent=item.category;
+  $('#mockIndexLabel').textContent=`第 ${mockState.index+1} / ${mockState.questions.length} 题`;
+  $('#mockProgress').style.width=((mockState.index)/mockState.questions.length*100)+'%';
+  $('#mockQuestion').textContent=item.q;
+  $('#selfAnswer').value='';
+  $('#mockAnswer').classList.remove('show');
+  $('#mockAnswerText').textContent=item.answer;
+  $('#mockAnalysisText').textContent=item.analysis;
+  $('#mockFollowupText').textContent=item.followup;
+  $('#mockQuestion').scrollIntoView({behavior:'smooth',block:'center'});
+}
+$('#revealAnswer').addEventListener('click',()=>{$('#mockAnswer').classList.add('show');});
+$('#showFollowup').addEventListener('click',()=>{$('#mockAnswer').classList.add('show');$('#mockFollowupText').scrollIntoView({behavior:'smooth',block:'center'});});
+$$('[data-assess]').forEach(btn=>btn.addEventListener('click',()=>{
+  if(!mockState)return;
+  const rating=Number(btn.dataset.assess);
+  const item=mockState.questions[mockState.index];
+  mockState.ratings.push({id:item.id,q:item.q,category:item.category,rating,answer:$('#selfAnswer').value.trim()});
+  if(mockState.index+1>=mockState.questions.length){finishMock();}else{mockState.index++;renderMockQuestion();}
+}));
+$('#quitMock').addEventListener('click',()=>{if(mockState&&mockState.ratings.length){finishMock();}else{resetMock();}});
+$('#restartMock').addEventListener('click',resetMock);
+function resetMock(){clearInterval(mockTimer);mockState=null;$('#mockLive').classList.remove('show');$('#mockSummary').classList.remove('show');$('#mockSetup').style.display='block';$('#mockTimer').textContent='00:00';}
+function finishMock(){
+  clearInterval(mockTimer);$('#mockLive').classList.remove('show');$('#mockSummary').classList.add('show');$('#mockProgress').style.width='100%';
+  const total=mockState.ratings.length*2; const score=mockState.ratings.reduce((s,x)=>s+x.rating,0); const pct=total?Math.round(score/total*100):0;
+  $('#scoreText').textContent=pct+'%'; $('#scoreCircle').style.setProperty('--score-deg',(pct*3.6)+'deg');
+  $('#scoreHeadline').innerHTML=pct>=80?`<b>表现很好。</b>你能把问题、方案、效果和边界串起来，下一步重点练追问和数字出处。`:pct>=50?`<b>基础可用，但还不够稳。</b>建议重练低分分类，并用自己的话复述“为什么这样设计”。`:`<b>需要系统复习。</b>先把高频疑问和代码走读看一遍，再重新模拟。不要只背答案。`;
+  const byCat={};mockState.ratings.forEach(r=>{if(!byCat[r.category])byCat[r.category]={score:0,total:0};byCat[r.category].score+=r.rating;byCat[r.category].total+=2;});
+  $('#categoryScores').innerHTML=Object.entries(byCat).map(([cat,v])=>{const p=Math.round(v.score/v.total*100);return `<div class="category-score-row"><span>${cat}</span><div class="bar"><i style="width:${p}%"></i></div><b>${p}%</b></div>`}).join('');
+  const weak=mockState.ratings.filter(x=>x.rating<2); $('#weakQuestions').innerHTML=weak.length?weak.map(x=>`<div class="callout danger"><b>${x.category}</b>：${x.q}<br><span class="mini-note">自评：${x.rating===0?'不会':'模糊'}</span></div>`).join(''):'<div class="callout">没有明显弱项，继续练追问和项目数据。</div>';
+  $('#mockSummary').scrollIntoView({behavior:'smooth',block:'start'});
+}
 // Code walkthrough tabs
 $$('.code-tab').forEach(tab=>tab.addEventListener('click',()=>{
   const id=tab.dataset.codeTab;
