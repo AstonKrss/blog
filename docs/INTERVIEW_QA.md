@@ -286,5 +286,8 @@ Publisher Confirm 是 Broker 告诉 Producer“我收到了”；Consumer ACK �
 - `docs/RUNBOOK.md`
 - `docs/FAILOVER_DRILL.md`
 - `docs/BENCHMARK_PHASE4_SCALING.md`
+- `docs/FAULT_MATRIX_RESULT.md`
+- `docs/INTERVIEW_QA.md`
+- `docs/RESUME_PROJECT.md`
 - `docs/CACHE_AND_HOT_WRITE_REPORT.md`
 - `docs/RABBITMQ_VISIT_LOG.md`

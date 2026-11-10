@@ -171,7 +171,7 @@ visit.log.write
 - 双实例启动与故障转移脚本；
 - 后端和 Rabbit listener 优雅停机配置。
 
-阶段 4 单机验证已完成：真实 Nginx、双实例分流、故障切换、CPU 资源隔离压测；真实 MinIO、双实例指标和完整故障矩阵延期。
+阶段 4 单机验证已完成：真实 Nginx、双实例分流、故障切换、CPU 资源隔离压测和单机应用级故障矩阵；真实 MinIO、双实例指标、独立多机和物理故障延期。
 
 ---
 
@@ -209,7 +209,7 @@ visit.log.write
 
 ## 简历可写表述
 
-以下表述可以直接改写进简历，建议选择 2～3 条，不要全部堆上。
+以下表述可以直接改写进简历，建议选择 2～3 条，不要全部堆上。完整投递版见：[docs/RESUME_PROJECT.md](docs/RESUME_PROJECT.md)。
 
 ### 数据库与查询优化
 
@@ -226,6 +226,10 @@ visit.log.write
 ### 工程化与测试
 
 > 使用 Actuator、Micrometer、Prometheus、Grafana 和 k6 建立性能观测与压测基线，覆盖 HTTP、Hikari、Redis、RabbitMQ 和定时任务指标；后端 94 个测试通过，真实故障演练覆盖 Redis 降级、RabbitMQ 停服恢复、DLQ 重放和优雅停机。
+
+### 多实例与故障演练
+
+> 基于 Nginx + 双 Spring Boot 实例验证无状态部署和单实例故障转移；完成 Redis、RabbitMQ、DLQ、S3 兼容存储、优雅停机和 backend 宕机故障矩阵，并通过 k6 固定到达率与 CPU 亲和性分析单双实例容量边界。
 
 ### 面试时要能讲清的取舍
 
@@ -379,7 +383,7 @@ mvn test
 | 阶段 2：缓存与热点写优化 | ✅ 100% |
 | 阶段 3：RabbitMQ 可靠异步链路 | ✅ 100% |
 | 阶段 4：多实例部署与故障演练 | 🟡 约 85%，单机应用级故障矩阵完成，真实 MinIO/多机项延期 |
-| 阶段 5：架构文档与简历包装 | 🟡 约 95%，故障矩阵报告已补齐 |
+| 阶段 5：架构文档与简历包装 | ✅ 100%，文档、时序图、面试问答和投递材料完成 |
 
 阶段 4 详细执行计划见：
 
@@ -407,7 +411,10 @@ mvn test
 | [docs/ADR.md](docs/ADR.md) | 模块化单体、缓存、MQ、多实例等关键取舍 |
 | [docs/BENCHMARK_RESULT.md](docs/BENCHMARK_RESULT.md) | 全阶段性能结果、限制和简历安全表述 |
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | 启动、压测、日志、故障恢复和 DLQ 操作手册 |
-| [docs/FAILOVER_DRILL.md](docs/FAILOVER_DRILL.md) | Redis、RabbitMQ、Nginx 和优雅停机演练结果 |`n| [docs/FAULT_MATRIX_RESULT.md](docs/FAULT_MATRIX_RESULT.md) | 单机 Redis/RabbitMQ/S3 兼容存储/优雅停机/Nginx 故障矩阵 |`n| [docs/INTERVIEW_QA.md](docs/INTERVIEW_QA.md) | Java 后端面试问答和项目表达边界 |
+| [docs/FAILOVER_DRILL.md](docs/FAILOVER_DRILL.md) | Redis、RabbitMQ、Nginx 和优雅停机演练结果 |
+| [docs/FAULT_MATRIX_RESULT.md](docs/FAULT_MATRIX_RESULT.md) | 单机 Redis/RabbitMQ/S3 兼容存储/优雅停机/Nginx 故障矩阵 |
+| [docs/INTERVIEW_QA.md](docs/INTERVIEW_QA.md) | Java 后端面试问答和项目表达边界 |
+| [docs/RESUME_PROJECT.md](docs/RESUME_PROJECT.md) | Java 后端简历精简版、标准版、两分钟项目故事和关键词映射 |
 | [docs/REDIS_FAILURE_POLICIES.md](docs/REDIS_FAILURE_POLICIES.md) | Redis 故障策略 |
 | [docs/VIEW_COUNT_IDEMPOTENCY.md](docs/VIEW_COUNT_IDEMPOTENCY.md) | 浏览量幂等设计 |
 | [docs/SECURITY.md](docs/SECURITY.md) | 安全架构说明 |

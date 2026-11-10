@@ -4,11 +4,11 @@
 > 技术栈：Next.js 15 + Spring Boot 4 + Java 21 + MySQL 8 + Redis + RabbitMQ + MinIO + Docker
 > 目标岗位：Java 后端工程师
 > 文档日期：2026-11-02
-> 状态：执行中（最后更新：2026-11-10）
+> 状态：阶段 5 已完成；阶段 4 延期工程验证待资源（最后更新：2026-11-10）
 
 ---
 
-## 0. 执行状态总览（2026-11-09）
+## 0. 执行状态总览（2026-11-10）
 
 | 阶段 | 状态 | 完成度 | 已完成 | 未完成 / 风险 |
 |---|---|---:|---|---|
@@ -17,7 +17,7 @@
 | 阶段 2：缓存与热点写优化 | ✅ 已完成 | 100% | TTL 抖动、精确缓存失效、热点 Key 互斥回源、点赞原子计数与周期校准、Redis Cache 统一降级、浏览量幂等+允许少计、Hikari min10/max20、在线/限流/登录防护/分布式锁故障策略、`CACHE_AND_HOT_WRITE_REPORT.md` | 本机未做四项收尾改动后的正式高并发 A/B 压测；跨实例 Redis 抢锁失败时采用可用性优先降级，不是严格全局互斥 |
 | 阶段 3：RabbitMQ 可靠异步链路 | ✅ 已完成 | 100% | RabbitMQ 真实投递、批量消费者、拆批隔离失败、event_id 幂等、DLQ、手工重放、停服 30 秒恢复、队列 ready/unacked/consumer 指标、优雅停机、`RABBITMQ_VISIT_LOG.md` | 生产端仍是 fail-open，事件可能丢失；消费者重试为进程内重试；未实现 Outbox；真实 RabbitMQ 使用 WSL 原生服务验证 |
 | 阶段 4：多实例部署与故障演练 | 🟡 单机验收完成 | 约 85% | 真实 Nginx 双实例代理、`nginx -t`、backend-1 宕机自动切换、CPU 亲和性单双实例压测、缓存开关对照、Redis/RabbitMQ/S3 兼容存储/优雅停机/故障矩阵、`BENCHMARK_PHASE4_SCALING.md`、`FAULT_MATRIX_RESULT.md` | 真实 MinIO 上传、双实例 Prometheus/Grafana、独立压测机/多应用节点、物理主机/网络分区、MySQL 高可用 |
-| 阶段 5：文档、数据与简历包装 | 🟡 进行中 | 约 95% | README、`ARCHITECTURE.md`（含 Mermaid 时序图）、`ADR.md`、`BENCHMARK_RESULT.md`、`RUNBOOK.md`、`FAILOVER_DRILL.md`、`INTERVIEW_QA.md`、`FAULT_MATRIX_RESULT.md`、阶段 0～4 专项报告和 k6 场景 | README 与简历定位最后校对；真实 MinIO/多机/网络分区实验延期 |
+| 阶段 5：文档、数据与简历包装 | ✅ 已完成 | 100% | README、`ARCHITECTURE.md`（含 Mermaid 时序图）、`ADR.md`、`BENCHMARK_RESULT.md`、`RUNBOOK.md`、`FAILOVER_DRILL.md`、`INTERVIEW_QA.md`、`FAULT_MATRIX_RESULT.md`、`RESUME_PROJECT.md`、阶段 0～4 专项报告和 k6 场景 | 无文档阻断项；真实 MinIO/多机/网络分区实验属于阶段 4 延期验证 |
 
 ### 当前结论
 
@@ -26,7 +26,7 @@
 - 阶段 2 已完成：TTL 抖动、版本号精确失效、热点 Key 回源保护、点赞原子计数与周期校准均已落地；统一验收见 `docs/CACHE_AND_HOT_WRITE_REPORT.md`。
 - 阶段 3 已完成：真实 RabbitMQ 投递、批量消费、重复 eventId 幂等、停服 30 秒恢复、DLQ 重放、队列指标和优雅停机均已验证；见 `docs/RABBITMQ_VISIT_LOG.md`。
 - 阶段 4 单机应用级故障矩阵完成：Redis/RabbitMQ、DLQ、S3 兼容存储、优雅停机、backend-1 宕机和 Nginx 切换已验证；真实 MinIO、独立多机扩容、物理主机/网络分区延期。
-- 阶段 5 已补齐架构、ADR、性能汇总、Runbook、故障演练、Mermaid 时序图和 Java 后端面试问答；剩余为最终简历定位校对和延期实验。
+- 阶段 5 已完成：架构、ADR、性能汇总、Runbook、故障演练、Mermaid 时序图、Java 后端面试问答和投递版简历材料均已落地。
 
 ### 下一步建议（按顺序）
 
@@ -754,20 +754,20 @@ dead letter queue: visit.log.write.dlq
 
 ### 文档
 
-- [ ] 有架构图。
-- [ ] 有 ADR 记录关键取舍（路线文档已有决策表，但独立 `ADR.md` 尚未整理）。
+- [x] 有架构图和 Mermaid 时序图。
+- [x] 有独立 `ADR.md` 记录关键取舍。
 - [x] 有 Benchmark 报告。
-- [ ] 有 Runbook。
+- [x] 有 Runbook。
 - [x] 有故障演练记录（`PHASE2_RELIABILITY_REPORT.md` 中的双实例故障转移演练）。
 - [x] README 不再只是功能列表（已重写为定位、架构、数据、取舍和简历表述）。
 
 ### 简历
 
-- [ ] 每条亮点都有问题、方案、数据和取舍。
-- [ ] 不写“精通高并发”。
-- [ ] 不写没有测过的 QPS。
-- [ ] 不把单体包装成微服务。
-- [ ] 能解释为什么没有上某些技术。
+- [x] 每条亮点都有问题、方案、数据和取舍。
+- [x] 不写“精通高并发”。
+- [x] 不写没有测过的 QPS。
+- [x] 不把单体包装成微服务。
+- [x] 能解释为什么没有上某些技术。
 
 ---
 
