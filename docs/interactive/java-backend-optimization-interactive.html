@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aston's Blog 性能与可靠性改造 · 交互学习手册</title>
+<style>
+:root{--bg:#07111f;--bg2:#0b1728;--panel:#0e1d31;--panel2:#132641;--line:#284765;--text:#e9f2fa;--muted:#96aec3;--cyan:#5ce1d4;--blue:#67a9ff;--green:#6ce49d;--amber:#ffc857;--red:#ff7185;--purple:#b99cff;--shadow:0 22px 60px rgba(0,0,0,.3);--radius:18px;--radius-sm:12px;--max:1460px}
+html[data-theme="light"]{--bg:#eef4f8;--bg2:#e5eef6;--panel:#fff;--panel2:#f3f8fc;--line:#cbdbe7;--text:#14263a;--muted:#587086;--shadow:0 18px 45px rgba(32,64,91,.13)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--text);background:radial-gradient(circle at 8% 0%,rgba(92,225,212,.14),transparent 28rem),radial-gradient(circle at 92% 18%,rgba(103,169,255,.12),transparent 30rem),linear-gradient(180deg,var(--bg),var(--bg2));font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;line-height:1.68}
+button,input,select{font:inherit}button{color:var(--text);border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:.62rem .9rem;cursor:pointer;transition:.18s ease}button:hover{transform:translateY(-1px);border-color:var(--cyan);box-shadow:0 8px 24px rgba(0,0,0,.16)}button.primary{background:linear-gradient(135deg,#0f7675,#209487);border-color:#36c4b4;color:#fff}button.warn{background:#4b2b12;border-color:#986330;color:#ffe2ae}button.danger{background:#4a1d2a;border-color:#9a4258;color:#ffd5dd}button.ghost{background:transparent}button.small{padding:.38rem .62rem;font-size:.88rem}input,select{color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:.62rem .75rem;outline:none;max-width:100%}input:focus,select:focus,button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}code,.mono{font-family:"Cascadia Code","SFMono-Regular",Consolas,monospace;font-size:.92em}code{background:rgba(92,225,212,.09);border:1px solid rgba(92,225,212,.16);padding:.08rem .28rem;border-radius:6px;color:#bdf8f0}html[data-theme="light"] code{color:#066c65;background:#e5f8f5}
+.shell{width:min(var(--max),calc(100% - 1.5rem));margin:auto;padding:1.25rem 0 4rem}.topbar{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(7,17,31,.86);border-bottom:1px solid var(--line)}html[data-theme="light"] .topbar{background:rgba(238,244,248,.9)}.topbar-inner{width:min(var(--max),calc(100% - 1.5rem));margin:auto;display:flex;align-items:center;gap:.8rem;padding:.7rem 0}.brand{font-weight:800;letter-spacing:.02em;white-space:nowrap}.brand b{color:var(--cyan)}.top-actions{margin-left:auto;display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}.search{min-width:min(360px,44vw)}
+.hero{padding:clamp(1.5rem,4vw,3.2rem);border:1px solid var(--line);border-radius:28px;background:linear-gradient(135deg,rgba(92,225,212,.1),rgba(103,169,255,.08)),var(--panel);box-shadow:var(--shadow);position:relative;overflow:hidden;margin:1rem 0 1.4rem}.hero:after{content:"";position:absolute;width:380px;height:380px;border-radius:50%;right:-160px;top:-170px;background:radial-gradient(circle,rgba(92,225,212,.22),transparent 68%)}.hero h1{font-size:clamp(2rem,5vw,4rem);line-height:1.12;margin:.2rem 0 1rem;letter-spacing:-.04em;max-width:900px}.hero h1 span{color:var(--cyan)}.hero p{max-width:900px;color:var(--muted);font-size:1.05rem}.eyebrow{display:inline-flex;gap:.45rem;align-items:center;font-size:.82rem;text-transform:uppercase;letter-spacing:.13em;color:var(--cyan);font-weight:700}.hero-actions{display:flex;gap:.65rem;flex-wrap:wrap;margin-top:1.3rem}
+.layout{display:grid;grid-template-columns:265px minmax(0,1fr);gap:1.2rem;align-items:start}.sidebar{position:sticky;top:74px;max-height:calc(100vh - 86px);overflow:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:.8rem;box-shadow:var(--shadow)}.sidebar h3{margin:.3rem .4rem .7rem;font-size:.82rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}.nav-link{display:flex;gap:.6rem;align-items:center;width:100%;text-align:left;background:transparent;border:0;border-radius:10px;padding:.58rem .65rem;margin:.15rem 0;color:var(--text)}.nav-link:hover,.nav-link.active{background:rgba(92,225,212,.1);border-color:transparent;transform:none}.nav-link .num{width:1.65rem;height:1.65rem;border-radius:8px;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--line);font-size:.76rem;color:var(--cyan);flex:0 0 auto}.sidebar-footer{margin-top:.8rem;padding:.8rem .4rem 0;border-top:1px solid var(--line);color:var(--muted);font-size:.86rem}main{min-width:0}
+section.phase{scroll-margin-top:82px;margin:1.4rem 0;padding:clamp(1rem,2.6vw,1.8rem);border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);box-shadow:var(--shadow)}.phase-head{display:flex;gap:1rem;align-items:flex-start;margin-bottom:1rem}.phase-badge{flex:0 0 auto;width:3rem;height:3rem;border-radius:14px;display:grid;place-items:center;font-weight:900;background:linear-gradient(135deg,rgba(92,225,212,.2),rgba(103,169,255,.15));border:1px solid var(--line);color:var(--cyan)}.phase-head h2{margin:0 0 .25rem;font-size:clamp(1.35rem,2.7vw,2rem)}.phase-head p{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.9rem}.grid.two{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}.grid.three{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}.card{border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel2);padding:1rem;min-width:0}.card h3,.card h4{margin:.1rem 0 .55rem}.card p:last-child,.card ul:last-child{margin-bottom:0}.card.accent{border-color:rgba(92,225,212,.4);background:linear-gradient(145deg,rgba(92,225,212,.09),var(--panel2))}.card.warn-card{border-color:rgba(255,200,87,.4);background:linear-gradient(145deg,rgba(255,200,87,.08),var(--panel2))}.card.danger-card{border-color:rgba(255,113,133,.4);background:linear-gradient(145deg,rgba(255,113,133,.08),var(--panel2))}
+.badge{display:inline-flex;align-items:center;gap:.28rem;padding:.2rem .5rem;border-radius:999px;font-size:.74rem;font-weight:700;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--muted)}.badge.ok{color:var(--green);border-color:rgba(108,228,157,.4);background:rgba(108,228,157,.08)}.badge.warn{color:var(--amber);border-color:rgba(255,200,87,.4);background:rgba(255,200,87,.08)}.badge.bad{color:var(--red);border-color:rgba(255,113,133,.4);background:rgba(255,113,133,.08)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.7rem;margin:.8rem 0}.kpi .item{padding:.8rem;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.08)}.kpi strong{display:block;font-size:1.35rem;color:var(--cyan);line-height:1.25}.kpi small{color:var(--muted)}
+.timeline{display:grid;gap:.7rem;margin:1rem 0}.timeline-item{display:grid;grid-template-columns:7.2rem minmax(0,1fr);gap:.8rem;padding:.8rem;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}.timeline-item time{font-weight:800;color:var(--cyan)}.timeline-item p{margin:.2rem 0 0;color:var(--muted)}
+.flow{display:flex;align-items:stretch;gap:.55rem;flex-wrap:wrap;margin:.8rem 0}.flow.vertical{flex-direction:column}.node{flex:1 1 145px;min-width:130px;border:1px solid var(--line);border-radius:12px;padding:.7rem;background:var(--panel);text-align:center;transition:.2s}.node b{display:block;color:var(--text)}.node small{color:var(--muted)}.node.hot{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(92,225,212,.12);background:rgba(92,225,212,.08)}.node.bad{border-color:var(--red);background:rgba(255,113,133,.08)}.arrow{display:grid;place-items:center;color:var(--cyan);font-weight:900;padding:.25rem}
+table{width:100%;border-collapse:collapse;margin:.7rem 0;font-size:.94rem}th,td{padding:.62rem .55rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--muted);font-size:.82rem;letter-spacing:.03em;background:rgba(255,255,255,.02)}tr:hover td{background:rgba(92,225,212,.035)}
+.simulator{border:1px solid var(--line);border-radius:14px;padding:1rem;background:rgba(0,0,0,.1);margin:.8rem 0}.controls{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;margin:.6rem 0}.controls label{display:flex;gap:.4rem;align-items:center;color:var(--muted)}.status{font-weight:800}.status.up{color:var(--green)}.status.down{color:var(--red)}.result-box{min-height:3rem;padding:.7rem .8rem;border-radius:10px;background:var(--bg);border:1px dashed var(--line);font-family:"Cascadia Code",Consolas,monospace;font-size:.88rem;white-space:pre-wrap;overflow-wrap:anywhere}
+details{border:1px solid var(--line);border-radius:12px;background:var(--panel2);padding:.7rem .9rem;margin:.55rem 0}details[open]{border-color:rgba(92,225,212,.42)}summary{cursor:pointer;font-weight:700;color:var(--text)}summary::marker{color:var(--cyan)}details p,details ul,details ol{color:var(--muted)}.qa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:.7rem}.qa-item{scroll-margin-top:82px}
+.callout{padding:.85rem 1rem;border-left:4px solid var(--cyan);background:rgba(92,225,212,.07);border-radius:0 12px 12px 0;margin:.8rem 0}.callout.warn{border-left-color:var(--amber);background:rgba(255,200,87,.07)}.callout.danger{border-left-color:var(--red);background:rgba(255,113,133,.07)}.mini-note{font-size:.86rem;color:var(--muted)}.progress-track{height:9px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);overflow:hidden;margin:.5rem 0}.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--blue));transition:width .4s}.checkline{display:flex;gap:.55rem;align-items:flex-start;padding:.35rem 0;color:var(--muted)}.checkline input{width:1rem;height:1rem;margin-top:.28rem;accent-color:#24b9aa}.chip-row{display:flex;gap:.4rem;flex-wrap:wrap;margin:.5rem 0}.chip{padding:.2rem .55rem;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);font-size:.8rem;color:var(--muted)}
+.term-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.7rem}.term{scroll-margin-top:82px}.quiz-question{border:1px solid var(--line);border-radius:13px;padding:.9rem;margin:.7rem 0;background:var(--panel2)}.quiz-options{display:grid;gap:.4rem;margin-top:.55rem}.quiz-options button{text-align:left}.quiz-options button.correct{border-color:var(--green);background:rgba(108,228,157,.1)}.quiz-options button.wrong{border-color:var(--red);background:rgba(255,113,133,.1)}.quiz-explain{margin-top:.5rem;color:var(--muted);font-size:.9rem;display:none}.quiz-explain.show{display:block}.no-results{display:none;padding:1rem;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}.hidden-by-search{display:none!important}.footer{text-align:center;color:var(--muted);padding:2rem 1rem 0;font-size:.9rem}.toast{position:fixed;right:1rem;bottom:1rem;z-index:100;background:var(--panel);border:1px solid var(--cyan);border-radius:12px;padding:.7rem .9rem;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);pointer-events:none;transition:.25s}.toast.show{opacity:1;transform:translateY(0)}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:relative;top:auto;max-height:none}.search{min-width:0;flex:1}.topbar-inner{flex-wrap:wrap}.top-actions{width:100%;margin-left:0}.timeline-item{grid-template-columns:1fr}}@media print{.topbar,.sidebar,.hero-actions,.controls,button{display:none!important}.layout{display:block}section.phase{break-inside:avoid;box-shadow:none}body{background:#fff;color:#111}}
+@media(max-width:700px){
+  body{overflow-x:hidden}
+  .shell,.topbar-inner{width:calc(100% - 1rem)}
+  .brand{width:100%;white-space:normal}
+  .top-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;margin-left:0;gap:.4rem}
+  .search{grid-column:1/-1;width:100%;min-width:0}
+  .top-actions button{width:100%}
+  .hero{padding:1.15rem;border-radius:20px}
+  .hero h1{font-size:clamp(1.8rem,9vw,2.8rem);overflow-wrap:anywhere}
+  .hero p{font-size:.96rem}
+  .hero-actions{display:grid;grid-template-columns:1fr 1fr}
+  .hero-actions button:last-child{grid-column:1/-1}
+  .phase-head{flex-direction:column;gap:.65rem}
+  .kpi{grid-template-columns:1fr 1fr}
+  .kpi .item{min-width:0}
+  .timeline-item{grid-template-columns:1fr}
+  .flow{flex-direction:column}
+  .flow>.arrow{transform:rotate(90deg);padding:0;height:1rem}
+  .node{min-width:0;width:100%}
+  .qa-grid,.grid.two,.grid.three{grid-template-columns:1fr}
+  table{display:block;overflow-x:auto;white-space:normal}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">Aston's Blog · <b>交互学习手册</b></div>
+    <div class="top-actions">
+      <input id="searchInput" class="search" type="text" placeholder="搜索：Redis、RabbitMQ、N+1、P95、MinIO...">
+      <button id="themeBtn" class="ghost small">切换主题</button>
+      <button id="expandBtn" class="ghost small">展开全部</button>
+      <button id="collapseBtn" class="ghost small">折叠全部</button>
+      <button id="printBtn" class="ghost small">打印 / PDF</button>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <section class="hero">
+    <span class="eyebrow">Phases 0–5 · Interactive Walkthrough</span>
+    <h1>从“功能能做”到<span>能解释、能压测、能降级</span>的后端改造</h1>
+    <p>这不是一份只列技术栈的总结。页面按阶段梳理我们实际做了什么，并把最容易混淆的知识点做成可点击实验：Actuator、P95/P99、JVM/GC、Hikari、N+1、Redis 降级、热点 Key、浏览量幂等、RabbitMQ 路由/ACK/DLQ、双实例性能、MinIO 与故障矩阵。</p>
+    <div class="hero-actions">
+      <button class="primary" data-scroll="overview">先看全局路线</button>
+      <button data-scroll="confusions">直接看我不理解的地方</button>
+      <button data-scroll="quiz">开始自测</button>
+    </div>
+  </section>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <h3>学习导航</h3>
+      <button class="nav-link" data-target="overview"><span class="num">0</span><span>全局路线与成果</span></button>
+      <button class="nav-link" data-target="phase0"><span class="num">1</span><span>可观测性与压测</span></button>
+      <button class="nav-link" data-target="phase1"><span class="num">2</span><span>SQL、N+1、索引</span></button>
+      <button class="nav-link" data-target="phase2"><span class="num">3</span><span>缓存、锁、热点写</span></button>
+      <button class="nav-link" data-target="phase3"><span class="num">4</span><span>RabbitMQ 异步链路</span></button>
+      <button class="nav-link" data-target="phase4"><span class="num">5</span><span>双实例与故障矩阵</span></button>
+      <button class="nav-link" data-target="phase5"><span class="num">6</span><span>文档、简历、面试</span></button>
+      <button class="nav-link" data-target="confusions"><span class="num">?</span><span>高频疑问总索引</span></button>
+      <button class="nav-link" data-target="glossary"><span class="num">A</span><span>术语词典</span></button>
+      <button class="nav-link" data-target="quiz"><span class="num">✓</span><span>10 道自测题</span></button>
+      <div class="sidebar-footer">
+        <div>学习进度</div>
+        <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+        <div id="progressText">0 / 6 阶段已标记</div>
+      </div>
+    </aside>
+
+    <main>
+      <section id="overview" class="phase">
+        <div class="phase-head"><div class="phase-badge">0</div><div><h2>全局路线：我们到底改了哪些东西？</h2><p>核心不是堆技术，而是按“先测量，再优化，再验证故障”的顺序推进。</p></div></div>
+        <div class="timeline">
+          <div class="timeline-item"><time>阶段 0</time><div><b>可观测性与压测基线</b><p>接入 Actuator、Micrometer、Prometheus、Grafana、请求 ID 和 k6，先知道系统慢在哪里。</p></div></div>
+          <div class="timeline-item"><time>阶段 1</time><div><b>数据库与查询路径</b><p>修复集合 JOIN 分页、笔记 N+1、标签统计 N+1 和 LIKE 全表扫描，加入索引与 FULLTEXT。</p></div></div>
+          <div class="timeline-item"><time>阶段 2</time><div><b>缓存与热点写</b><p>TTL 抖动、精确失效、Redis 故障回源、热点 Key 互斥、浏览量幂等、点赞校准、Hikari 调整。</p></div></div>
+          <div class="timeline-item"><time>阶段 3</time><div><b>RabbitMQ 可靠异步</b><p>访问日志异步化；Publisher Confirm、手动 ACK、批量消费、eventId 幂等、DLQ 与故障恢复。</p></div></div>
+          <div class="timeline-item"><time>阶段 4</time><div><b>双实例与故障矩阵</b><p>Nginx 双实例、无状态部署、单实例宕机切换、CPU 亲和性压测、Redis/RabbitMQ/S3 兼容存储/优雅停机演练。</p></div></div>
+          <div class="timeline-item"><time>阶段 5</time><div><b>文档、简历、面试</b><p>架构图、ADR、性能汇总、Runbook、故障报告、Java 后端简历材料和 23 个面试问答。</p></div></div>
+        </div>
+        <div class="kpi">
+          <div class="item"><strong>6.78s → 3.14ms</strong><small>文章列表 P95，50k 文章数据集，缓存开启场景</small></div>
+          <div class="item"><strong>42 → 4</strong><small>笔记列表 SELECT 次数/请求</small></div>
+          <div class="item"><strong>99.95%</strong><small>publicPosts 缓存命中率</small></div>
+          <div class="item"><strong>10/10</strong><small>RabbitMQ 停服期间业务请求成功</small></div>
+          <div class="item"><strong>20/20</strong><small>backend-1 宕机后请求切换成功</small></div>
+        </div>
+        <div class="callout warn"><b>先记住这条边界：</b>这些数字都有具体场景。单机双实例、缓存开启、压测数据量和故障时长都必须跟着数字一起说，不能写成无条件的“性能提升”。</div>
+      </section>
+
+      <section id="phase0" class="phase">
+        <div class="phase-head"><div class="phase-badge">1</div><div><h2>阶段 0：可观测性与压测基线</h2><p>先回答“系统现在到底怎么样”，否则加缓存、加机器、加 MQ 都可能只是猜。</p></div></div>
+        <div class="grid two">
+          <div class="card accent"><h3>Actuator 是什么？</h3><p>Spring Boot 提供的管理和观测端点。比如 <code>/actuator/health</code> 查看健康状态，<code>/actuator/prometheus</code> 暴露指标。它不是 Prometheus 本身，只是把指标“拿出来”。</p></div>
+          <div class="card accent"><h3>Micrometer 是什么？</h3><p>Java 应用的指标门面。业务和框架通过它记录 counters、timers、gauges，再转换成 Prometheus 格式。它像“指标 SDK + 适配层”。</p></div>
+          <div class="card accent"><h3>Prometheus 是什么？</h3><p>时序数据库和抓取系统。它定时访问 <code>/actuator/prometheus</code>，保存 CPU、请求延迟、连接池等时间序列，并支持 PromQL 查询和告警。</p></div>
+          <div class="card accent"><h3>Grafana 是什么？</h3><p>可视化面板。它不负责采集，而是查询 Prometheus，把 P95、JVM、Hikari、Redis、RabbitMQ 指标画成图。</p></div>
+        </div>
+        <div class="simulator">
+          <h3>指标如何从应用走到 Grafana？</h3>
+          <div class="flow">
+            <div class="node hot"><b>Spring Boot</b><small>业务代码 / Tomcat / Hikari</small></div><div class="arrow">→</div>
+            <div class="node"><b>Micrometer</b><small>记录 Counter / Timer / Gauge</small></div><div class="arrow">→</div>
+            <div class="node"><b>Actuator</b><small>暴露 /actuator/prometheus</small></div><div class="arrow">→</div>
+            <div class="node"><b>Prometheus</b><small>定时 scrape + 存储</small></div><div class="arrow">→</div>
+            <div class="node"><b>Grafana</b><small>查询 + 面板 + 告警</small></div>
+          </div>
+          <div class="mini-note">k6 负责制造负载；Prometheus 负责记录；Grafana 负责展示。三者不是同一个东西。</div>
+        </div>
+        <div class="simulator">
+          <h3>P50 / P95 / P99 怎么理解？</h3>
+          <p class="mini-note">选择不同负载，观察单/双实例在同一入口下的真实结果。P95=95% 的请求不超过该延迟，剩余 5% 更慢。</p>
+          <div class="controls" id="loadTabs">
+            <button class="small primary" data-load="500">500 RPS</button>
+            <button class="small" data-load="1000">1000 RPS</button>
+            <button class="small" data-load="1500">1500 RPS</button>
+          </div>
+          <div id="loadMetrics" class="result-box"></div>
+          <details><summary>为什么不能只看平均值？</summary><p>平均值会被少数极慢请求稀释。比如 99 个 5ms、1 个 2s，平均值约 25ms，但 P99 接近 2s。用户抱怨的往往正是尾部请求。</p></details>
+          <details><summary>dropped iterations 是什么？</summary><p>k6 计划每秒发起 N 个请求，但因为机器 CPU、网络或 VU 不够，实际没有按时发起。它说明“压测机或调度器本身可能成为瓶颈”，此时实际 RPS 和延迟都要谨慎解释。</p></details>
+        </div>
+        <div class="grid two">
+          <div class="simulator"><h3>Hikari 连接池等待模拟</h3><p class="mini-note">拖动并发 VU，观察 active、pending 和 P95。Hikari 是数据库连接池，不是线程池。</p><label>并发 VU：<input id="poolVu" type="range" min="10" max="150" value="100" step="10"><b id="poolVuText">100</b></label><div class="kpi"><div class="item"><strong id="poolActive">20</strong><small>active 连接</small></div><div class="item"><strong id="poolPending">0</strong><small>pending</small></div><div class="item"><strong id="poolP95">40.64ms</strong><small>P95</small></div></div><div id="poolExplain" class="callout"></div></div>
+          <div class="simulator"><h3>JVM / GC 选择器</h3><p class="mini-note">选择 GC 算法，看看它适合什么场景。当前项目是内容博客，不是超大堆低延迟交易系统。</p><select id="gcSelect"><option value="g1">G1（默认推荐）</option><option value="parallel">Parallel（吞吐优先）</option><option value="zgc">ZGC（低延迟大堆）</option><option value="serial">Serial（小堆简单）</option></select><div id="gcOut" class="result-box"></div></div>
+        </div>
+      </section>
+      <section id="phase1" class="phase">
+        <div class="phase-head"><div class="phase-badge">2</div><div><h2>阶段 1：SQL、N+1、分页与搜索</h2><p>这一阶段解决的是“数据库做了很多不该做的重复劳动”。</p></div></div>
+        <div class="grid two">
+          <div class="card danger-card"><h3>为什么集合 JOIN + Page 危险？</h3><p>文章和标签是一对多/多对多。直接 <code>JOIN FETCH</code> 后分页，数据库返回的行数会被集合放大；Hibernate 为了得到正确分页结果，可能加载大量记录后在内存里处理。数据量大时不仅慢，还可能出现计数和分页异常。</p></div>
+          <div class="card accent"><h3>两段式分页怎么做？</h3><ol><li>先查当前页的文章 ID；</li><li>再按 ID 批量加载作者、标签；</li><li>按原 ID 顺序组装返回。</li></ol><p>多一次批量查询，但避免了集合 JOIN 放大和不稳定分页。</p></div>
+        </div>
+        <div class="simulator">
+          <h3>N+1 查询可视化</h3>
+          <p class="mini-note">拖动一页笔记数量，观察“循环逐条查评论”的 SQL 次数。</p>
+          <label>每页笔记数：<input id="nplusRange" type="range" min="5" max="50" value="20" step="5"><b id="nplusSize">20</b></label>
+          <div class="kpi"><div class="item"><strong id="nplusBefore">43</strong><small>修复前 SELECT/请求</small></div><div class="item"><strong>4</strong><small>修复后 SELECT/请求</small></div><div class="item"><strong id="nplusSaved">39</strong><small>减少次数</small></div></div>
+          <div id="nplusFlow" class="flow"></div>
+          <div class="callout"><b>N+1 的准确定义：</b>先查出一页主对象（1 次），再在循环里对每个对象查关联数据（N 次）。解决思路不是“把循环写快”，而是收集当前页 ID，一次批量查关联数据，再按 ID 分组回装。</div>
+        </div>
+        <div class="simulator">
+          <h3>笔记评论的查询顺序</h3>
+          <div class="flow vertical">
+            <div class="node"><b>1. 分页查 notes</b><small>只拿当前页 noteId</small></div><div class="arrow">↓</div>
+            <div class="node"><b>2. 批量查 comments</b><small>WHERE note_id IN (...)</small></div><div class="arrow">↓</div>
+            <div class="node"><b>3. 批量查评论作者</b><small>一次加载用户信息</small></div><div class="arrow">↓</div>
+            <div class="node"><b>4. 批量查当前用户点赞</b><small>一次查询点赞状态</small></div><div class="arrow">↓</div>
+            <div class="node hot"><b>5. 按 noteId 分组 → 建树 → 截取前 3 条根评论</b><small>截断在建树之后、返回之前</small></div>
+          </div>
+          <details><summary>为什么“先建树再截断”？</summary><p>评论有父子层级。直接截取原始评论可能截到子评论，导致根评论数量或树结构不完整。先按 noteId 分组并建树，再从根节点列表截取前 3 条更符合业务语义。</p></details>
+        </div>
+        <div class="simulator">
+          <h3>FULLTEXT 与 Elasticsearch 怎么选？</h3>
+          <table><thead><tr><th>维度</th><th>MySQL FULLTEXT</th><th>Elasticsearch</th></tr></thead><tbody><tr><td>当前规模</td><td>足够</td><td>能力过剩</td></tr><tr><td>中文分词/相关度</td><td>有限</td><td>强</td></tr><tr><td>一致性</td><td>同库事务简单</td><td>需要同步、双写或 CDC</td></tr><tr><td>运维</td><td>低</td><td>集群和索引管理成本高</td></tr><tr><td>适合</td><td>标题/正文基础搜索</td><td>复杂检索、聚合、相关性排序</td></tr></tbody></table>
+          <div class="callout warn">“不用 ES”不是不会 ES，而是当前业务没有复杂到值得承担同步和运维成本。数据量、中文分词、相关性排序需求明显增长后再评估。</div>
+        </div>
+      </section>
+
+      <section id="phase2" class="phase">
+        <div class="phase-head"><div class="phase-badge">3</div><div><h2>阶段 2：缓存、热点 Key、幂等与连接池</h2><p>缓存不是“加个 Redis 就完了”，真正难的是失效、回源、并发、故障和一致性。</p></div></div>
+        <div class="simulator">
+          <h3>Redis 缓存请求模拟器</h3>
+          <p class="mini-note">切换 Redis 状态，点击“发起请求”，观察请求路径和返回结果。</p>
+          <div class="controls"><button id="redisToggle" class="primary">Redis：正常</button><button id="redisRequest" class="small">发起文章列表请求</button></div>
+          <div class="flow">
+            <div class="node hot"><b>Client</b><small>GET /posts</small></div><div class="arrow">→</div>
+            <div class="node" id="redisNode"><b>Redis</b><small>cache hit / miss</small></div><div class="arrow">→</div>
+            <div class="node"><b>Service</b><small>loader</small></div><div class="arrow">→</div>
+            <div class="node"><b>MySQL</b><small>回源查询</small></div>
+          </div>
+          <div id="redisResult" class="result-box">点击按钮开始模拟。</div>
+          <details><summary>为什么第一次请求查 MySQL，后面才命中 Redis？</summary><p>第一次是 cache miss：Spring Cache 拦截后没有读到值，执行原方法查 MySQL，再把结果写回 Redis。第二次相同 Key 才能命中。Redis 故障时，统一包装层会让流程继续执行 loader，避免方法体还没跑就抛异常。</p></details>
+        </div>
+        <div class="grid two">
+          <div class="card"><h3>TTL 随机抖动</h3><p>如果大量 Key 同时 10 分钟过期，会在同一秒集中回源。TTL 加随机抖动可以把过期时间打散，避免周期性的数据库尖峰。</p></div>
+          <div class="card"><h3>精确失效</h3><p>更新文章时不使用 <code>allEntries=true</code> 清空整个 cache，而是通过版本号或明确的 Key 让相关缓存失效，减少无关缓存被击穿。</p></div>
+          <div class="card"><h3>缓存 Key 维度</h3><p>分页、标签、语言、搜索词等业务维度必须进入 Key。否则第 1 页和第 2 页会互相覆盖，不同筛选条件也可能读到错误数据。</p></div>
+          <div class="card"><h3>Redis 故障语义</h3><p>核心页面缓存：回源 MySQL；在线人数：返回 0；留言限流：fail-open；登录防护：fail-open；浏览量：允许少计；分布式锁：失败则跳过任务。不同业务不能套同一个策略。</p></div>
+        </div>
+        <div class="simulator">
+          <h3>热点 Key 回源与分布式锁</h3>
+          <p class="mini-note">同一 Key 在缓存失效瞬间可能有大量并发请求。点击演示，观察单实例和多实例的处理差异。</p>
+          <div class="controls"><button id="hotStep1" class="small">A 抢到 Redis 锁</button><button id="hotStep2" class="small">B 抢锁失败</button><button id="hotStep3" class="small">锁过期 / loader 超时</button></div>
+          <div id="hotTimeline" class="result-box"></div>
+          <div class="callout warn"><b>当前设计不是严格全局单飞：</b>单实例内有强互斥；多实例抢不到 Redis 锁时，为了可用性允许继续回源。严格单飞需要等待、二次检查和超时降级，会增加延迟。</div>
+        </div>
+        <div class="simulator">
+          <h3>浏览量为什么需要幂等？</h3>
+          <p class="mini-note">点击模拟 Redis 增量、batchId 落库、扣减 Redis 和崩溃恢复。</p>
+          <div class="controls"><button id="viewInc" class="small">用户浏览 +1</button><button id="viewFlush" class="small primary">执行刷库</button><button id="viewCrash" class="small warn">模拟提交后崩溃</button><button id="viewRetry" class="small">重试同一 batch</button><button id="viewReset" class="small danger">重置</button></div>
+          <div class="kpi"><div class="item"><strong id="viewRedis">0</strong><small>Redis 增量</small></div><div class="item"><strong id="viewDb">100</strong><small>MySQL view_count</small></div><div class="item"><strong id="viewBatch">-</strong><small>最近 batchId</small></div></div>
+          <div id="viewResult" class="result-box">等待操作。</div>
+          <div class="callout"><b>不能把 Redis 和 MySQL 当成一个事务：</b>用稳定 batchId 和 MySQL 唯一键防重复，比“先 MySQL 后 Redis”更可靠。进程崩溃后同一 batch 重试不会重复加浏览。</div>
+        </div>
+        <div class="grid two">
+          <div class="card accent"><h3>为什么 Hikari 连接池不是越大越好？</h3><p>Hikari 管理到 MySQL 的物理连接。连接太多会把压力推给数据库，增加锁竞争和上下文切换。项目通过 pending/acquire 指标，把 10 连接调整为 min10/max20。</p></div>
+          <div class="card warn-card"><h3>为什么 Redis 挂了，部分业务仍会失败？</h3><p>统一缓存包装只覆盖核心 <code>@Cacheable</code> 读路径。浏览量、在线人数、限流、登录防护和分布式锁使用直接 RedisTemplate，必须各自定义 fail-open / fail-closed / 跳过任务，不能盲目套用缓存回源。</p></div>
+        </div>
+      </section>
+      <section id="phase3" class="phase">
+        <div class="phase-head"><div class="phase-badge">4</div><div><h2>阶段 3：RabbitMQ 可靠异步链路</h2><p>重点不是“会发消息”，而是理解消息怎样路由、何时确认、失败去哪里、重复怎么处理。</p></div></div>
+        <div class="simulator">
+          <h3>Exchange、Routing Key、Binding、Queue 路由实验</h3>
+          <p class="mini-note">选择 Exchange 类型，输入 Routing Key，观察消息会进入哪些队列。</p>
+          <div class="controls">
+            <label>Exchange 类型
+              <select id="exchangeType"><option value="direct">direct</option><option value="topic">topic</option><option value="fanout">fanout</option></select>
+            </label>
+            <label>Routing Key <input id="routingKey" type="text" value="visit.recorded"></label>
+            <button id="routeBtn" class="primary small">发送消息</button>
+          </div>
+          <div class="flow">
+            <div class="node hot"><b>Producer</b><small>应用发消息</small></div><div class="arrow">→</div>
+            <div class="node"><b>Exchange</b><small>按规则路由</small></div><div class="arrow">→</div>
+            <div class="node"><b>Queue</b><small>持久化等待消费</small></div><div class="arrow">→</div>
+            <div class="node"><b>Consumer</b><small>监听并处理</small></div>
+          </div>
+          <div id="routeResult" class="result-box">等待发送。</div>
+          <details><summary>Producer 是怎么到 Exchange 的？</summary><p>生产者发送时明确指定 Exchange 名称和 Routing Key，不是直接“绑定到队列”。生产者通常不知道有哪些 Queue；Exchange 根据自身类型、Routing Key 和 Binding 决定投递到哪些 Queue。</p></details>
+        </div>
+        <div class="grid two">
+          <div class="card"><h3>Publisher Confirm 是什么？</h3><p>方向是 <b>Broker → Producer</b>：Broker 告诉生产者“消息已经收到并负责了”。它不表示消费者已经处理，更不表示 MySQL 已经落库。</p></div>
+          <div class="card"><h3>Consumer ACK 是什么？</h3><p>方向是 <b>Consumer → Broker</b>：消费者完成业务处理后告诉 Broker 可以删除消息。手动 ACK 必须放在数据库事务提交成功之后。</p></div>
+          <div class="card warn-card"><h3>为什么访问日志允许丢？</h3><p>生产端 fail-open：RabbitMQ 不可用时业务请求仍正常返回，只记录 publish failure 指标。访问日志不是核心交易数据，当前允许短暂丢失；零丢失需要 Outbox。</p></div>
+          <div class="card accent"><h3>为什么必须幂等？</h3><p>消息系统通常至少一次投递。生产者重试、网络抖动、消费者重连都可能造成同一消息重复到达。消费端用 <code>eventId</code> 唯一键防重复写库。</p></div>
+        </div>
+        <div class="simulator">
+          <h3>消息生命周期演练</h3>
+          <div class="controls"><button id="mqNormal" class="small primary">正常投递</button><button id="mqFail" class="small danger">消费失败</button><button id="mqDuplicate" class="small">重复投递</button><button id="mqBrokerDown" class="small warn">RabbitMQ 挂掉</button><button id="mqReset" class="small">重置</button></div>
+          <div class="flow"><div class="node" id="mqProducer"><b>Producer</b><small>发送</small></div><div class="arrow">→</div><div class="node" id="mqExchange"><b>blog.events</b><small>direct</small></div><div class="arrow">→</div><div class="node" id="mqQueue"><b>visit.log.write</b><small>等待消费</small></div><div class="arrow">→</div><div class="node" id="mqConsumer"><b>Consumer</b><small>手动 ACK</small></div><div class="arrow">→</div><div class="node" id="mqDb"><b>MySQL</b><small>event_id 唯一键</small></div></div>
+          <div id="mqResult" class="result-box">选择一种消息场景。</div>
+        </div>
+        <div class="simulator">
+          <h3>批量消费、二分拆批与 DLQ</h3>
+          <div class="flow vertical">
+            <div class="node"><b>批量接收 20 条消息</b><small>prefetch / batch listener</small></div><div class="arrow">↓</div>
+            <div class="node"><b>整体事务写 MySQL</b><small>事务提交后再 ACK</small></div><div class="arrow">↓</div>
+            <div class="node warn"><b>整批失败？</b><small>二分拆批，定位坏消息</small></div><div class="arrow">↓</div>
+            <div class="node bad"><b>单条永久失败</b><small>NACK → DLX → visit.log.write.dlq</small></div>
+          </div>
+          <details><summary>为什么不是简单全部重试？</summary><p>全部重试会让正常消息反复执行，增加数据库压力。二分拆批能逐步隔离坏消息，成功子批继续提交，最终只把永久失败消息送进 DLQ。消费端仍必须用 eventId 幂等兜底。</p></details>
+        </div>
+        <div class="callout danger"><b>RabbitMQ 挂了，消息会不会自动补发？</b>已经成功进入 Broker 且持久化的消息，在 Broker 恢复后通常还能被消费；但生产端 fail-open 期间根本没发出去的消息不会自动补发。要做到这一点，需要 Outbox 或本地事件表。</div>
+      </section>
+
+      <section id="phase4" class="phase">
+        <div class="phase-head"><div class="phase-badge">5</div><div><h2>阶段 4：双实例、性能边界与故障矩阵</h2><p>多实例首先是高可用和可部署性，不等于单机自动变快；真实容量要区分独立硬件。</p></div></div>
+        <div class="simulator">
+          <h3>Nginx 双实例故障切换</h3>
+          <p class="mini-note">点击杀掉 backend-1，再发起 12 次请求。</p>
+          <div class="controls"><button id="killBackend" class="danger small">杀掉 backend-1</button><button id="sendRequests" class="primary small">发送 12 次请求</button><button id="restoreBackend" class="small">恢复 backend-1</button></div>
+          <div class="flow"><div class="node hot"><b>Nginx :8088</b><small>upstream</small></div><div class="arrow">→</div><div class="node" id="b1Node"><b>backend-1 :8081</b><small>实例 A</small></div><div class="node" id="b2Node"><b>backend-2 :8082</b><small>实例 B</small></div></div>
+          <div id="nginxResult" class="result-box">等待操作。</div>
+        </div>
+        <div class="grid two">
+          <div class="card accent"><h3>为什么双实例没有稳定提升？</h3><p>两个 JVM 在同一台电脑上，共享 CPU、内存、网卡、内核网络栈、MySQL、Redis 和 Nginx。第二个实例如果没有额外 CPU 预算，只会增加进程和上下文切换。</p></div>
+          <div class="card warn-card"><h3>CPU 亲和性实验做了什么？</h3><p>把 k6 固定在 CPU 0-3，backend-1 固定在 8-11，backend-2 固定在 12-15，再跑固定到达率。这样才勉强近似“给第二个实例额外计算资源”。</p></div>
+        </div>
+        <div class="simulator">
+          <h3>单双实例压测结果</h3>
+          <table><thead><tr><th>场景</th><th>单实例</th><th>双实例</th><th>结论</th></tr></thead><tbody><tr><td>1000 RPS，缓存开启</td><td>dropped 2107 / 948，P95 2076 / 1285ms</td><td>dropped 0 / 0，P95 64 / 45ms</td><td>双实例更稳定</td></tr><tr><td>1500 RPS，缓存开启</td><td>一轮正常、一轮 dropped 1320，P95 最高 1935ms</td><td>dropped 0 / 0，P95 5 / 7ms</td><td>单实例波动大</td></tr><tr><td>500 RPS，缓存关闭</td><td>dropped 47 / 143</td><td>dropped 0 / 0</td><td>共享 MySQL 下仍有尾部波动</td></tr></tbody></table>
+          <div class="callout warn">这不是“两台独立服务器线性扩容”的证明。真实扩容需要独立压测机 + 至少两个应用节点，最好还有独立 MySQL/Redis 环境。</div>
+        </div>
+        <div class="grid two">
+          <div class="card"><h3>MinIO 为什么需要？</h3><p>本地 <code>uploads/</code> 只在当前机器有效。两个实例部署到不同机器后，A 上传的文件 B 看不到，所以文件必须外置到共享对象存储。MinIO 是 S3 兼容对象存储。</p></div>
+          <div class="card danger-card"><h3>当前真实 MinIO 验收了吗？</h3><p>没有。2026 年官方 MinIO 社区二进制下载返回 410，项目改用 moto S3 兼容测试服务验证 <code>MinioFileStorage</code> 协议路径：上传、跨实例读取、停服失败、恢复成功。报告中必须写“S3 兼容替身”。</p></div>
+        </div>
+        <div class="grid three">
+          <div class="card accent"><span class="badge ok">已通过</span><h3>Redis 停止</h3><p>文章列表、标签、在线人数、留言全部 HTTP 200；恢复后 PONG。</p></div>
+          <div class="card accent"><span class="badge ok">已通过</span><h3>RabbitMQ 停止</h3><p>10/10 业务请求 HTTP 200，publish failure +10；恢复后消费者 2 个。</p></div>
+          <div class="card accent"><span class="badge ok">已通过</span><h3>DLQ</h3><p>缺少 eventId 的坏消息进入 visit.log.write.dlq，验证后清理。</p></div>
+          <div class="card accent"><span class="badge ok">已通过</span><h3>优雅停机</h3><p>Rabbit worker 等待完成，Tomcat/Hikari graceful shutdown 日志齐全。</p></div>
+          <div class="card accent"><span class="badge ok">已通过</span><h3>backend-1 宕机</h3><p>Nginx 自动切换，20/20 请求 HTTP 200。</p></div>
+          <div class="card warn-card"><span class="badge warn">延期</span><h3>真实 MinIO / 多机</h3><p>物理主机故障、网络分区、MySQL 高可用和真实多节点扩容未验证。</p></div>
+        </div>
+        <div class="callout"><b>只有一个电脑怎么办？</b>可以验证应用级故障：停 Redis、停 RabbitMQ、杀 backend、优雅停机、共享对象存储。不能证明真实物理机宕机、网络分区和独立硬件扩容，因此报告必须把“单机应用级故障矩阵”和“生产多机高可用”分开。</div>
+      </section>
+      <section id="phase5" class="phase">
+        <div class="phase-head"><div class="phase-badge">6</div><div><h2>阶段 5：文档、简历与面试表达</h2><p>做过不等于能讲清楚。最终目标是把“问题、方案、数据、取舍、边界”组织成可信的工程故事。</p></div></div>
+        <div class="grid two">
+          <div class="card accent"><h3>简历最推荐结构</h3><p><b>针对什么问题 → 采用什么方案 → 量化效果是什么 → 边界是什么。</b>例如：针对 N+1 和 LIKE 全表扫描，完成批量加载、索引和 FULLTEXT 改造；笔记 SELECT 从 42 降到 4 次/请求。</p></div>
+          <div class="card warn-card"><h3>不要只写技术栈</h3><p>“使用 Redis、RabbitMQ、Nginx”没有区分度。面试官看不出你解决了什么，也无法判断你是否理解 Confirm/ACK、TTL、幂等和故障边界。</p></div>
+        </div>
+        <div class="simulator">
+          <h3>一句话项目介绍</h3>
+          <div class="result-box">面向高读低写内容平台的博客系统，我在基础功能之外完成了 SQL/N+1 优化、Redis 缓存治理、RabbitMQ 可靠异步和 Nginx 双实例故障演练，并用 Prometheus、Grafana 和 k6 为每项改造建立数据证据。</div>
+          <details><summary>面试官问“你最大的贡献是什么？”</summary><p>不是“写了多少接口”，而是把项目从功能可用推进到可观测、可压测、可降级、可恢复，并且能解释每个技术选择的代价和延期边界。</p></details>
+          <details><summary>为什么不能写“精通高并发”？</summary><p>项目是单机应用级验证，真实多机扩容、网络分区和 MySQL 高可用仍延期。写“精通高并发”会在追问下暴露边界不清。写具体场景和数据更可信。</p></details>
+        </div>
+        <div class="grid three">
+          <div class="card"><h3>架构文档</h3><p><code>docs/ARCHITECTURE.md</code>：模块、读请求、缓存、MQ、故障边界和 Mermaid 时序图。</p></div>
+          <div class="card"><h3>性能汇总</h3><p><code>docs/BENCHMARK_RESULT.md</code>：全阶段指标、可信度分级和数字使用边界。</p></div>
+          <div class="card"><h3>简历面试</h3><p><code>docs/JAVA_BACKEND_RESUME_AND_INTERVIEW.md</code>：多种简历版本、面试题答案和两分钟项目故事。</p></div>
+        </div>
+      </section>
+
+      <section id="confusions" class="phase">
+        <div class="phase-head"><div class="phase-badge">?</div><div><h2>高频疑问总索引</h2><p>这里集中解释你在项目过程中最常问、最容易混淆的地方。可以直接搜索关键词。</p></div></div>
+        <div class="qa-grid">
+          <details class="qa-item"><summary>1. P95、P99 多少算优秀？</summary><p>没有绝对答案。先看业务 SLO：页面接口一般希望 P95 在几十到几百毫秒；写接口还要看数据库和外部依赖。你的项目里，缓存命中读路径 P95 在低中压时只有几毫秒，高压下受共享 CPU、Redis、Nginx 和 k6 影响。判断时要同时看实际 RPS、错误率和 dropped iterations。</p></details>
+          <details class="qa-item"><summary>2. 数据好看是不是因为都打 Redis 了？</summary><p>是重要原因。缓存命中路径几乎不查 MySQL，所以看起来非常快；这正说明缓存有效，但也意味着不能拿它证明数据库查询能力。正确做法是同时测缓存开启、缓存关闭和大数据量场景，并观察 MySQL QPS、慢查询、Hikari pending。</p></details>
+          <details class="qa-item"><summary>3. Hikari 到底是什么？和线程池一样吗？</summary><p>Hikari 是 JDBC 连接池，管理应用和 MySQL 之间的物理连接。线程池管理的是执行任务的线程；Hikari 管理的是数据库连接。<code>minimum-idle</code> 不是核心线程数，<code>maximum-pool-size</code> 也不是最大线程数。</p></details>
+          <details class="qa-item"><summary>4. 为什么搜索用 FULLTEXT 而不是 ES？</summary><p>当前搜索主要是标题、正文和标签，数据规模和相关性排序要求还不需要 ES。ES 会引入索引同步、双写一致性、集群和运维成本。先用 FULLTEXT 解决 LIKE 全表扫描，有明确复杂搜索需求后再评估 ES/OpenSearch。</p></details>
+          <details class="qa-item"><summary>5. 为什么 Redis 缓存能降级，但其他 Redis 操作不能统一降级？</summary><p>不同业务故障语义不同。核心页面缓存失败可以查 MySQL；在线人数失败返回 0 可接受；留言限流失败应 fail-open；登录防爆破失败也是 fail-open，但安全性下降；分布式锁失败应该跳过任务，不能让多个实例同时刷库。统一包装只适合读缓存，不适合所有操作。</p></details>
+          <details class="qa-item"><summary>6. Spring Cache 默认 Redis 挂了到底会怎样？</summary><p>默认情况下 Redis 连接失败可能抛 <code>RedisConnectionFailureException</code>，方法体还没执行。项目加了统一 ResilientCacheManager 后，get 失败会记录 fallback 指标并执行 loader，写回失败也不影响返回。这是项目自己的扩展行为，不是 Spring Cache 默认行为。</p></details>
+          <details class="qa-item"><summary>7. 热点 Key 为什么不是严格全局只回源一次？</summary><p>严格全局单飞要求其他实例等待锁、拿到锁后二次检查缓存，并处理锁超时和 loader 超时。等待会增加延迟，Redis 本身故障时还可能拖死请求。当前采用可用性优先：单实例强互斥，多实例抢不到锁时允许少量重复回源。</p></details>
+          <details class="qa-item"><summary>8. 浏览量幂等为什么不能靠事务解决？</summary><p>Redis 和 MySQL 是两个系统，本地事务无法覆盖跨系统命令。项目用稳定 batchId + MySQL 唯一键记录批次，同一批次重复执行不会重复加浏览；Redis 扣减放在数据库成功之后，失败时允许少计，不追求强一致。</p></details>
+          <details class="qa-item"><summary>9. N+1 的解决顺序到底是什么？</summary><p>分页查笔记 → 收集当前页 noteId → 批量查评论 → 批量查评论作者 → 批量查点赞 → 按 noteId 分组 → 建评论树 → 截取前 3 条根评论。关键是一次只查当前页，不查全表。</p></details>
+          <details class="qa-item"><summary>10. Publisher Confirm 和 Consumer ACK 有什么区别？</summary><p>Confirm 方向是 Broker → Producer，只表示 Broker 收到消息；ACK 方向是 Consumer → Broker，表示消费者完成处理。Consumer 要在 MySQL 事务提交后再 ACK。两者都存在也不代表“恰好一次”，消费端仍需 eventId 幂等。</p></details>
+          <details class="qa-item"><summary>11. RabbitMQ 故障期间，消息到底丢不丢？</summary><p>已经成功进入 Broker 并持久化的消息通常能在恢复后继续消费；但 fail-open 期间根本没发送成功的访问日志不会自动补发，所以允许丢失。零丢失需要 Outbox：业务事务内写事件表，后台可靠投递。</p></details>
+          <details class="qa-item"><summary>12. 两个 JVM 为什么不一定更快？</summary><p>两个 JVM 不等于两份 CPU、网卡和 MySQL。单机上它们共享资源，k6 还和被测系统抢 CPU。只有给应用更多有效计算资源，水平复制才可能表现为稳定容量提升。当前实验通过 CPU 亲和性隔离后才看到双实例优势。</p></details>
+          <details class="qa-item"><summary>13. MinIO 为什么单机也需要？</summary><p>单实例本地文件没问题；两个实例在同一台机器也能暂时共享目录，但这不能代表跨机器部署。多实例一旦分到两台主机，本地 uploads 目录不共享，A 上传的文件 B 看不到。MinIO 把文件变成共享外部状态。</p></details>
+          <details class="qa-item"><summary>14. 故障矩阵一定要两个主机吗？</summary><p>不一定。单机可以做应用级故障：停 Redis、停 RabbitMQ、停对象存储、优雅停机、杀一个 backend、验证 Nginx 切换。两个主机才能证明物理主机宕机、网络分区、独立硬件扩容和真正的多节点高可用。</p></details>
+          <details class="qa-item"><summary>15. 为什么访问日志只有一条链路进入 RabbitMQ？</summary><p>目标是把一条链路做完整，验证 Publisher Confirm、手动 ACK、批量事务、eventId 幂等、重试和 DLQ。把邮件、点赞、缓存失效、搜索索引全部塞进去会大幅增加复杂度，但不会增加面试价值。</p></details>
+        </div>
+      </section>
+
+      <section id="glossary" class="phase">
+        <div class="phase-head"><div class="phase-badge">A</div><div><h2>术语词典</h2><p>把缩写和概念用一句话说清楚。</p></div></div>
+        <div class="term-grid">
+          <div class="card term"><h3>Actuator</h3><p>Spring Boot 的管理端点，暴露 health、metrics、prometheus 等信息。</p></div>
+          <div class="card term"><h3>Micrometer</h3><p>Java 指标门面，记录 Counter、Timer、Gauge，并适配 Prometheus。</p></div>
+          <div class="card term"><h3>Prometheus</h3><p>负责定时抓取和存储时间序列指标的监控系统。</p></div>
+          <div class="card term"><h3>Grafana</h3><p>查询监控数据并绘制面板、配置告警的可视化工具。</p></div>
+          <div class="card term"><h3>P95 / P99</h3><p>95%/99% 请求不超过的延迟值，用于观察尾部性能。</p></div>
+          <div class="card term"><h3>HikariCP</h3><p>高性能 JDBC 数据库连接池，不是线程池。</p></div>
+          <div class="card term"><h3>N+1</h3><p>1 次主查询加 N 次循环关联查询，典型 ORM 性能问题。</p></div>
+          <div class="card term"><h3>FULLTEXT</h3><p>MySQL 全文索引，用于替代低效的 LIKE 全表扫描。</p></div>
+          <div class="card term"><h3>TTL Jitter</h3><p>给缓存过期时间加随机抖动，避免大量 Key 同时失效。</p></div>
+          <div class="card term"><h3>Cache Stampede</h3><p>热点 Key 失效瞬间大量请求同时回源数据库。</p></div>
+          <div class="card term"><h3>Idempotency</h3><p>同一操作重复执行多次，最终结果与执行一次相同。</p></div>
+          <div class="card term"><h3>Publisher Confirm</h3><p>RabbitMQ Broker 告诉 Producer 消息已接收。</p></div>
+          <div class="card term"><h3>Consumer ACK</h3><p>消费者完成处理后告诉 Broker 可以删除消息。</p></div>
+          <div class="card term"><h3>DLQ</h3><p>死信队列，存放重试耗尽或无法处理的坏消息。</p></div>
+          <div class="card term"><h3>Fail-open</h3><p>附属能力故障时放行主业务，例如 MQ 日志或限流失败时不阻断请求。</p></div>
+          <div class="card term"><h3>Outbox</h3><p>业务事务内先写事件表，再可靠投递到 MQ 的模式，可降低消息丢失。</p></div>
+          <div class="card term"><h3>MinIO / S3</h3><p>对象存储协议和实现，用 bucket/key 管理共享文件。</p></div>
+          <div class="card term"><h3>Graceful Shutdown</h3><p>停止接收新请求，等待当前请求和消费者任务处理完成再退出。</p></div>
+        </div>
+      </section>
+      <section id="quiz" class="phase">
+        <div class="phase-head"><div class="phase-badge">✓</div><div><h2>自测：你真的理解了吗？</h2><p>点击选项即时判断，最后计算得分。答错会显示解释。</p></div></div>
+        <div class="controls"><button id="quizReset" class="small">重新开始</button><span id="quizScore" class="badge">得分：0 / 10</span></div>
+        <div id="quizContainer"></div>
+      </section>
+
+      <div class="footer">
+        <p>Aston's Blog · Java 后端性能与可靠性改造交互手册</p>
+        <p>建议配合 <code>docs/ARCHITECTURE.md</code>、<code>docs/BENCHMARK_RESULT.md</code>、<code>docs/FAULT_MATRIX_RESULT.md</code> 阅读。</p>
+      </div>
+    </main>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+<script>
+const $ = (s, root=document) => root.querySelector(s);
+const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+const toast = (msg) => { const el=$('#toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),1800); };
+
+// Theme
+const savedTheme = localStorage.getItem('blog-guide-theme');
+if(savedTheme) document.documentElement.dataset.theme=savedTheme;
+$('#themeBtn').addEventListener('click',()=>{
+  const next=document.documentElement.dataset.theme==='light'?'dark':'light';
+  document.documentElement.dataset.theme=next; localStorage.setItem('blog-guide-theme',next);
+});
+
+// Nav + visited progress
+$$('.nav-link').forEach(btn=>btn.addEventListener('click',()=>{
+  const target=document.getElementById(btn.dataset.target); if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+}));
+const visited=new Set();
+const phaseSections=['overview','phase0','phase1','phase2','phase3','phase4','phase5'];
+const progressObserver=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){visited.add(e.target.id);updateProgress();}});
+},{threshold:.22});
+phaseSections.forEach(id=>{const el=document.getElementById(id);if(el)progressObserver.observe(el)});
+function updateProgress(){
+  const count=[...visited].filter(x=>x.startsWith('phase')).length;
+  $('#progressFill').style.width=(count/6*100)+'%';
+  $('#progressText').textContent=`${count} / 6 阶段已浏览`;
+}
+$$('[data-scroll]').forEach(btn=>btn.addEventListener('click',()=>document.getElementById(btn.dataset.scroll)?.scrollIntoView({behavior:'smooth'})));
+
+// Expand / collapse / print
+$('#expandBtn').addEventListener('click',()=>{$$('details').forEach(d=>d.open=true);toast('已展开全部')});
+$('#collapseBtn').addEventListener('click',()=>{$$('details').forEach(d=>d.open=false);toast('已折叠全部')});
+$('#printBtn').addEventListener('click',()=>window.print());
+
+// Search
+const searchTargets=()=>$$('.qa-item,.term,.card,.simulator,details');
+$('#searchInput').addEventListener('input',e=>{
+  const q=e.target.value.trim().toLowerCase();
+  let shown=0;
+  searchTargets().forEach(el=>{
+    if(!q){el.classList.remove('hidden-by-search');shown++;return;}
+    const hit=el.textContent.toLowerCase().includes(q);
+    el.classList.toggle('hidden-by-search',!hit); if(hit)shown++;
+  });
+  let no=$('#noResults'); if(!no){no=document.createElement('div');no.id='noResults';no.className='no-results';$('#overview').after(no);}
+  no.textContent=q?`没有找到包含“${q}”的内容`:'';
+  no.style.display=q&&shown===0?'block':'none';
+});
+
+// KPI load tabs
+const loadData={
+  500:{single:'499.84 RPS / P95 5.33ms / P99 9.43ms',dual:'499.97 RPS / P95 3.93ms / P99 6.40ms',note:'低压下双实例有一轮小优势，但不能用单次数据夸大。'},
+  1000:{single:'实际约 905～958 RPS；P95 1285～2077ms；dropped 948～2107',dual:'实际约 1000 RPS；P95 45～64ms；dropped 0',note:'未给第二实例独立 CPU 时，双实例未必更快；隔离 CPU 后才稳定。'},
+  1500:{single:'实际约 1409～1500 RPS；P95 26～1935ms；dropped 0～1320',dual:'实际约 1461～1500 RPS；P95 5～7ms；dropped 0',note:'双实例在资源隔离实验中表现稳定，但仍是单机、共享中间件。'}
+};
+function renderLoad(rate){
+  const d=loadData[rate];
+  $('#loadMetrics').textContent=`目标 ${rate} RPS\n单实例：${d.single}\n双实例：${d.dual}\n\n解释：${d.note}`;
+  $$('#loadTabs button').forEach(b=>b.classList.toggle('primary',b.dataset.load==String(rate)));
+}
+$$('#loadTabs button').forEach(b=>b.addEventListener('click',()=>renderLoad(b.dataset.load)));
+renderLoad(500);
+
+// Hikari simulator
+const pool=$('#poolVu');
+function renderPool(){
+  const vu=Number(pool.value); $('#poolVuText').textContent=vu;
+  let pending=0,p95=0,text='';
+  if(vu<=50){pending=0;p95=15.67;text='连接池 10/20 都能承载，当前不是瓶颈。'}
+  else if(vu<=100){pending=vu>=90?23:8;p95=vu>=90?71.45:55;p95=vu>=90?71.45:55;text='10 连接时开始出现等待；20 连接后明显缓解。'}
+  else{pending=vu>=150?5:2;p95=vu>=150?49.3:45;text='连接池增加后 pending 下降，但还要关注 MySQL 总连接数和 CPU。'}
+  if(vu>100){pending=Math.max(0,Math.round((vu-100)/10));p95=40.64+pending*2.1;}
+  $('#poolActive').textContent=vu>=100?20:Math.min(20,Math.max(10,Math.ceil(vu/5)));
+  $('#poolPending').textContent=pending; $('#poolP95').textContent=p95.toFixed(2)+'ms';
+  $('#poolExplain').textContent=text;
+}
+pool.addEventListener('input',renderPool); renderPool();
+
+// GC
+const gcInfo={
+  g1:'G1：区域化堆、可预测停顿，适合大多数中小到中型 Java 服务。你的项目默认优先选它，先观测 GC 日志和暂停时间，不要盲目换算法。',
+  parallel:'Parallel：吞吐优先，适合批处理、离线任务、对单次停顿不敏感的服务。对在线 API 的尾部延迟可能不友好。',
+  zgc:'ZGC：低延迟、大堆友好，适合超大堆和极低暂停要求。代价是更多内存、CPU 和运维复杂度；当前博客项目没有必要先上。',
+  serial:'Serial：单线程、小堆、实现简单，适合极小应用或资源受限环境。现代多核 Web 服务通常不优先。'
+};
+function renderGC(){ $('#gcOut').textContent=gcInfo[$('#gcSelect').value]; }
+$('#gcSelect').addEventListener('change',renderGC); renderGC();
+
+// N+1 simulator
+const nRange=$('#nplusRange');
+function renderNPlus(){
+  const n=Number(nRange.value); const before=1+n+1+1+n; // notes + comments + authors + likes approximate loop
+  const actual=n+2+1; // current-page batch style: notes + comments + authors + likes = 4 for any page
+  $('#nplusSize').textContent=n; $('#nplusBefore').textContent=before; $('#nplusSaved').textContent=before-4;
+  $('#nplusFlow').innerHTML=`<div class="node hot"><b>1 次 notes 分页</b><small>当前页 ${n} 篇</small></div><div class="arrow">→</div><div class="node bad"><b>修复前约 ${before} 次 SELECT</b><small>循环逐篇查评论/作者/点赞</small></div><div class="arrow">→</div><div class="node"><b>修复后 4 次 SELECT</b><small>批量查当前页关联数据</small></div>`;
+}
+nRange.addEventListener('input',renderNPlus); renderNPlus();
+
+// Redis simulator
+let redisUp=true;
+function redisStatus(){
+  $('#redisNode').classList.toggle('bad',!redisUp);
+  $('#redisToggle').textContent=`Redis：${redisUp?'正常':'故障'}`;
+  $('#redisToggle').className=redisUp?'primary':'danger';
+}
+$('#redisToggle').addEventListener('click',()=>{redisUp=!redisUp;redisStatus();toast(redisUp?'Redis 已恢复':'Redis 已进入故障模式')});
+$('#redisRequest').addEventListener('click',()=>{
+  const t=Date.now()%2;
+  if(!redisUp){$('#redisResult').textContent='请求 → @Cacheable → Redis 连接失败 → ResilientCacheManager 捕获异常 → 记录 fallback 指标 → 执行 loader → 查询 MySQL → 返回 HTTP 200（写回失败不影响返回）';return;}
+  if(t===0){$('#redisResult').textContent='请求 → Redis cache hit → 直接返回；没有查 MySQL。这就是缓存命中率高的原因。';}
+  else{$('#redisResult').textContent='请求 → Redis cache miss → 执行 loader → 查询 MySQL → 写入 Redis（TTL + 抖动）→ 返回。下一次相同 Key 才命中。';}
+});
+redisStatus();
+
+// Hot key timeline
+const hotLines=[];
+function renderHot(){ $('#hotTimeline').textContent=hotLines.join('\n') || '等待操作。'; }
+$('#hotStep1').addEventListener('click',()=>{hotLines.push('T1 实例 A cache miss → 获取本地锁 → 尝试 Redis 锁 → 成功 → 执行 loader');renderHot()});
+$('#hotStep2').addEventListener('click',()=>{hotLines.push('T2 实例 B cache miss → 单实例内锁保护自己 → Redis 锁失败 → 当前实现允许继续 loader（可用性优先）');renderHot()});
+$('#hotStep3').addEventListener('click',()=>{hotLines.push('T3 A 的 loader 超过锁 TTL → 锁过期 → 其他实例可获取新锁 → 释放时必须比较 token，不能盲删别人的锁');renderHot()});
+
+// View count simulator
+let viewState={redis:0,db:100,batch:null,applied:new Set()};
+function renderView(){ $('#viewRedis').textContent=viewState.redis; $('#viewDb').textContent=viewState.db; $('#viewBatch').textContent=viewState.batch||'-'; }
+$('#viewInc').addEventListener('click',()=>{viewState.redis++;renderView();$('#viewResult').textContent='INCR Redis 浏览量 +1；MySQL 暂时不更新。'});
+$('#viewFlush').addEventListener('click',()=>{
+  if(viewState.redis===0){$('#viewResult').textContent='没有待刷新的增量。';return;}
+  viewState.batch='batch-'+(Math.floor(Math.random()*900)+100);
+  if(!viewState.applied.has(viewState.batch)){viewState.db+=viewState.redis;viewState.applied.add(viewState.batch);}
+  $('#viewResult').textContent=`创建稳定 batchId=${viewState.batch} → MySQL 唯一键插入批次 + 原子 UPDATE view_count → 提交成功 → 扣减 Redis。`;
+  viewState.redis=0;renderView();
+});
+$('#viewCrash').addEventListener('click',()=>{$('#viewResult').textContent=`模拟：MySQL 已提交 batch=${viewState.batch||'未创建'}，但扣 Redis 之前进程崩溃。Redis 仍保留增量。`;});
+$('#viewRetry').addEventListener('click',()=>{if(!viewState.batch){$('#viewResult').textContent='先执行一次刷库。';return;} $('#viewResult').textContent=`重试 batchId=${viewState.batch} → MySQL 唯一键发现已处理 → 不再加浏览 → 最终扣减 Redis。幂等生效。`;viewState.redis=0;renderView();});
+$('#viewReset').addEventListener('click',()=>{viewState={redis:0,db:100,batch:null,applied:new Set()};renderView();$('#viewResult').textContent='已重置。'});renderView();
+
+// MQ routing simulator
+const bindings=[
+  {queue:'visit.log.write',type:'direct',pattern:'visit.recorded'},
+  {queue:'visit.log.audit',type:'direct',pattern:'visit.audit'},
+  {queue:'visit.all',type:'topic',pattern:'visit.#'},
+  {queue:'visit.error',type:'topic',pattern:'visit.*.error'},
+  {queue:'broadcast.queue',type:'fanout',pattern:'*'}
+];
+$('#routeBtn').addEventListener('click',()=>{
+  const type=$('#exchangeType').value,key=$('#routingKey').value.trim();
+  const matched=bindings.filter(b=>{
+    if(type==='fanout')return b.type==='fanout';
+    if(b.type!==type)return false;
+    if(type==='direct')return b.pattern===key;
+    return topicMatch(b.pattern,key);
+  });
+  $('#routeResult').textContent=matched.length?`Exchange=${type}\nRouting Key=${key}\n\n匹配队列：\n${matched.map(b=>'• '+b.queue+'  (binding '+b.pattern+')').join('\n')}`:`Exchange=${type}\nRouting Key=${key}\n\n没有匹配队列 → 消息可能被丢弃或触发 returned message（取决于配置）。`;
+});
+function topicMatch(pattern,key){
+  const p=pattern.split('.'),k=key.split('.');
+  function walk(i,j){if(i===p.length)return j===k.length;if(p[i]==='#')return walk(i+1,j)||(j<k.length&&walk(i,j+1));if(j>=k.length)return false;if(p[i]!=='*'&&p[i]!==k[j])return false;return walk(i+1,j+1);}
+  return walk(0,0);
+}
+
+// MQ lifecycle
+function setMQ(state){
+  ['mqProducer','mqExchange','mqQueue','mqConsumer','mqDb'].forEach(id=>$('#'+id).classList.remove('bad','hot'));
+  if(state==='normal'){$('#mqProducer').classList.add('hot');$('#mqDb').classList.add('hot');$('#mqResult').textContent='Producer → Broker Confirm → Queue → Consumer → MySQL 事务提交 → 手动 ACK。';}
+  if(state==='fail'){$('#mqConsumer').classList.add('bad');$('#mqResult').textContent='Consumer 处理失败 → 有限重试 → 仍失败 → NACK → DLX → visit.log.write.dlq；正常消息不被坏消息永久阻塞。';}
+  if(state==='duplicate'){$('#mqDb').classList.add('hot');$('#mqResult').textContent='同一 eventId 再次到达 → MySQL 唯一键冲突/幂等处理 → 不产生第二条访问日志。Publisher Confirm 不代表 exactly-once。';}
+  if(state==='down'){$('#mqExchange').classList.add('bad');$('#mqQueue').classList.add('bad');$('#mqResult').textContent='RabbitMQ 不可用 → 生产端 fail-open → 业务 HTTP 200 → publish failure +1 → 这条访问日志允许丢失；恢复后消费者自动重连。';}
+}
+$('#mqNormal').onclick=()=>setMQ('normal');$('#mqFail').onclick=()=>setMQ('fail');$('#mqDuplicate').onclick=()=>setMQ('duplicate');$('#mqBrokerDown').onclick=()=>setMQ('down');$('#mqReset').onclick=()=>{setMQ('normal');$('#mqResult').textContent='已重置为正常流程。'};
+
+// Nginx simulator
+let backend1Alive=true, requestLog=[];
+function renderNginx(){
+  $('#b1Node').classList.toggle('bad',!backend1Alive);
+  $('#b1Node').innerHTML=`<b>backend-1 :8081</b><small>${backend1Alive?'实例 A 正常':'实例 A 已宕机'}</small>`;
+  $('#killBackend').classList.toggle('primary',!backend1Alive);$('#killBackend').textContent=backend1Alive?'杀掉 backend-1':'backend-1 已宕机';
+}
+$('#killBackend').addEventListener('click',()=>{backend1Alive=false;renderNginx();toast('backend-1 已模拟宕机')});
+$('#restoreBackend').addEventListener('click',()=>{backend1Alive=true;renderNginx();toast('backend-1 已恢复')});
+$('#sendRequests').addEventListener('click',()=>{
+  const results=[];
+  for(let i=0;i<12;i++){
+    if(backend1Alive){results.push(i%2===0?'A':'B');}
+    else results.push('B');
+  }
+  $('#nginxResult').textContent=`请求序列：${results.join(' → ')}\n\nA 命中 ${results.filter(x=>x==='A').length} 次\nB 命中 ${results.filter(x=>x==='B').length} 次\n\n${backend1Alive?'正常轮询或近似均衡。':'backend-1 故障时全部请求由 backend-2 处理；真实 Nginx 首次检测有切换成本，实测前两次约 3 秒，其余请求正常。'}`;
+});
+renderNginx();
+
+// Quiz
+const quiz=[
+  {q:'P95 表示什么？',opts:['95% 请求的平均延迟','95% 请求不超过该延迟','只有 95 个请求','数据库使用率'],a:1,why:'P95 是 95% 请求延迟不超过的值，重点看尾部体验。'},
+  {q:'Redis 挂了时，项目里核心页面缓存的策略是？',opts:['所有请求直接失败','回源 MySQL 并记录 fallback','删除数据库','自动启动 RabbitMQ'],a:1,why:'统一缓存包装捕获 Redis 异常后执行 loader，查 MySQL；写回失败不影响返回。'},
+  {q:'N+1 的根因是？',opts:['数据库连接太多','循环里逐条查关联数据','索引太多','缓存 TTL 太短'],a:1,why:'1 次主查询加 N 次循环查询。修复是当前页关联数据批量查回装。'},
+  {q:'Hikari 是？',opts:['线程池','JDBC 连接池','消息队列','JVM GC'],a:1,why:'Hikari 管理数据库物理连接，不管理线程。'},
+  {q:'Publisher Confirm 表示？',opts:['消费者写完 MySQL','Broker 收到消息','浏览器收到响应','Redis 命中'],a:1,why:'Confirm 是 Broker→Producer；Consumer ACK 才表示消费处理完成。'},
+  {q:'重复消息主要靠什么防重复写库？',opts:['只在内存 HashSet 去重','eventId 唯一键幂等','增加线程数','关闭 ACK'],a:1,why:'消费端内存去重无法跨重启；数据库唯一键才是最终兜底。'},
+  {q:'RabbitMQ fail-open 意味着？',opts:['消息一定不丢','MQ 故障时业务仍可用，日志允许丢失','消费者永不重试','必须使用 Kafka'],a:1,why:'优先保证主业务可用；零丢失需要 Outbox。'},
+  {q:'两个 JVM 为什么不一定更快？',opts:['JVM 只能单线程','它们可能共享同一台机器的 CPU/网卡/数据库','JVM 不支持集群','Nginx 不支持双实例'],a:1,why:'水平扩容需要额外有效资源，单机两个进程仍共享硬件。'},
+  {q:'MinIO 的主要作用是？',opts:['替代 MySQL','共享对象文件存储','替代 JWT','做 GC'],a:1,why:'多实例部署时，本地 uploads 不共享，文件必须外置到对象存储。'},
+  {q:'单机故障矩阵不能证明什么？',opts:['Redis 降级','RabbitMQ fail-open','物理主机宕机和网络分区','优雅停机'],a:2,why:'物理主机故障、网络分区和真实独立硬件扩容需要多机环境。'}
+];
+let quizScore=0,answered=new Set();
+function renderQuiz(){
+  $('#quizContainer').innerHTML=quiz.map((item,qi)=>`<div class="quiz-question" data-q="${qi}"><b>${qi+1}. ${item.q}</b><div class="quiz-options">${item.opts.map((op,oi)=>`<button data-qi="${qi}" data-oi="${oi}">${String.fromCharCode(65+oi)}. ${op}</button>`).join('')}</div><div class="quiz-explain" id="exp-${qi}">${item.why}</div></div>`).join('');
+  $$('#quizContainer button').forEach(btn=>btn.addEventListener('click',()=>answerQuiz(Number(btn.dataset.qi),Number(btn.dataset.oi))));
+  quizScore=0;answered.clear();updateScore();
+}
+function answerQuiz(qi,oi){
+  if(answered.has(qi))return;
+  const item=quiz[qi]; const root=$(`.quiz-question[data-q="${qi}"]`);
+  $$('button',root).forEach((b,i)=>{if(i===item.a)b.classList.add('correct');if(i===oi&&oi!==item.a)b.classList.add('wrong');});
+  $('#exp-'+qi).classList.add('show'); answered.add(qi);
+  if(oi===item.a)quizScore++; updateScore();
+  if(answered.size===quiz.length)toast(`完成自测：${quizScore} / ${quiz.length}`);
+}
+function updateScore(){$('#quizScore').textContent=`得分：${quizScore} / ${quiz.length}`;}
+$('#quizReset').addEventListener('click',renderQuiz);renderQuiz();
+
+// Scroll spy nav
+const phases=$$('section.phase');
+const navMap=new Map($$('.nav-link').map(b=>[b.dataset.target,b]));
+const spy=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      $$('.nav-link').forEach(b=>b.classList.remove('active'));
+      navMap.get(e.target.id)?.classList.add('active');
+    }
+  });
+},{rootMargin:'-20% 0px -68% 0px',threshold:0});
+phases.forEach(s=>spy.observe(s));
+</script>
+</body>
+</html>

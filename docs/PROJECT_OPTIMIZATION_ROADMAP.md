@@ -18,7 +18,7 @@
 | 阶段 3：RabbitMQ 可靠异步链路 | ✅ 已完成 | 100% | RabbitMQ 真实投递、批量消费者、拆批隔离失败、event_id 幂等、DLQ、手工重放、停服 30 秒恢复、队列 ready/unacked/consumer 指标、优雅停机、`RABBITMQ_VISIT_LOG.md` | 生产端仍是 fail-open，事件可能丢失；消费者重试为进程内重试；未实现 Outbox；真实 RabbitMQ 使用 WSL 原生服务验证 |
 | 阶段 4：多实例部署与故障演练 | 🟡 单机验收完成 | 约 85% | 真实 Nginx 双实例代理、
 ginx -t`、backend-1 宕机自动切换、CPU 亲和性单双实例压测、缓存开关对照、Redis/RabbitMQ/S3 兼容存储/优雅停机/故障矩阵、`BENCHMARK_PHASE4_SCALING.md`、`FAULT_MATRIX_RESULT.md` | 真实 MinIO 上传、双实例 Prometheus/Grafana、独立压测机/多应用节点、物理主机/网络分区、MySQL 高可用 |
-| 阶段 5：文档、数据与简历包装 | ✅ 已完成 | 100% | README、`ARCHITECTURE.md`（含 Mermaid 时序图）、`ADR.md`、`BENCHMARK_RESULT.md`、`RUNBOOK.md`、`FAILOVER_DRILL.md`、`INTERVIEW_QA.md`、`FAULT_MATRIX_RESULT.md`、`RESUME_PROJECT.md`、`JAVA_BACKEND_RESUME_AND_INTERVIEW.md`、阶段 0～4 专项报告和 k6 场景 | 无文档阻断项；真实 MinIO/多机/网络分区实验属于阶段 4 延期验证 |
+| 阶段 5：文档、数据与简历包装 | ✅ 已完成 | 100% | README、`ARCHITECTURE.md`（含 Mermaid 时序图）、`ADR.md`、`BENCHMARK_RESULT.md`、`RUNBOOK.md`、`FAILOVER_DRILL.md`、`INTERVIEW_QA.md`、`FAULT_MATRIX_RESULT.md`、`RESUME_PROJECT.md`、`JAVA_BACKEND_RESUME_AND_INTERVIEW.md`、`interactive/java-backend-optimization-interactive.html`、阶段 0～4 专项报告和 k6 场景 | 无文档阻断项；真实 MinIO/多机/网络分区实验属于阶段 4 延期验证 |
 
 ### 当前结论
 
@@ -527,9 +527,14 @@ ginx -t` 加载和双实例代理验证。
 4. `docs/BENCHMARK_RESULT.md`
 5. `docs/RUNBOOK.md`
 6. `docs/FAILOVER_DRILL.md`
-7. `loadtest/k6/`
-8. 架构图、时序图、缓存 Key 图
-9. README 项目亮点重写
+7. `docs/FAULT_MATRIX_RESULT.md`
+8. `docs/INTERVIEW_QA.md`
+9. `docs/RESUME_PROJECT.md`
+10. `docs/JAVA_BACKEND_RESUME_AND_INTERVIEW.md`
+11. `docs/interactive/java-backend-optimization-interactive.html`
+12. `loadtest/k6/`
+13. 架构图、时序图、缓存 Key 图
+14. README 项目亮点重写
 
 ### README 必须包含
 
