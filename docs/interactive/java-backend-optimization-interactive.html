@@ -46,6 +46,16 @@ details{border:1px solid var(--line);border-radius:12px;background:var(--panel2)
   .qa-grid,.grid.two,.grid.three{grid-template-columns:1fr}
   table{display:block;overflow-x:auto;white-space:normal}
 }
+.code-shell{margin:.9rem 0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg)}
+.code-tabs{display:flex;gap:.35rem;flex-wrap:wrap;padding:.55rem;background:var(--panel2);border-bottom:1px solid var(--line)}
+.code-tab{padding:.42rem .65rem;font-size:.84rem;border-radius:9px}
+.code-tab.active{border-color:var(--cyan);background:rgba(92,225,212,.12);color:var(--cyan)}
+.code-panel{display:none;padding:1rem}.code-panel.active{display:block}
+pre{margin:.55rem 0;padding:.9rem;overflow:auto;border:1px solid var(--line);border-radius:11px;background:#06101d;color:#d7f7ef;line-height:1.55;font-size:.86rem;tab-size:2}
+html[data-theme="light"] pre{background:#152235;color:#eef8ff}
+pre code{background:transparent;border:0;padding:0;color:inherit}
+.code-head{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap}.code-head h4{margin:0}.code-head .copy-code{margin-left:auto}
+.code-why{display:grid;gap:.45rem;margin-top:.7rem}.code-why div{padding:.55rem .7rem;border-left:3px solid var(--cyan);background:rgba(92,225,212,.06);border-radius:0 9px 9px 0;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -82,6 +92,7 @@ details{border:1px solid var(--line);border-radius:12px;background:var(--panel2)
       <button class="nav-link" data-target="phase1"><span class="num">2</span><span>SQL、N+1、索引</span></button>
       <button class="nav-link" data-target="phase2"><span class="num">3</span><span>缓存、锁、热点写</span></button>
       <button class="nav-link" data-target="phase3"><span class="num">4</span><span>RabbitMQ 异步链路</span></button>
+      <button class="nav-link" data-target="code-walkthrough"><span class="num">{ }</span><span>代码逐段走读</span></button>
       <button class="nav-link" data-target="phase4"><span class="num">5</span><span>双实例与故障矩阵</span></button>
       <button class="nav-link" data-target="phase5"><span class="num">6</span><span>文档、简历、面试</span></button>
       <button class="nav-link" data-target="confusions"><span class="num">?</span><span>高频疑问总索引</span></button>
@@ -270,6 +281,190 @@ details{border:1px solid var(--line);border-radius:12px;background:var(--panel2)
         <div class="callout danger"><b>RabbitMQ 挂了，消息会不会自动补发？</b>已经成功进入 Broker 且持久化的消息，在 Broker 恢复后通常还能被消费；但生产端 fail-open 期间根本没发出去的消息不会自动补发。要做到这一点，需要 Outbox 或本地事件表。</div>
       </section>
 
+            <section id="code-walkthrough" class="phase">
+        <div class="phase-head"><div class="phase-badge">{ }</div><div><h2>代码逐段走读：这些方案到底怎么落地？</h2><p>每个标签页都按“代码在做什么 → 为什么这样写 → 边界是什么”解释。代码已做教学化简，不是完整文件。</p></div></div>
+        <div class="code-shell">
+          <div class="code-tabs">
+            <button class="code-tab active" data-code-tab="nplus">1. N+1 批量回装</button>
+            <button class="code-tab" data-code-tab="redis">2. Redis 降级</button>
+            <button class="code-tab" data-code-tab="lock">3. 分布式锁</button>
+            <button class="code-tab" data-code-tab="view">4. 浏览量幂等</button>
+            <button class="code-tab" data-code-tab="mq">5. RabbitMQ 消费</button>
+            <button class="code-tab" data-code-tab="nginx">6. Nginx 双实例</button>
+          </div>
+
+          <div class="code-panel active" data-code-panel="nplus">
+            <div class="code-head"><h4>NoteServiceImpl：当前页批量加载</h4><button class="small copy-code" data-copy="nplus-code">复制代码</button></div>
+            <pre id="nplus-code"><code>List&lt;String&gt; noteIds = notes.stream()
+    .map(Note::getId)
+    .filter(Objects::nonNull)
+    .toList();
+
+List&lt;NoteComment&gt; allComments = noteCommentRepository
+    .findByNoteIdInOrderByNoteIdAscCreatedAtAsc(noteIds);
+
+Map&lt;String, List&lt;NoteComment&gt;&gt; commentsByNote =
+    allComments.stream().collect(Collectors.groupingBy(
+        NoteComment::getNoteId, LinkedHashMap::new, Collectors.toList()));
+
+Map&lt;String, User&gt; userMap = loadUsers(allComments);
+
+for (Note note : notes) {
+    List&lt;NoteComment&gt; flat =
+        commentsByNote.getOrDefault(note.getId(), List.of());
+    note.setComments(buildCommentTree(flat, userMap)
+        .stream().limit(3).toList());
+}</code></pre>
+            <div class="code-why">
+              <div><b>代码在做什么：</b>先收集当前页 noteId，再批量查评论和评论作者，按 noteId 分组后回装到每篇笔记。</div>
+              <div><b>为什么这样写：</b>数据库查询次数从“1 + N”变成固定次数；只在当前页范围内查，不会把全表评论拉回来。</div>
+              <div><b>截断位置：</b>先建完整评论树，再截取前 3 条根评论。否则可能把子评论截断，导致树结构不完整。</div>
+            </div>
+          </div>
+
+          <div class="code-panel" data-code-panel="redis">
+            <div class="code-head"><h4>ResilientCache：把 Redis 异常变成 cache miss</h4><button class="small copy-code" data-copy="redis-code">复制代码</button></div>
+            <pre id="redis-code"><code>@Override
+public ValueWrapper get(Object key) {
+    try {
+        return delegate.get(key);
+    } catch (RuntimeException ex) {
+        onFailure("get", key, ex);
+        return null;
+    }
+}
+
+@Override
+public void put(Object key, Object value) {
+    try {
+        delegate.put(key, value);
+    } catch (RuntimeException ex) {
+        onFailure("put", key, ex);
+    }
+}
+
+private void onFailure(String op, Object key, RuntimeException ex) {
+    meterRegistry.counter("cache.redis.failures",
+        "cache", getName(), "operation", op).increment();
+    if ("get".equals(op)) {
+        meterRegistry.counter("cache.redis.fallbacks",
+            "cache", getName()).increment();
+    }
+}</code></pre>
+            <div class="code-why">
+              <div><b>关键理解：</b>get 失败返回 null，Spring Cache 会把这次当成“没命中”，继续执行原方法查 MySQL。</div>
+              <div><b>写回失败：</b>put 失败只记录指标，不影响已经查到的业务结果。下一次请求再尝试写缓存。</div>
+              <div><b>边界：</b>这只覆盖缓存读路径；浏览量、限流、在线人数、分布式锁仍各自处理 Redis 故障。</div>
+            </div>
+          </div>
+
+          <div class="code-panel" data-code-panel="lock">
+            <div class="code-head"><h4>RedisDistributedLock：SET NX + token + Lua 释放</h4><button class="small copy-code" data-copy="lock-code">复制代码</button></div>
+            <pre id="lock-code"><code>String token = UUID.randomUUID().toString();
+
+Boolean acquired = redisTemplate.opsForValue()
+    .setIfAbsent("blog:lock:" + name, token, ttl);
+
+if (!Boolean.TRUE.equals(acquired)) {
+    return null; // 锁被其他实例持有
+}
+
+// 释放时先比较 token，避免误删别人后来获取的锁
+String lua =
+    "if redis.call('GET', KEYS[1]) == ARGV[1] then " +
+    "return redis.call('DEL', KEYS[1]) end; return 0";
+
+redisTemplate.execute(RELEASE_SCRIPT, List.of(key), token);</code></pre>
+            <div class="code-why">
+              <div><b>SET NX：</b>只有 Key 不存在时才能设置成功，这是获取锁的原子操作。</div>
+              <div><b>随机 token：</b>标识锁的持有者。锁过期后即使原持有者回来，也不能误删新持有者的锁。</div>
+              <div><b>TTL：</b>防止进程崩溃后锁永远不释放；任务必须明显短于 TTL。</div>
+            </div>
+          </div>
+
+          <div class="code-panel" data-code-panel="view">
+            <div class="code-head"><h4>ViewCountFlushServiceImpl：batchId 幂等</h4><button class="small copy-code" data-copy="view-code">复制代码</button></div>
+            <pre id="view-code"><code>@Transactional
+public BatchResult applyBatch(String batchId,
+        String postId, long delta) {
+
+    int inserted = batchRepository.insertIgnore(batchId, postId, delta);
+    if (inserted == 0) {
+        return BatchResult.ALREADY_APPLIED;
+    }
+
+    int updated = postRepository.incrementViewCount(postId, delta);
+    if (updated == 0) {
+        batchRepository.markSkipped(batchId);
+        return BatchResult.POST_NOT_FOUND;
+    }
+    return BatchResult.APPLIED;
+}</code></pre>
+            <div class="code-why">
+              <div><b>为什么先 INSERT：</b>batchId 唯一键是幂等闸门。重复执行同一 batch 时 insertIgnore 返回 0，直接跳过累加。</div>
+              <div><b>为什么同一事务：</b>登记批次和更新 view_count 必须一起提交或一起回滚，避免只做一半。</div>
+              <div><b>崩溃场景：</b>若 MySQL 已提交但 Redis 未扣减，下次重试会识别 ALREADY_APPLIED，不会重复加浏览。</div>
+            </div>
+          </div>
+
+          <div class="code-panel" data-code-panel="mq">
+            <div class="code-head"><h4>RabbitMQ：Confirm 发送 + 手动 ACK / NACK</h4><button class="small copy-code" data-copy="mq-code">复制代码</button></div>
+            <pre id="mq-code"><code>// Producer：发送持久化消息
+rabbitTemplate.convertAndSend(
+    "blog.events", "visit.recorded", event,
+    message -&gt; {
+        message.getMessageProperties()
+            .setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+        return message;
+    },
+    correlationData);
+
+// Consumer：数据库事务提交后再 ACK
+try {
+    persistWithRetry(events); // 批量事务写 MySQL
+} catch (Exception ex) {
+    processRange(items, from, mid, failedIndexes);
+}
+
+for (int i = 0; i &lt; items.size(); i++) {
+    if (failed.contains(i)) {
+        channel.basicNack(deliveryTag, false, false); // → DLQ
+    } else {
+        channel.basicAck(deliveryTag, false);
+    }
+}</code></pre>
+            <div class="code-why">
+              <div><b>Confirm：</b>Broker 对 Producer 的确认，只代表消息被 Broker 接收。</div>
+              <div><b>ACK：</b>Consumer 对 Broker 的确认，代表业务处理完成；本项目要求在 MySQL 事务提交后 ACK。</div>
+              <div><b>失败：</b>批量失败二分拆批，最终坏消息 NACK 到 DLX/DLQ；eventId 唯一键继续兜底重复消息。</div>
+            </div>
+          </div>
+
+          <div class="code-panel" data-code-panel="nginx">
+            <div class="code-head"><h4>Nginx：双实例 upstream 与故障重试</h4><button class="small copy-code" data-copy="nginx-code">复制代码</button></div>
+            <pre id="nginx-code"><code>upstream blog_backend {
+    server 127.0.0.1:8081 max_fails=2 fail_timeout=10s;
+    server 127.0.0.1:8082 max_fails=2 fail_timeout=10s;
+}
+
+server {
+    listen 8088;
+
+    location / {
+        proxy_pass http://blog_backend;
+        proxy_next_upstream error timeout http_502 http_503 http_504;
+        proxy_next_upstream_tries 2;
+    }
+}</code></pre>
+            <div class="code-why">
+              <div><b>upstream：</b>Nginx 把请求分给两个无状态 backend；JWT 放 Header/Cookie，不依赖 Sticky Session。</div>
+              <div><b>故障重试：</b>backend-1 连接失败时尝试 backend-2。实测首次切换约 3 秒，之后请求恢复正常。</div>
+              <div><b>边界：</b>单机双实例证明高可用和应用层并行，不等于两台独立服务器线性扩容。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="phase4" class="phase">
         <div class="phase-head"><div class="phase-badge">5</div><div><h2>阶段 4：双实例、性能边界与故障矩阵</h2><p>多实例首先是高可用和可部署性，不等于单机自动变快；真实容量要区分独立硬件。</p></div></div>
         <div class="simulator">
@@ -415,7 +610,7 @@ $('#collapseBtn').addEventListener('click',()=>{$$('details').forEach(d=>d.open=
 $('#printBtn').addEventListener('click',()=>window.print());
 
 // Search
-const searchTargets=()=>$$('.qa-item,.term,.card,.simulator,details');
+const searchTargets=()=>$$('.qa-item,.term,.card,.simulator,details,.code-panel');
 $('#searchInput').addEventListener('input',e=>{
   const q=e.target.value.trim().toLowerCase();
   let shown=0;
@@ -599,6 +794,18 @@ function answerQuiz(qi,oi){
 function updateScore(){$('#quizScore').textContent=`得分：${quizScore} / ${quiz.length}`;}
 $('#quizReset').addEventListener('click',renderQuiz);renderQuiz();
 
+// Code walkthrough tabs
+$$('.code-tab').forEach(tab=>tab.addEventListener('click',()=>{
+  const id=tab.dataset.codeTab;
+  $$('.code-tab').forEach(t=>t.classList.toggle('active',t===tab));
+  $$('.code-panel').forEach(p=>p.classList.toggle('active',p.dataset.codePanel===id));
+}));
+$$('.copy-code').forEach(btn=>btn.addEventListener('click',async()=>{
+  const target=document.getElementById(btn.dataset.copy);
+  const text=target?.innerText||'';
+  try{await navigator.clipboard.writeText(text);toast('代码已复制');}
+  catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('代码已复制');}
+}));
 // Scroll spy nav
 const phases=$$('section.phase');
 const navMap=new Map($$('.nav-link').map(b=>[b.dataset.target,b]));
