@@ -3,7 +3,7 @@
 > 日期：2026-11-09  
 > 前置状态：阶段 0～3 已完成  
 > 目标：把当前“可演示的多实例基础”提升为“可复现的双实例部署与故障演练”  
-> 当前完成度：约 60%
+> 当前完成度：约 75%（单机可验证部分完成，生产级多机项延期）
 
 ---
 
@@ -31,6 +31,24 @@
   - Nginx 健康检查 HTTP 200；
   - 停止 backend-1 后，Nginx 自动切换到 backend-2，接口仍 HTTP 200；
   - 恢复 backend-1 后双实例健康检查均为 UP。
+
+### Step 2～5 单机可验证部分（2026-11-10）
+
+- 新增固定到达率 k6 场景 `loadtest/k6/stage4-constant.js`。
+- 新增 CPU 亲和性压测脚本 `ops/multi-instance/run-scaling-benchmark.ps1`。
+- 启动脚本支持缓存开关与 CPU 亲和性。
+- k6 固定 CPU 0-3；backend-1 固定 CPU 8-11；backend-2 固定 CPU 12-15。
+- 缓存开启：1000/1500 RPS 各两轮；双实例均 0 dropped iterations，单实例多次掉迭代。
+- 缓存关闭：200/500 RPS；500 RPS 两轮中双实例 0 dropped，单实例分别 47/143 次 dropped。
+- 完整结果和限制：`docs/BENCHMARK_PHASE4_SCALING.md`。
+
+### 延期项
+
+- 真实 MinIO 上传/读取和双实例共享文件；
+- 双实例 Prometheus/Grafana 标签与面板；
+- Redis/RabbitMQ/MinIO/优雅停机完整故障矩阵；
+- 独立压测机和两台独立应用节点；
+- 每场景至少 3 轮的正式容量实验。
 
 ## 1. 目标与原则
 
@@ -367,11 +385,12 @@ Step 0 环境与端口
 - [x] Redis、RabbitMQ 已作为共享外部依赖验证；MinIO 待 Step 2。
 - [ ] 定时任务在双实例下只执行一次。
 - [ ] Prometheus/Grafana 能区分两个实例。
-- [ ] Rabbit queue / unacked / DLQ 指标可观测。
+- [x] Rabbit queue / unacked / DLQ 指标可观测。
 - [ ] Redis、RabbitMQ、MinIO、单实例宕机和优雅停机演练完成。
-- [ ] DLQ 消息可人工重放且幂等。
+- [x] DLQ 消息可人工重放且幂等。
 - [ ] `ARCHITECTURE.md`、`FAILOVER_DRILL.md`、`RUNBOOK.md`、`ADR.md` 完成。
-- [ ] README 阶段状态更新为阶段 4 完成。
+- [x] 单机资源隔离、缓存开关和双实例性能边界完成并记录。
+- [ ] README 阶段状态更新为阶段 4 生产级完成。
 
 ---
 

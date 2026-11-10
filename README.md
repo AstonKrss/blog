@@ -171,7 +171,7 @@ visit.log.write
 - 双实例启动与故障转移脚本；
 - 后端和 Rabbit listener 优雅停机配置。
 
-阶段 4 仍需完成真实 Nginx、真实 MinIO、双实例指标和完整故障矩阵验证。
+阶段 4 单机验证已完成：真实 Nginx、双实例分流、故障切换、CPU 资源隔离压测；真实 MinIO、双实例指标和完整故障矩阵延期。
 
 ---
 
@@ -202,7 +202,8 @@ visit.log.write
 - 本地测试不能直接等同生产容量；
 - 6.78s 到 3.14ms 的文章列表对比发生在缓存开启的大数据量实验中；
 - 缓存关闭时数据库路径会明显饱和，这正是缓存成为当前系统容量边界的原因；
-- RabbitMQ 访问日志生产端采用 fail-open，故障期间允许日志丢失。
+- RabbitMQ 访问日志生产端采用 fail-open，故障期间允许日志丢失；
+- 单机资源隔离实验中，双实例在 1000/1500 RPS 两轮均无 dropped iterations，而单实例出现明显掉迭代。该结果证明应用层并行收益，但不等于两台独立服务器线性扩容，详见 docs/BENCHMARK_PHASE4_SCALING.md。
 
 ---
 
@@ -367,7 +368,7 @@ mvn test
 2. 批量消费重试是进程内重试，不是独立延迟重试队列。
 3. 热点 Key 多实例回源是可用性优先，不保证严格全局只回源一次。
 4. Testcontainers 在本机无 Docker 时自动跳过。
-5. 真实 Nginx、真实 MinIO 和完整双实例故障矩阵尚未完成。
+5. 真实 Nginx 双实例代理和单机资源隔离压测已完成；真实 MinIO 共享文件、独立多机扩容和完整双实例故障矩阵仍作为延期项。
 
 ### 当前路线状态
 
@@ -377,12 +378,13 @@ mvn test
 | 阶段 1：数据库与查询优化 | ✅ 100% |
 | 阶段 2：缓存与热点写优化 | ✅ 100% |
 | 阶段 3：RabbitMQ 可靠异步链路 | ✅ 100% |
-| 阶段 4：多实例部署与故障演练 | 🟡 约 55%，下一步 |
-| 阶段 5：架构文档与简历包装 | 🟡 进行中 |
+| 阶段 4：多实例部署与故障演练 | 🟡 约 75%，单机验收完成，生产级多机项延期 |
+| 阶段 5：架构文档与简历包装 | 🟡 进行中，下一步 |
 
 阶段 4 详细执行计划见：
 
 - [docs/PHASE4_EXECUTION_PLAN.md](docs/PHASE4_EXECUTION_PLAN.md)
+- [docs/BENCHMARK_PHASE4_SCALING.md](docs/BENCHMARK_PHASE4_SCALING.md)
 
 ---
 
@@ -396,6 +398,7 @@ mvn test
 | [docs/CACHE_AND_HOT_WRITE_REPORT.md](docs/CACHE_AND_HOT_WRITE_REPORT.md) | 阶段 2 缓存与热点写正式报告 |
 | [docs/RABBITMQ_VISIT_LOG.md](docs/RABBITMQ_VISIT_LOG.md) | 阶段 3 RabbitMQ 验收报告 |
 | [docs/PHASE4_EXECUTION_PLAN.md](docs/PHASE4_EXECUTION_PLAN.md) | 阶段 4 多实例执行计划 |
+| [docs/BENCHMARK_PHASE4_SCALING.md](docs/BENCHMARK_PHASE4_SCALING.md) | 单机资源隔离、缓存开关和双实例扩容验证 |
 | [docs/REDIS_FAILURE_POLICIES.md](docs/REDIS_FAILURE_POLICIES.md) | Redis 故障策略 |
 | [docs/VIEW_COUNT_IDEMPOTENCY.md](docs/VIEW_COUNT_IDEMPOTENCY.md) | 浏览量幂等设计 |
 | [docs/SECURITY.md](docs/SECURITY.md) | 安全架构说明 |
@@ -406,3 +409,4 @@ mvn test
 ## License
 
 MIT
+

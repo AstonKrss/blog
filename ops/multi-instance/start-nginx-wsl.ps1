@@ -1,6 +1,7 @@
 param(
   [int]$ProxyPort = 8088,
-  [string]$WindowsHostIp = ''
+  [string]$WindowsHostIp = '',
+  [switch]$SingleBackend
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
@@ -19,6 +20,9 @@ if ([string]::IsNullOrWhiteSpace($WindowsHostIp)) {
 
 $config = [IO.File]::ReadAllText($source)
 $config = $config.Replace('127.0.0.1:8081', "$WindowsHostIp`:8081")
+if ($SingleBackend) {
+  $config = [regex]::Replace($config, '(?m)^\s*server 127\.0\.0\.1:8082.*\r?\n', '')
+}
 $config = $config.Replace('127.0.0.1:8082', "$WindowsHostIp`:8082")
 [IO.File]::WriteAllText($output, $config)
 

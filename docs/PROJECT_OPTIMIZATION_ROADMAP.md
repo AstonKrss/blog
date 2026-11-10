@@ -4,7 +4,7 @@
 > 技术栈：Next.js 15 + Spring Boot 4 + Java 21 + MySQL 8 + Redis + RabbitMQ + MinIO + Docker
 > 目标岗位：Java 后端工程师
 > 文档日期：2026-11-02
-> 状态：执行中（最后更新：2026-11-09）
+> 状态：执行中（最后更新：2026-11-10）
 
 ---
 
@@ -16,7 +16,7 @@
 | 阶段 1：数据库与查询路径优化 | ✅ 已完成 | 100% | 文章两段式分页、笔记 N+1、标签统计 N+1、FULLTEXT UNION 搜索、标签筛选执行计划、索引前后对比、Testcontainers 集成测试、`BENCHMARK_QUERY.md` | 本机无 Docker，Testcontainers 4 个用例自动跳过；需在 Docker/CI 环境执行一次真实容器测试 |
 | 阶段 2：缓存与热点写优化 | ✅ 已完成 | 100% | TTL 抖动、精确缓存失效、热点 Key 互斥回源、点赞原子计数与周期校准、Redis Cache 统一降级、浏览量幂等+允许少计、Hikari min10/max20、在线/限流/登录防护/分布式锁故障策略、`CACHE_AND_HOT_WRITE_REPORT.md` | 本机未做四项收尾改动后的正式高并发 A/B 压测；跨实例 Redis 抢锁失败时采用可用性优先降级，不是严格全局互斥 |
 | 阶段 3：RabbitMQ 可靠异步链路 | ✅ 已完成 | 100% | RabbitMQ 真实投递、批量消费者、拆批隔离失败、event_id 幂等、DLQ、手工重放、停服 30 秒恢复、队列 ready/unacked/consumer 指标、优雅停机、`RABBITMQ_VISIT_LOG.md` | 生产端仍是 fail-open，事件可能丢失；消费者重试为进程内重试；未实现 Outbox；真实 RabbitMQ 使用 WSL 原生服务验证 |
-| 阶段 4：多实例部署与故障演练 | 🟡 进行中 | 约 60% | 真实 Nginx 双实例代理、`nginx -t`、backend-1 宕机自动切换、双实例共享 MySQL/Redis/RabbitMQ、Rabbit 2 消费者、Web/Rabbit 优雅停机、`PHASE4_EXECUTION_PLAN.md` | 真实 MinIO 上传、双实例 Prometheus/Grafana、完整故障矩阵、`ARCHITECTURE/FAILOVER_DRILL/RUNBOOK/ADR` |
+| 阶段 4：多实例部署与故障演练 | 🟡 单机验收完成 | 约 75% | 真实 Nginx 双实例代理、`nginx -t`、backend-1 宕机自动切换、双实例共享 MySQL/Redis/RabbitMQ、Rabbit 2 消费者、Web/Rabbit 优雅停机、CPU 亲和性单双实例压测、缓存开关对照、`BENCHMARK_PHASE4_SCALING.md` | 真实 MinIO 上传、双实例 Prometheus/Grafana、完整故障矩阵、独立压测机/多应用节点、`ARCHITECTURE/FAILOVER_DRILL/RUNBOOK/ADR` |
 | 阶段 5：文档、数据与简历包装 | 🟡 进行中 | 约 35% | README 已重写为项目定位、架构、性能数据、工程亮点和简历表述；`BENCHMARK_BASELINE.md`、k6 脚本、阶段 1/2/3 报告、N+1/Hikari 专项报告 | `ARCHITECTURE.md`、`ADR.md`、`BENCHMARK_RESULT.md`、`RUNBOOK.md`、`FAILOVER_DRILL.md`、架构图/时序图、最终 README 状态更新 |
 
 ### 当前结论
@@ -25,17 +25,16 @@
 - 阶段 1 已完成：核心查询改造、执行计划对比、Testcontainers 测试和 `BENCHMARK_QUERY.md` 均已落地；本机无 Docker，容器测试需在 CI 或安装 Docker 后执行。
 - 阶段 2 已完成：TTL 抖动、版本号精确失效、热点 Key 回源保护、点赞原子计数与周期校准均已落地；统一验收见 `docs/CACHE_AND_HOT_WRITE_REPORT.md`。
 - 阶段 3 已完成：真实 RabbitMQ 投递、批量消费、重复 eventId 幂等、停服 30 秒恢复、DLQ 重放、队列指标和优雅停机均已验证；见 `docs/RABBITMQ_VISIT_LOG.md`。
-- 阶段 4 Step 0/1 已完成：双实例已通过真实 Nginx 代理，backend-1 宕机自动切换验证通过；下一步进入 MinIO 共享文件验证。
+- 阶段 4 单机可验证部分完成：真实 Nginx、双实例分流、故障切换、CPU 资源隔离压测和缓存开关对照已完成；MinIO 共享文件、独立多机扩容和完整故障矩阵延期。
 - 阶段 5 已完成 README 核心重写和阶段 0～3 专项报告；仍缺统一架构、ADR、Runbook、故障演练文档和最终简历包装。
 
 ### 下一步建议（按顺序）
 
-1. **P0：阶段 4 Step 2**：启动 MinIO，验证两个 backend 共享上传文件。
-2. **P0：阶段 4 Step 2**：启动 MinIO，验证两个 backend 共享上传文件。
-3. **P1：阶段 4 Step 3～4**：验证定时任务防重，补双实例 Prometheus/Grafana 和 Rabbit 队列面板。
-4. **P1：阶段 4 Step 5～6**：执行完整故障矩阵，输出 `ARCHITECTURE/FAILOVER_DRILL/RUNBOOK/ADR`。
+1. **P0：阶段 5 文档收口**：补齐 `ARCHITECTURE.md`、`ADR.md`、`RUNBOOK.md`、`FAILOVER_DRILL.md`。
+2. **P0：阶段 5 数据与简历收口**：统一 `BENCHMARK_RESULT.md`、README 状态、架构图和面试问答。
+3. **P1：延期多机实验**：有独立压测机或两台应用节点后，重跑真实水平扩容实验。
+4. **P1：延期共享存储与故障矩阵**：真实 MinIO 上传/读取、双实例指标、Redis/RabbitMQ/MinIO 故障演练。
 5. **P1：在 Docker/CI 环境执行 Testcontainers 测试**，补齐容器验证证据。
-6. **最后：阶段 5 文档与简历包装收口**。
 
 ---
 
@@ -455,7 +454,7 @@ dead letter queue: visit.log.write.dlq
 **周期：7～10 天**
 **优先级：P1，建议在阶段 0～3 完成后再做**
 
-### 执行状态（2026-11-09）
+### 执行状态（2026-11-10）
 
 - [x] Nginx 双实例配置已编写。
 - [x] JWT 无状态，不引入 Sticky Session。
@@ -466,12 +465,14 @@ dead letter queue: visit.log.write.dlq
 - [x] 双实例启动脚本和 Node 替代代理故障转移演练已具备。
 - [x] RabbitMQ queue messages/ready/unacked/consumers 指标已接入。
 - [x] 真实 Nginx `nginx -t` 加载和双实例代理验证。
+- [x] 单机 CPU 亲和性隔离、单双实例固定到达率压测、缓存开启/关闭对照和局限记录。
 - [ ] 真实 MinIO 上传、读取和双实例共享验证。
 - [ ] 双实例 Prometheus/Grafana 面板和告警规则。
 - [ ] Redis/RabbitMQ/MinIO/单实例宕机完整故障矩阵。
 - [ ] `ARCHITECTURE.md`、`FAILOVER_DRILL.md`、`RUNBOOK.md`、`ADR.md`。
 
 详细执行顺序、验收和风险见 `docs/PHASE4_EXECUTION_PLAN.md`。
+单机性能结果与延期边界见 `docs/BENCHMARK_PHASE4_SCALING.md`。
 
 ### 任务
 
@@ -811,3 +812,4 @@ dead letter queue: visit.log.write.dlq
 不要从第 4 步开始。
 
 **先证明问题，再优化；先有数据，再写简历。**
+
