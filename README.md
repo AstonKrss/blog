@@ -379,12 +379,16 @@ mvn test
 | 阶段 2：缓存与热点写优化 | ✅ 100% |
 | 阶段 3：RabbitMQ 可靠异步链路 | ✅ 100% |
 | 阶段 4：多实例部署与故障演练 | 🟡 约 75%，单机验收完成，生产级多机项延期 |
-| 阶段 5：架构文档与简历包装 | 🟡 进行中，下一步 |
+| 阶段 5：架构文档与简历包装 | 🟡 约 90%，文档与时序图已补齐 |
 
 阶段 4 详细执行计划见：
 
 - [docs/PHASE4_EXECUTION_PLAN.md](docs/PHASE4_EXECUTION_PLAN.md)
 - [docs/BENCHMARK_PHASE4_SCALING.md](docs/BENCHMARK_PHASE4_SCALING.md)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/ADR.md](docs/ADR.md)
+- [docs/RUNBOOK.md](docs/RUNBOOK.md)
+- [docs/FAILOVER_DRILL.md](docs/FAILOVER_DRILL.md)
 
 ---
 
@@ -399,6 +403,11 @@ mvn test
 | [docs/RABBITMQ_VISIT_LOG.md](docs/RABBITMQ_VISIT_LOG.md) | 阶段 3 RabbitMQ 验收报告 |
 | [docs/PHASE4_EXECUTION_PLAN.md](docs/PHASE4_EXECUTION_PLAN.md) | 阶段 4 多实例执行计划 |
 | [docs/BENCHMARK_PHASE4_SCALING.md](docs/BENCHMARK_PHASE4_SCALING.md) | 单机资源隔离、缓存开关和双实例扩容验证 |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 最终系统架构、核心数据流与故障边界 |
+| [docs/ADR.md](docs/ADR.md) | 模块化单体、缓存、MQ、多实例等关键取舍 |
+| [docs/BENCHMARK_RESULT.md](docs/BENCHMARK_RESULT.md) | 全阶段性能结果、限制和简历安全表述 |
+| [docs/RUNBOOK.md](docs/RUNBOOK.md) | 启动、压测、日志、故障恢复和 DLQ 操作手册 |
+| [docs/FAILOVER_DRILL.md](docs/FAILOVER_DRILL.md) | Redis、RabbitMQ、Nginx 和优雅停机演练结果 |`n| [docs/INTERVIEW_QA.md](docs/INTERVIEW_QA.md) | Java 后端面试问答和项目表达边界 |
 | [docs/REDIS_FAILURE_POLICIES.md](docs/REDIS_FAILURE_POLICIES.md) | Redis 故障策略 |
 | [docs/VIEW_COUNT_IDEMPOTENCY.md](docs/VIEW_COUNT_IDEMPOTENCY.md) | 浏览量幂等设计 |
 | [docs/SECURITY.md](docs/SECURITY.md) | 安全架构说明 |
@@ -409,4 +418,3 @@ mvn test
 ## License
 
 MIT
-

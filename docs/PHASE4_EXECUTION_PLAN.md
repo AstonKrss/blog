@@ -388,7 +388,7 @@ Step 0 环境与端口
 - [x] Rabbit queue / unacked / DLQ 指标可观测。
 - [ ] Redis、RabbitMQ、MinIO、单实例宕机和优雅停机演练完成。
 - [x] DLQ 消息可人工重放且幂等。
-- [ ] `ARCHITECTURE.md`、`FAILOVER_DRILL.md`、`RUNBOOK.md`、`ADR.md` 完成。
+- [x] `ARCHITECTURE.md`、`FAILOVER_DRILL.md`、`RUNBOOK.md`、`ADR.md` 完成。
 - [x] 单机资源隔离、缓存开关和双实例性能边界完成并记录。
 - [ ] README 阶段状态更新为阶段 4 生产级完成。
 
