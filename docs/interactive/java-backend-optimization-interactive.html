@@ -60,6 +60,7 @@ pre code{background:transparent;border:0;padding:0;color:inherit}
 .question-card{scroll-margin-top:82px}.question-meta{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.35rem}.answer-grid{display:grid;gap:.55rem;margin-top:.65rem}.answer-grid>div{padding:.65rem .75rem;border-radius:10px;background:rgba(0,0,0,.1);border:1px solid var(--line)}.answer-grid b{color:var(--cyan)}
 .mock-setup{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.7rem;margin:.8rem 0}.mock-mode{border:1px solid var(--line);border-radius:13px;padding:1rem;background:var(--panel2);cursor:pointer;transition:.18s}.mock-mode:hover{border-color:var(--cyan);transform:translateY(-1px)}.mock-mode b{display:block;margin-bottom:.25rem}.mock-mode small{color:var(--muted)}
 .mock-live{display:none}.mock-live.show{display:block}.mock-progress{height:10px;border-radius:99px;overflow:hidden;background:var(--panel2);border:1px solid var(--line);margin:.55rem 0}.mock-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--blue));transition:width .35s}.mock-question{font-size:1.12rem;font-weight:800;margin:.8rem 0}.mock-meta{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:.86rem}.self-answer{width:100%;min-height:120px;resize:vertical;margin:.6rem 0;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:11px;padding:.75rem;outline:none}.self-answer:focus{border-color:var(--cyan)}.mock-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0}.mock-answer{display:none;margin:.75rem 0}.mock-answer.show{display:block}.assess-row{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.55rem}.assess-row button:nth-child(1){border-color:var(--red);background:rgba(255,113,133,.1)}.assess-row button:nth-child(2){border-color:var(--amber);background:rgba(255,200,87,.1)}.assess-row button:nth-child(3){border-color:var(--green);background:rgba(108,228,157,.1)}.mock-summary{display:none}.mock-summary.show{display:block}.score-circle{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;margin:1rem auto;background:conic-gradient(var(--cyan) var(--score-deg,0deg),var(--panel2) 0);position:relative}.score-circle:after{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--panel)}.score-circle span{position:relative;z-index:1;font-size:1.5rem;font-weight:900;color:var(--cyan)}.category-score{display:grid;gap:.45rem}.category-score-row{display:grid;grid-template-columns:minmax(120px,1fr) 2fr 52px;gap:.55rem;align-items:center;font-size:.9rem}.category-score-row .bar{height:8px;border-radius:99px;background:var(--panel2);overflow:hidden}.category-score-row .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green))}
+.metric-filter{display:flex;gap:.4rem;flex-wrap:wrap;margin:.75rem 0}.metric-filter button{padding:.4rem .65rem;font-size:.83rem;border-radius:999px}.metric-filter button.active{border-color:var(--cyan);background:rgba(92,225,212,.12);color:var(--cyan)}.metric-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.8fr);gap:.8rem;align-items:start}.metric-table-wrap{border:1px solid var(--line);border-radius:13px;overflow:auto;background:var(--panel2)}.metric-table{min-width:720px;margin:0}.metric-table tr{cursor:pointer}.metric-table tr.selected td{background:rgba(92,225,212,.11)}.metric-detail{border:1px solid var(--line);border-radius:13px;background:var(--panel2);padding:.9rem;position:sticky;top:78px}.metric-detail h4{margin:.15rem 0 .6rem}.metric-detail .detail-line{margin:.45rem 0;padding:.5rem .6rem;border-left:3px solid var(--cyan);background:rgba(92,225,212,.05);border-radius:0 8px 8px 0;color:var(--muted)}.metric-detail .detail-line b{color:var(--text)}.metric-env{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.6rem;margin:.75rem 0}.metric-env div{padding:.65rem .75rem;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.08)}.metric-env b{display:block;color:var(--cyan)}@media(max-width:700px){.metric-layout{grid-template-columns:1fr}.metric-detail{position:static}}
 </style>
 </head>
 <body>
@@ -80,7 +81,7 @@ pre code{background:transparent;border:0;padding:0;color:inherit}
   <section class="hero">
     <span class="eyebrow">Phases 0–5 · Interactive Walkthrough</span>
     <h1>从“功能能做”到<span>能解释、能压测、能降级</span>的后端改造</h1>
-    <p>这不是一份只列技术栈的总结。页面按阶段梳理我们实际做了什么，并把最容易混淆的知识点做成可点击实验：Actuator、P95/P99、JVM/GC、Hikari、N+1、Redis 降级、热点 Key、浏览量幂等、RabbitMQ 路由/ACK/DLQ、双实例性能、MinIO 与故障矩阵。页面还包含 41 道面试题库和可交互模拟面试。</p>
+    <p>这不是一份只列技术栈的总结。页面按阶段梳理我们实际做了什么，并把最容易混淆的知识点做成可点击实验：Actuator、P95/P99、JVM/GC、Hikari、N+1、Redis 降级、热点 Key、浏览量幂等、RabbitMQ 路由/ACK/DLQ、双实例性能、MinIO 与故障矩阵。页面还包含 27 项可筛选性能指标、41 道面试题库和可交互模拟面试。</p>
     <div class="hero-actions">
       <button class="primary" data-scroll="overview">先看全局路线</button>
       <button data-scroll="confusions">直接看我不理解的地方</button>
@@ -92,6 +93,7 @@ pre code{background:transparent;border:0;padding:0;color:inherit}
     <aside class="sidebar">
       <h3>学习导航</h3>
       <button class="nav-link" data-target="overview"><span class="num">0</span><span>全局路线与成果</span></button>
+      <button class="nav-link" data-target="performance-dashboard"><span class="num">Σ</span><span>性能指标总览</span></button>
       <button class="nav-link" data-target="phase0"><span class="num">1</span><span>可观测性与压测</span></button>
       <button class="nav-link" data-target="phase1"><span class="num">2</span><span>SQL、N+1、索引</span></button>
       <button class="nav-link" data-target="phase2"><span class="num">3</span><span>缓存、锁、热点写</span></button>
@@ -130,6 +132,33 @@ pre code{background:transparent;border:0;padding:0;color:inherit}
           <div class="item"><strong>20/20</strong><small>backend-1 宕机后请求切换成功</small></div>
         </div>
         <div class="callout warn"><b>先记住这条边界：</b>这些数字都有具体场景。单机双实例、缓存开启、压测数据量和故障时长都必须跟着数字一起说，不能写成无条件的“性能提升”。</div>
+      </section>
+
+            <section id="performance-dashboard" class="phase">
+        <div class="phase-head"><div class="phase-badge">Σ</div><div><h2>性能测试指标总览</h2><p>把分散在各阶段的数字统一放到这里：点一行查看场景、口径、证据和解释。指标不是孤立的“好看数字”，必须跟数据量、缓存状态和部署拓扑一起读。</p></div></div>
+        <div class="metric-env">
+          <div><b>数据规模</b>5 万文章 / 20 万标签关联 / 10 万评论</div>
+          <div><b>压测工具</b>k6 · 固定到达率 · 30 秒 · 多轮对照</div>
+          <div><b>实例</b>Spring Boot 8081 / 8082 · Nginx 8088</div>
+          <div><b>共享依赖</b>MySQL · Redis · RabbitMQ · 单机资源隔离</div>
+        </div>
+        <div id="metricFilters" class="metric-filter">
+          <button class="active" data-metric-filter="all">全部指标</button>
+          <button data-metric-filter="查询">查询与数据库</button>
+          <button data-metric-filter="缓存">缓存</button>
+          <button data-metric-filter="Hikari">Hikari</button>
+          <button data-metric-filter="RabbitMQ">RabbitMQ</button>
+          <button data-metric-filter="扩容">单双实例</button>
+          <button data-metric-filter="故障">故障矩阵</button>
+          <button data-metric-filter="测试">测试</button>
+        </div>
+        <div class="metric-layout">
+          <div class="metric-table-wrap"><table class="metric-table"><thead><tr><th>阶段</th><th>指标</th><th>结果</th><th>类别</th></tr></thead><tbody id="metricTableBody"></tbody></table></div>
+          <div id="metricDetail" class="metric-detail"><h4>点击一条指标</h4><p class="mini-note">这里会显示测试场景、测试方法、证据和正确解读。</p></div>
+        </div>
+        <details><summary>k6 固定到达率脚本怎么运行？</summary><pre><code>k6 run -e BASE_URL=http://127.0.0.1:8088 -e RATE=1000 -e DURATION=30s loadtest/k6/stage4-constant.js</code></pre><p>固定 RATE 比“逐渐加压到崩溃”更适合比较单实例和双实例，因为每个时间窗口的压力一致。结果必须同时看实际 RPS、P95/P99 和 dropped_iterations。</p></details>
+        <details><summary>为什么同一组指标有多个数字？</summary><p>部分实验做了两轮，例如单实例 1000 RPS 的 P95 出现 1285ms 和 2077ms，说明单机调度和共享资源竞争会带来波动。不能只挑最好的一轮写进简历。报告保留了两轮原始结果。</p></details>
+        <div class="callout warn"><b>指标边界：</b>文章列表 6.78s→3.14ms 是 50k 数据、缓存开启场景；Hikari 数据是特定并发下的采样；RabbitMQ 停服和 Nginx 切换是故障演练结果；单机双实例实验不能直接推导两台独立服务器的线性扩容。</div>
       </section>
 
       <section id="phase0" class="phase">
@@ -872,6 +901,49 @@ function answerQuiz(qi,oi){
 function updateScore(){$('#quizScore').textContent=`得分：${quizScore} / ${quiz.length}`;}
 $('#quizReset').addEventListener('click',renderQuiz);renderQuiz();
 
+// Performance metrics dashboard
+const performanceMetrics = [
+{id:'article-p95',phase:'阶段1',name:'文章列表 P95',result:'6.78s → 3.14ms',category:'查询',scenario:'50k 文章 / 200k 标签关联数据集，缓存开启。',method:'k6 压测核心文章列表接口，对比优化前后 P95。',evidence:'docs/BENCHMARK_PHASE1.md',interpretation:'提升主要来自两段式分页、批量关联加载、索引和缓存。不能把这个数字解释成所有生产请求都提升 99%。'},
+{id:'article-p99',phase:'阶段1',name:'文章列表 P99',result:'8.09s → 4.25ms',category:'查询',scenario:'同上，观察尾部延迟。',method:'k6 summary 的 p(99) 指标。',evidence:'docs/BENCHMARK_PHASE1.md',interpretation:'P99 更能反映少数慢请求；仍要结合缓存命中和数据规模。'},
+{id:'note-selects',phase:'阶段1',name:'笔记列表 SELECT 次数',result:'约 42 → 4 次/请求',category:'查询',scenario:'一页笔记 + 评论 + 评论作者 + 点赞状态。',method:'统计接口调用期间数据库 SELECT 次数。',evidence:'docs/BENCHMARK_N1_2026-11-04.md',interpretation:'这是 N+1 修复最直接的证据；查询次数从与页大小相关变为固定数量。'},
+{id:'comment-rows',phase:'阶段1',name:'笔记评论扫描行数',result:'约 100,200 → 200 行/次',category:'查询',scenario:'大数据量评论表。',method:'EXPLAIN / 数据库扫描统计。',evidence:'docs/BENCHMARK_N1_2026-11-04.md',interpretation:'批量查询当前页 ID 后，每次只扫描当前页相关评论。'},
+{id:'search-cold',phase:'阶段1',name:'搜索冷查询',result:'约 6.19s → 0.3～0.6s',category:'查询',scenario:'标题/正文搜索，未命中缓存。',method:'优化前后执行计划和真实查询耗时。',evidence:'docs/BENCHMARK_QUERY.md',interpretation:'FULLTEXT 解决 LIKE 全表扫描，但没有证明它适合所有复杂搜索。'},
+{id:'search-cache',phase:'阶段1',name:'搜索缓存后 P95',result:'约 2.06ms',category:'缓存',scenario:'热点搜索词命中 Redis。',method:'k6 压测命中缓存路径。',evidence:'docs/BENCHMARK_PHASE1.md',interpretation:'这是缓存路径性能，不代表冷查询性能。'},
+{id:'posts-hit',phase:'阶段2',name:'publicPosts 缓存命中率',result:'99.95%',category:'缓存',scenario:'文章列表热点读路径。',method:'Micrometer cache metrics。',evidence:'docs/BENCHMARK_PHASE1.md',interpretation:'高命中率说明热点集中，但也意味着必须单独测试冷启动和 Redis 故障。'},
+{id:'search-hit',phase:'阶段2',name:'search 缓存命中率',result:'99.98%',category:'缓存',scenario:'固定搜索词压测。',method:'Micrometer cache metrics。',evidence:'docs/BENCHMARK_PHASE1.md',interpretation:'缓存命中率高不等于搜索能力无限，数据规模变化后要看回源成本。'},
+{id:'redis-stop',phase:'阶段2',name:'Redis 停止时核心接口',result:'文章/标签/在线/留言 4/4 HTTP 200',category:'缓存',scenario:'停止 WSL Redis 2 秒，请求核心页面和留言。',method:'手工故障注入 + HTTP 状态记录。',evidence:'docs/FAULT_MATRIX_RESULT.md',interpretation:'核心缓存回源 MySQL，留言限流 fail-open；延迟会明显升高。'},
+{id:'hikari10',phase:'阶段2',name:'Hikari 10 连接 / 100 VU P95',result:'71.45ms，pending 23',category:'Hikari',scenario:'连接池最大 10，100 VU。',method:'采样 /actuator/prometheus 的 pending、acquire、duration。',evidence:'docs/HIKARI_POOL_SAMPLING.md',interpretation:'连接池出现等待，说明连接数成为瓶颈之一。'},
+{id:'hikari20',phase:'阶段2',name:'Hikari 20 连接 / 100 VU P95',result:'40.64ms，pending 0',category:'Hikari',scenario:'min10/max20。',method:'同场景采样。',evidence:'docs/HIKARI_POOL_SAMPLING.md',interpretation:'连接池等待消失，P95 改善约 43%；仍要关注 MySQL CPU 和总连接数。'},
+{id:'hikari150',phase:'阶段2',name:'Hikari 20 连接 / 150 VU',result:'约 49.30ms，pending 最大 5',category:'Hikari',scenario:'高压回归。',method:'Hikari 采样 + k6。',evidence:'docs/HIKARI_POOL_SAMPLING.md',interpretation:'连接池不是无限扩展，150 VU 下仍出现少量等待。'},
+{id:'rabbit-batch',phase:'阶段3',name:'RabbitMQ 批量消费',result:'batch size 20，20 条全部落库',category:'RabbitMQ',scenario:'批量监听器消费。',method:'真实 RabbitMQ + MySQL 计数。',evidence:'docs/RABBITMQ_VISIT_LOG.md',interpretation:'批量减少数据库 round trip，但事务失败时要拆批隔离坏消息。'},
+{id:'rabbit-stop',phase:'阶段3',name:'RabbitMQ 停止 30 秒',result:'10/10 业务请求 HTTP 200',category:'RabbitMQ',scenario:'生产端 fail-open。',method:'停服务 30 秒并发请求文章列表。',evidence:'docs/RABBITMQ_VISIT_LOG.md',interpretation:'业务可用，但访问日志可能丢失；零丢失需要 Outbox。'},
+{id:'rabbit-duplicate',phase:'阶段3',name:'重复 eventId',result:'数据库仍只有 1 行',category:'RabbitMQ',scenario:'同一消息重复投递。',method:'重复事件 + visit_logs.event_id 唯一约束。',evidence:'docs/RABBITMQ_VISIT_LOG.md',interpretation:'至少一次投递必须配合消费端幂等。'},
+{id:'rabbit-dlq',phase:'阶段3',name:'RabbitMQ 坏消息',result:'DLQ 1 条，验证后清理',category:'RabbitMQ',scenario:'缺少 eventId 的消息。',method:'Management API 投递 + rabbitmqctl 查询。',evidence:'docs/FAULT_MATRIX_RESULT.md',interpretation:'坏消息隔离，不阻塞正常队列；生产端仍不是零丢失。'},
+{id:'scale-500',phase:'阶段4',name:'500 RPS 单/双实例',result:'双实例 P95 3.93ms；单实例 5.33ms',category:'扩容',scenario:'缓存开启，固定到达率 30 秒。',method:'同入口 8088，单/双 upstream 对照。',evidence:'docs/BENCHMARK_PHASE4_SCALING.md',interpretation:'低压下双实例有小幅优势，但单轮差异不能直接外推。'},
+{id:'scale-1000',phase:'阶段4',name:'1000 RPS 单/双实例',result:'双实例 dropped 0、P95 45～64ms；单实例 dropped 948～2107',category:'扩容',scenario:'CPU 资源隔离，缓存开启，两轮。',method:'k6 + CPU 亲和性 + Nginx 单/双 upstream。',evidence:'docs/BENCHMARK_PHASE4_SCALING.md',interpretation:'双实例稳定完成目标，单实例出现掉迭代；仍是单机共享中间件实验。'},
+{id:'scale-1500',phase:'阶段4',name:'1500 RPS 单/双实例',result:'双实例 dropped 0、P95 5～7ms；单实例 P95 最高 1935ms 或 dropped 1320',category:'扩容',scenario:'CPU 资源隔离，缓存开启，两轮。',method:'固定到达率 k6。',evidence:'docs/BENCHMARK_PHASE4_SCALING.md',interpretation:'双实例更稳定，但不能推导真实两台服务器线性扩容。'},
+{id:'scale-off500',phase:'阶段4',name:'500 RPS 缓存关闭',result:'单实例 dropped 47/143；双实例 0/0',category:'扩容',scenario:'关闭缓存，强制走 MySQL。',method:'k6 + MySQL/Hikari 观测。',evidence:'docs/BENCHMARK_PHASE4_SCALING.md',interpretation:'共享 MySQL 仍是瓶颈，双实例只能改善应用侧并行。'},
+{id:'redis-fault',phase:'阶段4',name:'Redis 故障恢复',result:'4/4 HTTP 200，恢复 PONG',category:'故障',scenario:'停止 Redis 后回源 MySQL。',method:'故障注入 + 接口状态 + 恢复探测。',evidence:'docs/FAULT_MATRIX_RESULT.md',interpretation:'可用但延迟升高，长时间故障会放大 MySQL 压力。'},
+{id:'s3-shared',phase:'阶段4',name:'S3 兼容共享文件',result:'backend-1 上传 / backend-2 读取 hash 一致',category:'故障',scenario:'moto S3 兼容替身。',method:'上传 + 跨实例 GET + SHA-256 比较。',evidence:'docs/FAULT_MATRIX_RESULT.md',interpretation:'验证 MinioFileStorage 协议路径；真实 MinIO 仍延期。'},
+{id:'s3-down',phase:'阶段4',name:'S3 兼容存储停止',result:'上传 HTTP 400，读取 404',category:'故障',scenario:'停掉对象存储服务。',method:'文件上传和读取故障注入。',evidence:'docs/FAULT_MATRIX_RESULT.md',interpretation:'应用返回统一错误，不崩溃；真实 MinIO 持久化未验证。'},
+{id:'graceful',phase:'阶段4',name:'优雅停机',result:'HTTP 200，worker 等待完成，Tomcat/Hikari shutdown',category:'故障',scenario:'临时实例启用 shutdown endpoint。',method:'POST /actuator/shutdown + 日志检查。',evidence:'docs/FAULT_MATRIX_RESULT.md',interpretation:'发布和重启时可以等待当前请求和消费者任务，不是直接丢任务。'},
+{id:'failover',phase:'阶段4',name:'backend-1 宕机切换',result:'20/20 HTTP 200，P95 3016ms',category:'故障',scenario:'强杀 8081，经 Nginx 8088 请求。',method:'Nginx upstream + 请求记录。',evidence:'docs/FAULT_MATRIX_RESULT.md',interpretation:'首次故障检测有约 3 秒成本，之后请求恢复到 10～36ms。'},
+{id:'tests',phase:'阶段5',name:'后端测试',result:'94 个通过；4 个 Testcontainers 跳过',category:'测试',scenario:'本机回归。',method:'JUnit 5 / Mockito / MockMvc。',evidence:'README.md',interpretation:'单元和集成测试覆盖提升，但 Testcontainers 仍需 Docker/CI 环境。'}
+];
+let activeMetricFilter='all', selectedMetricId=performanceMetrics[0].id;
+function renderMetrics(filter='all'){
+  activeMetricFilter=filter;
+  const list=filter==='all'?performanceMetrics:performanceMetrics.filter(x=>x.category===filter);
+  $('#metricTableBody').innerHTML=list.map(x=>`<tr data-metric-id="${x.id}" class="${x.id===selectedMetricId?'selected':''}"><td>${x.phase}</td><td>${x.name}</td><td><b>${x.result}</b></td><td><span class="badge">${x.category}</span></td></tr>`).join('');
+  $$('#metricTableBody tr').forEach(row=>row.addEventListener('click',()=>{selectedMetricId=row.dataset.metricId;renderMetrics(activeMetricFilter);renderMetricDetail(selectedMetricId)}));
+  if(!list.some(x=>x.id===selectedMetricId)&&list.length){selectedMetricId=list[0].id;renderMetricDetail(selectedMetricId)}
+}
+function renderMetricDetail(id){
+  const x=performanceMetrics.find(m=>m.id===id); if(!x)return;
+  $('#metricDetail').innerHTML=`<span class="badge">${x.category}</span><h4>${x.name}</h4><div class="detail-line"><b>结果</b><br>${x.result}</div><div class="detail-line"><b>测试场景</b><br>${x.scenario}</div><div class="detail-line"><b>测试方法</b><br>${x.method}</div><div class="detail-line"><b>如何理解</b><br>${x.interpretation}</div><div class="detail-line"><b>证据</b><br>${x.evidence}</div>`;
+}
+$$('#metricFilters button').forEach(btn=>btn.addEventListener('click',()=>{$$('#metricFilters button').forEach(b=>b.classList.toggle('active',b===btn));renderMetrics(btn.dataset.metricFilter)}));
+renderMetrics('all');renderMetricDetail(selectedMetricId);
 // Interview bank
 const interviewBank = [
 {id:1,category:'项目架构',q:'请用一分钟介绍这个项目。',answer:`这是一个面向高读低写内容平台的博客系统。我在基础功能之外完成了三阶段改造：先接 Actuator、Prometheus 和 k6 建立基线，再优化 SQL、N+1、索引和 Redis 缓存，最后用 RabbitMQ 解耦访问日志并完成 Nginx 双实例和故障矩阵。核心目标是让每项优化都有数据、取舍和边界。`,analysis:`考察你是否能先讲业务问题，再讲技术方案，而不是从 Spring Boot、Redis 技术栈开始背。`,followup:`你最大的技术贡献是什么？如果只保留一个改造，你保留哪个？`},
