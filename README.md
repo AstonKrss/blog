@@ -415,7 +415,7 @@ mvn test
 | [docs/FAULT_MATRIX_RESULT.md](docs/FAULT_MATRIX_RESULT.md) | 单机 Redis/RabbitMQ/S3 兼容存储/优雅停机/Nginx 故障矩阵 |
 | [docs/INTERVIEW_QA.md](docs/INTERVIEW_QA.md) | Java 后端面试问答和项目表达边界 |
 | [docs/RESUME_PROJECT.md](docs/RESUME_PROJECT.md) | Java 后端简历精简版、标准版、两分钟项目故事和关键词映射 |
-| [docs/interactive/java-backend-optimization-interactive.html](docs/interactive/java-backend-optimization-interactive.html) | 分阶段交互式学习页：27 项性能指标、15 个高频疑问、6 组代码走读、41 道面试题、模拟面试和自测 |
+| [docs/interactive/java-backend-optimization-interactive.html](docs/interactive/java-backend-optimization-interactive.html) | 分阶段交互式学习页：27 项性能指标、6 组代码走读、41 道面试题、模拟面试、简历亮点审计和岗位化简历生成器 |
 | [docs/JAVA_BACKEND_RESUME_AND_INTERVIEW.md](docs/JAVA_BACKEND_RESUME_AND_INTERVIEW.md) | 简历写法、表达理由、面试题答案和数字边界的合并版 |
 | [docs/REDIS_FAILURE_POLICIES.md](docs/REDIS_FAILURE_POLICIES.md) | Redis 故障策略 |
 | [docs/VIEW_COUNT_IDEMPOTENCY.md](docs/VIEW_COUNT_IDEMPOTENCY.md) | 浏览量幂等设计 |

@@ -61,6 +61,7 @@ pre code{background:transparent;border:0;padding:0;color:inherit}
 .mock-setup{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.7rem;margin:.8rem 0}.mock-mode{border:1px solid var(--line);border-radius:13px;padding:1rem;background:var(--panel2);cursor:pointer;transition:.18s}.mock-mode:hover{border-color:var(--cyan);transform:translateY(-1px)}.mock-mode b{display:block;margin-bottom:.25rem}.mock-mode small{color:var(--muted)}
 .mock-live{display:none}.mock-live.show{display:block}.mock-progress{height:10px;border-radius:99px;overflow:hidden;background:var(--panel2);border:1px solid var(--line);margin:.55rem 0}.mock-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--blue));transition:width .35s}.mock-question{font-size:1.12rem;font-weight:800;margin:.8rem 0}.mock-meta{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:.86rem}.self-answer{width:100%;min-height:120px;resize:vertical;margin:.6rem 0;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:11px;padding:.75rem;outline:none}.self-answer:focus{border-color:var(--cyan)}.mock-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0}.mock-answer{display:none;margin:.75rem 0}.mock-answer.show{display:block}.assess-row{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.55rem}.assess-row button:nth-child(1){border-color:var(--red);background:rgba(255,113,133,.1)}.assess-row button:nth-child(2){border-color:var(--amber);background:rgba(255,200,87,.1)}.assess-row button:nth-child(3){border-color:var(--green);background:rgba(108,228,157,.1)}.mock-summary{display:none}.mock-summary.show{display:block}.score-circle{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;margin:1rem auto;background:conic-gradient(var(--cyan) var(--score-deg,0deg),var(--panel2) 0);position:relative}.score-circle:after{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--panel)}.score-circle span{position:relative;z-index:1;font-size:1.5rem;font-weight:900;color:var(--cyan)}.category-score{display:grid;gap:.45rem}.category-score-row{display:grid;grid-template-columns:minmax(120px,1fr) 2fr 52px;gap:.55rem;align-items:center;font-size:.9rem}.category-score-row .bar{height:8px;border-radius:99px;background:var(--panel2);overflow:hidden}.category-score-row .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green))}
 .metric-filter{display:flex;gap:.4rem;flex-wrap:wrap;margin:.75rem 0}.metric-filter button{padding:.4rem .65rem;font-size:.83rem;border-radius:999px}.metric-filter button.active{border-color:var(--cyan);background:rgba(92,225,212,.12);color:var(--cyan)}.metric-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.8fr);gap:.8rem;align-items:start}.metric-table-wrap{border:1px solid var(--line);border-radius:13px;overflow:auto;background:var(--panel2)}.metric-table{min-width:720px;margin:0}.metric-table tr{cursor:pointer}.metric-table tr.selected td{background:rgba(92,225,212,.11)}.metric-detail{border:1px solid var(--line);border-radius:13px;background:var(--panel2);padding:.9rem;position:sticky;top:78px}.metric-detail h4{margin:.15rem 0 .6rem}.metric-detail .detail-line{margin:.45rem 0;padding:.5rem .6rem;border-left:3px solid var(--cyan);background:rgba(92,225,212,.05);border-radius:0 8px 8px 0;color:var(--muted)}.metric-detail .detail-line b{color:var(--text)}.metric-env{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.6rem;margin:.75rem 0}.metric-env div{padding:.65rem .75rem;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.08)}.metric-env b{display:block;color:var(--cyan)}@media(max-width:700px){.metric-layout{grid-template-columns:1fr}.metric-detail{position:static}}
+.resume-audit-table td:first-child{white-space:nowrap}.stars{color:var(--amber);letter-spacing:.08em;white-space:nowrap}.missed-card{border-color:rgba(185,156,255,.42);background:linear-gradient(145deg,rgba(185,156,255,.08),var(--panel2))}.resume-builder{display:grid;grid-template-columns:260px minmax(0,1fr);gap:.8rem;margin:.8rem 0}.resume-profile-list{display:grid;gap:.45rem}.resume-profile{text-align:left;padding:.7rem .8rem;border-radius:11px}.resume-profile.active{border-color:var(--cyan);background:rgba(92,225,212,.11)}.resume-output{border:1px solid var(--line);border-radius:13px;padding:1rem;background:var(--panel2)}.resume-output h4{margin:.1rem 0 .6rem}.resume-bullet{padding:.7rem .8rem;margin:.55rem 0;border-left:3px solid var(--cyan);background:rgba(92,225,212,.05);border-radius:0 9px 9px 0}.resume-bullet p{margin:.25rem 0}.resume-why{padding:.65rem .8rem;border:1px dashed var(--line);border-radius:10px;color:var(--muted);margin-top:.7rem}.resume-copy-row{display:flex;gap:.45rem;justify-content:flex-end;margin-top:.7rem}@media(max-width:700px){.resume-builder{grid-template-columns:1fr}.resume-profile-list{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -81,7 +82,7 @@ pre code{background:transparent;border:0;padding:0;color:inherit}
   <section class="hero">
     <span class="eyebrow">Phases 0–5 · Interactive Walkthrough</span>
     <h1>从“功能能做”到<span>能解释、能压测、能降级</span>的后端改造</h1>
-    <p>这不是一份只列技术栈的总结。页面按阶段梳理我们实际做了什么，并把最容易混淆的知识点做成可点击实验：Actuator、P95/P99、JVM/GC、Hikari、N+1、Redis 降级、热点 Key、浏览量幂等、RabbitMQ 路由/ACK/DLQ、双实例性能、MinIO 与故障矩阵。页面还包含 27 项可筛选性能指标、41 道面试题库和可交互模拟面试。</p>
+    <p>这不是一份只列技术栈的总结。页面按阶段梳理我们实际做了什么，并把最容易混淆的知识点做成可点击实验：Actuator、P95/P99、JVM/GC、Hikari、N+1、Redis 降级、热点 Key、浏览量幂等、RabbitMQ 路由/ACK/DLQ、双实例性能、MinIO 与故障矩阵。页面还包含 27 项可筛选性能指标、41 道面试题库、可交互模拟面试，以及 6 种岗位方向的简历亮点审计和生成器。</p>
     <div class="hero-actions">
       <button class="primary" data-scroll="overview">先看全局路线</button>
       <button data-scroll="confusions">直接看我不理解的地方</button>
@@ -101,6 +102,7 @@ pre code{background:transparent;border:0;padding:0;color:inherit}
       <button class="nav-link" data-target="code-walkthrough"><span class="num">{ }</span><span>代码逐段走读</span></button>
       <button class="nav-link" data-target="phase4"><span class="num">5</span><span>双实例与故障矩阵</span></button>
       <button class="nav-link" data-target="phase5"><span class="num">6</span><span>文档、简历、面试</span></button>
+      <button class="nav-link" data-target="resume-audit"><span class="num">CV</span><span>简历价值地图</span></button>
       <button class="nav-link" data-target="confusions"><span class="num">?</span><span>高频疑问总索引</span></button>
       <button class="nav-link" data-target="question-bank"><span class="num">Q</span><span>面试题库与解析</span></button>
       <button class="nav-link" data-target="mock-interview"><span class="num">▶</span><span>交互模拟面试</span></button>
@@ -551,6 +553,49 @@ server {
         </div>
       </section>
 
+      <section id="resume-audit" class="phase">
+        <div class="phase-head"><div class="phase-badge">CV</div><div><h2>项目亮点审计与简历写法</h2><p>这一页回答三个问题：哪些东西值得写、之前漏掉了什么、不同 Java 岗位应该怎么写。数字必须带场景，未验证能力不能包装成已完成。</p></div></div>
+        <div class="table-wrap card">
+          <h3>简历价值评分</h3>
+          <table class="resume-audit-table"><thead><tr><th>项目亮点</th><th>简历价值</th><th>为什么值得写</th><th>证据</th></tr></thead><tbody>
+            <tr><td>SQL / N+1 / 索引 / FULLTEXT</td><td class="stars">★★★★★</td><td>直接体现数据库、ORM 和性能分析能力，有明确前后数据。</td><td>BENCHMARK_PHASE1 / N+1 / QUERY</td></tr>
+            <tr><td>Redis 缓存治理与故障降级</td><td class="stars">★★★★★</td><td>覆盖缓存边界、TTL、失效、热点 Key、fallback 和一致性。</td><td>CACHE_AND_HOT_WRITE_REPORT</td></tr>
+            <tr><td>浏览量幂等 / 点赞原子计数</td><td class="stars">★★★★★</td><td>体现跨 Redis/MySQL 的一致性思考和重试幂等。</td><td>VIEW_COUNT_IDEMPOTENCY</td></tr>
+            <tr><td>RabbitMQ 可靠异步</td><td class="stars">★★★★★</td><td>Confirm、手动 ACK、批量、幂等、DLQ、停服恢复完整闭环。</td><td>RABBITMQ_VISIT_LOG</td></tr>
+            <tr><td>可观测性与 k6 压测</td><td class="stars">★★★★★</td><td>说明优化不是凭感觉，且能定位 Hikari、Redis、MQ 和慢查询。</td><td>BENCHMARK_RESULT / HIKARI_POOL_SAMPLING</td></tr>
+            <tr><td>Nginx 双实例与故障矩阵</td><td class="stars">★★★★★</td><td>覆盖无状态部署、故障切换、Redis/MQ/存储/优雅停机。</td><td>FAULT_MATRIX_RESULT / PHASE4_SCALING</td></tr>
+            <tr><td>JWT + RBAC + 资源归属校验</td><td class="stars">★★★★☆</td><td>很多 CRUD 项目忽略越权；这是安全性和业务边界能力。</td><td>SECURITY.md / SecurityConfig</td></tr>
+            <tr><td>轻量安全检测与攻击日志</td><td class="stars">★★★★☆</td><td>XSS、SQLi、路径穿越、命令注入检测 + 威胁画像，适合安全/平台岗位。</td><td>SECURITY_MONITOR.md / SecurityInterceptor</td></tr>
+            <tr><td>上传文件安全校验</td><td class="stars">★★★★☆</td><td>扩展名、MIME、魔数、ImageIO 四层校验，不只是 `MultipartFile`。</td><td>UploadController</td></tr>
+            <tr><td>访问日志聚合与保留策略</td><td class="stars">★★★★☆</td><td>明细增长问题、小时聚合、幂等 upsert、90/400 天保留和分布式锁。</td><td>PHASE2_RELIABILITY_REPORT</td></tr>
+            <tr><td>Flyway 数据库迁移</td><td class="stars">★★★☆☆</td><td>空库建表、已有库 baseline、版本化迁移和可重复部署。</td><td>FLYWAY_BASELINE.md</td></tr>
+            <tr><td>GitHub Actions + 阿里云部署</td><td class="stars">★★★★☆</td><td>构建、SSH 部署、变更服务筛选、健康检查，体现交付闭环。</td><td>.github/workflows/build.yml</td></tr>
+            <tr><td>前端 Next.js / UI 页面</td><td class="stars">★★☆☆☆</td><td>证明全栈能力，但投 Java 后端不应占项目描述主要篇幅。</td><td>frontend/</td></tr>
+          </tbody></table>
+        </div>
+        <h3>之前容易漏掉、现在建议补上的亮点</h3>
+        <div class="grid three">
+          <div class="card missed-card"><h3>JWT + RBAC + 越权防护</h3><p>JWT 过滤器验证签名和过期，Controller 检查角色，Service 再检查资源归属。可以写成“双重权限验证，避免仅靠前端隐藏按钮”。</p></div>
+          <div class="card missed-card"><h3>轻量安全检测</h3><p>SecurityInterceptor 检测 XSS、SQL 注入、路径穿越、命令注入，记录 attack_logs 和 ThreatSignature，并对登录失败做暴力破解防护。注意称为“轻量检测/审计”，不要包装成生产级 WAF。</p></div>
+          <div class="card missed-card"><h3>上传文件安全</h3><p>不仅检查扩展名，还校验 Content-Type、文件头魔数和 ImageIO 可解析性，限制图片尺寸和文件大小。能体现输入校验意识。</p></div>
+          <div class="card missed-card"><h3>访问日志聚合</h3><p>明细表约 12 万+ 行，改为小时聚合表 + `ON DUPLICATE KEY UPDATE`，明细保留 90 天、聚合保留 400 天，查询优先读聚合表。</p></div>
+          <div class="card missed-card"><h3>Flyway 版本化迁移</h3><p>V0 建表、索引/FULLTEXT/聚合表/浏览量批次迁移；支持空库一键初始化和已有库 baseline，不依赖 Hibernate 自动建表。</p></div>
+          <div class="card missed-card"><h3>CI/CD 和部署</h3><p>GitHub Actions 打包后端并通过 SSH 部署到阿里云，按变更文件选择性重建 Docker Compose 服务，部署后做健康检查。</p></div>
+        </div>
+        <div class="simulator">
+          <h3>交互式简历生成器</h3>
+          <p class="mini-note">选择目标岗位方向，页面会给出推荐的 4 条项目经历和写作理由。</p>
+          <div class="resume-builder">
+            <div id="resumeProfileList" class="resume-profile-list"></div>
+            <div class="resume-output"><h4 id="resumeProfileTitle"></h4><div id="resumeProfileDesc" class="mini-note"></div><div id="resumeBullets"></div><div id="resumeWhy" class="resume-why"></div><div class="resume-copy-row"><button id="copyResumeProfile" class="primary small">复制这组简历条目</button></div></div>
+          </div>
+        </div>
+        <div class="grid two">
+          <div class="card accent"><h3>简历公式</h3><p><b>针对【问题】→ 采用【方案/技术】→ 得到【数据结果】→ 说明【边界/取舍】。</b>只写“用了 Redis/RabbitMQ”没有区分度；只写“性能提升很多”没有可信度。</p></div>
+          <div class="card warn-card"><h3>不要这样写</h3><p>不要写“精通高并发/分布式”“双实例提升 100%”“真实 MinIO/MySQL 高可用已完成”“所有故障零丢失”。这些会被追问并暴露边界。</p></div>
+        </div>
+      </section>
+
       <section id="confusions" class="phase">
         <div class="phase-head"><div class="phase-badge">?</div><div><h2>高频疑问总索引</h2><p>这里集中解释你在项目过程中最常问、最容易混淆的地方。可以直接搜索关键词。</p></div></div>
         <div class="qa-grid">
@@ -901,6 +946,54 @@ function answerQuiz(qi,oi){
 function updateScore(){$('#quizScore').textContent=`得分：${quizScore} / ${quiz.length}`;}
 $('#quizReset').addEventListener('click',renderQuiz);renderQuiz();
 
+// Resume profile generator
+const resumeProfiles={
+  general:{title:'Java 后端通用版（推荐）',desc:'适合大多数 Java 后端、业务平台、Web 后端岗位。',bullets:[
+    '针对文章列表集合 JOIN 分页、笔记 N+1 和 LIKE 全表扫描问题，在 5 万文章 / 20 万标签关联 / 10 万评论数据集上完成两段式分页、批量加载、索引和 FULLTEXT 改造；文章列表 P95 从 6.78s 降至 3.14ms，笔记列表 SELECT 从约 42 次/请求降至 4 次/请求。',
+    '设计 Redis 缓存治理方案，实现 8～12 分钟 TTL 抖动、版本号精确失效、热点 Key 互斥回源和 Redis 故障统一回源 MySQL；列表/搜索缓存命中率达到 99.95%/99.98%，并通过 Hikari pending 采样将 100 VU 下 P95 从 71.45ms 优化到 40.64ms。',
+    '使用 RabbitMQ 解耦访问日志写入，实现 Publisher Confirm、手动 ACK、批量消费、eventId 幂等、有限重试和 DLQ；RabbitMQ 停止 30 秒期间 10/10 业务请求返回 HTTP 200，恢复后消费者自动重连。',
+    '基于 Nginx + 双 Spring Boot 实例验证无状态部署和故障转移，backend-1 宕机时 20/20 请求成功切换；完成 Redis、RabbitMQ、S3 兼容存储、优雅停机故障矩阵，并用 k6 固定到达率分析容量边界。'
+  ],why:'这 4 条分别覆盖数据库、缓存、MQ 和部署，技术面最均衡，适合通用 Java 岗位。'},
+  performance:{title:'性能优化 / 平台方向',desc:'突出指标、SQL、连接池、压测和容量分析。',bullets:[
+    '基于 5 万文章 / 20 万标签 / 10 万评论数据集定位集合 JOIN 分页、N+1 和 LIKE 全表扫描问题；通过两段式分页、批量加载、索引和 FULLTEXT 将文章列表 P95 从 6.78s 降至 3.14ms、P99 从 8.09s 降至 4.25ms。',
+    '使用 Actuator、Micrometer、Prometheus、Grafana 和 k6 建立 HTTP P95/P99、JVM、GC、Hikari、Redis、RabbitMQ 与慢查询指标体系，形成可复现的性能基线和瓶颈定位流程。',
+    '通过 Hikari pending / acquire 采样定位连接池等待，将 100 VU 下 P95 从 71.45ms 优化到 40.64ms，最大 pending 从 23 降至 0；150 VU 回归仍观察到 5 个 pending，避免盲目扩大连接池。',
+    '使用 k6 固定到达率和 CPU 亲和性分析单/双实例容量边界；双实例在 1000/1500 RPS 下无 dropped iterations，单实例多次出现 dropped 和长尾，同时明确单机实验不等于真实多机线性扩容。'
+  ],why:'适合性能、平台、基础架构岗位，强调测量方法、数据口径和容量边界。'},
+  reliability:{title:'业务可靠性 / 后台方向',desc:'突出缓存降级、幂等、MQ、日志聚合和故障恢复。',bullets:[
+    '设计 Redis 核心缓存降级与精确失效机制，Redis 停止时文章、标签、在线人数、留言接口仍返回 HTTP 200；对限流、登录防护、浏览量、分布式锁分别定义 fail-open、允许少计或跳过任务策略。',
+    '实现浏览量 Redis 增量 + 稳定 batchId + MySQL 唯一键幂等落库，避免跨系统事务和崩溃重试导致重复加浏览；点赞计数采用原子更新与周期校准。',
+    '使用 RabbitMQ 解耦访问日志，实现 Confirm、手动 ACK、批量事务、eventId 幂等、二分拆批和 DLQ；停服 30 秒期间业务请求 10/10 成功，恢复后消费者自动重连。',
+    '将持续增长的访问日志改为小时聚合表和 IP 聚合表，使用 ON DUPLICATE KEY UPDATE 保证聚合幂等，明细保留 90 天、聚合保留 400 天，并通过 Redis 锁防止多实例重复执行。'
+  ],why:'适合业务后端、用户/内容/交易平台，强调一致性、幂等、降级和后台任务。'},
+  middleware:{title:'MQ / Redis / 中间件方向',desc:'突出消息可靠性、缓存并发和故障演练。',bullets:[
+    '设计 RabbitMQ 访问日志链路：direct exchange、durable queue、持久化消息、Publisher Confirm、手动 ACK、批量消费、eventId 幂等、有限重试和 DLQ，处理重复消息和坏消息隔离。',
+    '实现 Redis 分布式锁：SET NX PX 获取锁、随机 token 标识持有者、Lua 脚本比较 token 后释放，接入浏览量刷库、日志聚合和缓存预热，避免多实例重复任务。',
+    '实现热点 Key 缓存击穿保护：单实例 256 段本地锁 + Redis 分布式锁 + 二次检查缓存；多实例抢锁失败采用可用性优先策略，避免请求无限等待。',
+    '完成 Redis、RabbitMQ、DLQ、S3 兼容存储、优雅停机和 Nginx 故障矩阵，记录业务成功率、恢复行为、消息积压和配置边界。'
+  ],why:'适合中间件、消息平台、基础架构岗位，强调协议语义、并发控制和故障恢复。'},
+  security:{title:'安全开发 / 平台方向',desc:'突出 JWT/RBAC、越权防护、文件校验和安全监控。',bullets:[
+    '基于 JWT 无状态认证和 RBAC 角色控制构建 API 权限体系，Controller 校验角色、Service 校验资源归属，避免仅依赖前端隐藏入口造成越权。',
+    '实现轻量请求安全检测：识别 XSS、SQL 注入、路径穿越、命令注入等特征，记录 attack_logs 与 ThreatSignature，并对登录失败做暴力破解检测和 IP 封禁。',
+    '实现上传文件四层校验：扩展名白名单、MIME 类型、文件头魔数、ImageIO 深度解析，同时限制大小和图片尺寸，降低伪造文件和恶意内容风险。',
+    '结合 Redis 缓存降级、限流 fail-open、HTTP-only Cookie 和请求 traceId 日志，平衡安全、可用性和排障能力，并明确 fail-open 的安全代价。'
+  ],why:'适合安全开发、平台安全岗位；投普通 Java 后端时建议只保留 JWT/RBAC 和上传校验两条。'},
+  campus:{title:'校招 / 实习精简版',desc:'空间有限时保留 2～3 条，强调问题、动作和结果。',bullets:[
+    '主导博客后端性能优化：通过两段式分页、批量加载、索引、MySQL FULLTEXT 和 Redis 缓存治理，将 5 万文章数据下文章列表 P95 从 6.78s 降至 3.14ms，笔记 SELECT 从约 42 次/请求降至 4 次/请求。',
+    '基于 RabbitMQ 实现可靠访问日志链路，覆盖 Publisher Confirm、手动 ACK、批量消费、eventId 幂等和 DLQ；RabbitMQ 停服期间业务请求 10/10 成功，恢复后消费者自动重连。',
+    '基于 Nginx + 双 Spring Boot 实例验证无状态部署和故障转移，backend-1 宕机时 20/20 请求成功切换；使用 k6 固定到达率分析单双实例容量边界。'
+  ],why:'校招简历不要堆满组件，保留数据库、MQ、部署三条最能证明后端能力的经历。'}
+};
+let activeResumeProfile='general';
+function renderResumeProfiles(){
+  $('#resumeProfileList').innerHTML=Object.entries(resumeProfiles).map(([id,p])=>`<button class="resume-profile ${id===activeResumeProfile?'active':''}" data-resume-profile="${id}"><b>${p.title}</b><br><small>${p.desc}</small></button>`).join('');
+  $$('.resume-profile').forEach(btn=>btn.addEventListener('click',()=>{activeResumeProfile=btn.dataset.resumeProfile;renderResumeProfiles();renderResumeOutput();}));
+}
+function renderResumeOutput(){
+  const p=resumeProfiles[activeResumeProfile]; $('#resumeProfileTitle').textContent=p.title; $('#resumeProfileDesc').textContent=p.desc; $('#resumeBullets').innerHTML=p.bullets.map((b,i)=>`<div class="resume-bullet"><b>${i+1}.</b><p>${b}</p></div>`).join(''); $('#resumeWhy').textContent='为什么这样写：'+p.why;
+}
+$('#copyResumeProfile').addEventListener('click',async()=>{const p=resumeProfiles[activeResumeProfile];const text=p.bullets.map(b=>'- '+b).join('\n');try{await navigator.clipboard.writeText(text);toast('简历条目已复制');}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('简历条目已复制');}});
+renderResumeProfiles();renderResumeOutput();
 // Performance metrics dashboard
 const performanceMetrics = [
 {id:'article-p95',phase:'阶段1',name:'文章列表 P95',result:'6.78s → 3.14ms',category:'查询',scenario:'50k 文章 / 200k 标签关联数据集，缓存开启。',method:'k6 压测核心文章列表接口，对比优化前后 P95。',evidence:'docs/BENCHMARK_PHASE1.md',interpretation:'提升主要来自两段式分页、批量关联加载、索引和缓存。不能把这个数字解释成所有生产请求都提升 99%。'},
