@@ -84,7 +84,7 @@ docker-compose down
 
 - **DDL 策略**: `spring.jpa.hibernate.ddl-auto=none` — 表结构由 JPA 实体注解管理，初始表需手动创建或由已有数据生成。**不要依赖 Hibernate 自动建表**。
 - **连接配置**: `application.properties` 中使用环境变量 `SPRING_DATASOURCE_URL/USERNAME/PASSWORD`，默认值连接 `localhost:3306/myblog`。
-- **Docker Compose 中**: MySQL 密码为 `Chuyangqi123@@`，应用用户 `bloguser` 密码 `Aston123@@blog`。
+- **Docker Compose 中**: MySQL 密码为 `<环境变量注入>`，应用用户 `bloguser` 密码 `<环境变量注入>`。
 
 ## 认证与授权
 
@@ -146,7 +146,7 @@ private String getUserIdFromRequest(HttpServletRequest request) {
 
 - **`spring.docker.compose.enabled=false`**: 禁用 Docker Compose 自动启动（本地开发时 MySQL 通常单独运行）。
 - **访问日志**: `VisitLoggingInterceptor` 拦截所有 `/api/**` 请求（除登录/注册），记录 IP、User-Agent、Referer。
-- **JWT Secret**: `JwtUtil.SECRET` 硬编码（`mySecretKeyForJwtTokenGenerationThatIsLongEnough`），生产环境应使用环境变量。
+- **JWT Secret**: `JwtUtil.SECRET` 硬编码（`<环境变量注入>`），生产环境应使用环境变量。
 - **内容字段**: `Post.content` 用 `@Column(columnDefinition = "LONGTEXT")` 存储 Markdown 内容。
 
 ## 非自明约定

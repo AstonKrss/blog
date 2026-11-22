@@ -87,9 +87,9 @@ services:
       DB_HOST: mysql
       DB_PORT: 3306
       DB_USER: bloguser
-      DB_PASSWORD: Aston123@@blog    # 和 mysql 的 MYSQL_USER/MYSQL_PASSWORD 一致
+      DB_PASSWORD: <环境变量注入>    # 和 mysql 的 MYSQL_USER/MYSQL_PASSWORD 一致
       DB_NAME: myblog
-      JWT_SECRET: mySecretKeyForJwtTokenGenerationThatIsLongEnough
+      JWT_SECRET: <环境变量注入>
       HOST: 0.0.0.0
       PORT: 8000
       CORS_ORIGINS: http://47.242.21.40,http://localhost:3000
@@ -240,7 +240,7 @@ Python 服务依赖 `oss_scan_logs` 表，部署前确保数据库中有这张�
 
 ```bash
 # 如果表不存在，需要执行 SQL 创建
-docker-compose exec mysql mysql -ubloguser -pAston123@@blog myblog < SQL/oss_security_logs.sql
+docker-compose exec mysql mysql -ubloguser -p<环境变量注入> myblog < SQL/oss_security_logs.sql
 ```
 
 ---

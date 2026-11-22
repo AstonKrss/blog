@@ -5,10 +5,10 @@ services:
     container_name: blog-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: Chuyangqi123@@
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在 .env 中设置 MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: myblog
       MYSQL_USER: bloguser
-      MYSQL_PASSWORD: Aston123@@blog
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?请在 .env 中设置 MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
@@ -39,27 +39,34 @@ services:
       SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 100MB
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: bloguser
-      SPRING_DATASOURCE_PASSWORD: Aston123@@blog
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:?请在 .env 中设置 MYSQL_PASSWORD}
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
-      JWT_SECRET: mySecretKeyForJwtTokenGenerationThatIsLongEnough
+      JWT_SECRET: ${JWT_SECRET:?请在 .env 中设置 JWT_SECRET}
       JWT_EXPIRATION: 86400000
       # QQ 邮件配置
       MAIL_HOST: smtp.qq.com
       MAIL_PORT: 587
       MAIL_USERNAME: 3223957215@qq.com
-      MAIL_PASSWORD: wsukckbbexiccifh
+      MAIL_PASSWORD: ${MAIL_PASSWORD:?请在 .env 中设置 MAIL_PASSWORD}
       BLOG_SITE_URL: http://47.242.21.40:8080
       BLOG_OWNER_EMAIL: aston@example.com
       BLOG_OWNER_NAME: Aston
+      BLOG_UPLOAD_DIR: /app/uploads
+      # 多实例共享文件存储；本地开发可改为 local
+      BLOG_STORAGE_TYPE: minio
+      BLOG_MINIO_ENDPOINT: http://minio:9000
+      BLOG_MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:?请在 .env 中设置 MINIO_ROOT_USER}
+      BLOG_MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?请在 .env 中设置 MINIO_ROOT_PASSWORD}
+      BLOG_MINIO_BUCKET: blog
       # Cookie 域名设置（关键：让前端页面能共享 httpOnly cookie）
       COOKIE_DOMAIN: 47.242.21.40
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
-      SPRING_DATA_REDIS_PASSWORD: Aston123@@blog
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:?请在 .env 中设置 REDIS_PASSWORD}
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-blog}
-      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-blog123}
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS}
       SPRING_RABBITMQ_MANAGEMENT_URL: http://rabbitmq:15672
 
     depends_on:
@@ -69,9 +76,10 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_healthy
+      minio:
+        condition: service_started
     networks:
       - blog-network
-
   # 前端 Next.js
   frontend:
     build:
@@ -108,8 +116,8 @@ services:
       DB_PORT: 3306
       DB_NAME: myblog
       DB_USER: bloguser
-      DB_PASSWORD: Aston123@@blog
-      JWT_SECRET: mySecretKeyForJwtTokenGenerationThatIsLongEnough
+      DB_PASSWORD: ${MYSQL_PASSWORD:?请在 .env 中设置 MYSQL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?请在 .env 中设置 JWT_SECRET}
       HOST: 0.0.0.0
       PORT: 8000
       CORS_ORIGINS: http://47.242.21.40,http://localhost:3000
@@ -118,13 +126,29 @@ services:
         condition: service_healthy
     networks:
       - blog-network
+  minio:
+    image: minio/minio:latest
+    container_name: blog-minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?请在 .env 中设置 MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?请在 .env 中设置 MINIO_ROOT_PASSWORD}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - blog-network
+
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: blog-rabbitmq
     restart: always
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-blog}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-blog123}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:?请在 .env 中设置 RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?请在 .env 中设置 RABBITMQ_DEFAULT_PASS}
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -141,7 +165,7 @@ services:
     image: redis:7-alpine
     container_name: blog-redis
     restart: always
-    command: ["redis-server", "--requirepass", "Aston123@@blog"]
+    command: ["sh", "-c", "redis-server --requirepass \"$$REDIS_PASSWORD\""]
     volumes:
       - redis_data:/data
     networks:
@@ -151,6 +175,7 @@ volumes:
   mysql_data:
   redis_data:
   rabbitmq_data:
+  minio_data:
 networks:
   blog-network:
     driver: bridge

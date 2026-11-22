@@ -53,3 +53,12 @@ null
 frontend/.env
 frontend/null
 *.bak
+### 压测临时数据与构建目录 ###
+bench-data/
+build-bench/
+pom-bench.xml
+# 生产环境配置文件
+frontend/.env.production
+*.pem
+*.key
+*.jks

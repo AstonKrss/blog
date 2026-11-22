@@ -82,7 +82,7 @@ def post_article(token, article):
 
 
 def main():
-    token, role = login(USERNAME, "Chuyangqi123@@")
+    token, role = login(USERNAME, os.environ.get("POST_PASSWORD", ""))
     if not token:
         sys.exit(1)
 

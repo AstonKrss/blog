@@ -404,7 +404,7 @@ if (!post.getAuthorId().equals(userId)) {
 `JwtUtil` 中的 `SECRET` 必须足够长且安全：
 
 ```java
-private static final String SECRET = "mySecretKeyForJwtTokenGenerationThatIsLongEnough";
+private static final String SECRET = "<环境变量注入>";
 ```
 
 生产环境应该使用环境变量或配置中心，不要硬编码。

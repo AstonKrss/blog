@@ -526,7 +526,7 @@ spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:root}
 
 # 第 16-19 行 - 邮件凭据有默认值
 spring.mail.username=${MAIL_USERNAME:3223957215@qq.com}
-spring.mail.password=${MAIL_PASSWORD:wsukckbbexiccifh}
+spring.mail.password=${MAIL_PASSWORD:<环境变量注入>}
 #                                   ^^^^^^^^^^^^^^^^^^^^^^^^^ 默认值是实际可用的授权码
 ```
 

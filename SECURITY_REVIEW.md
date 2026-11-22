@@ -69,7 +69,7 @@ if (!url.startsWith("http://") && !url.startsWith("https://")) {
 **问题代码**:
 
 ```java
-@Value("${jwt.secret:defaultSecretKeyForDevelopmentOnly123456}")
+@Value("${jwt.secret:<开发默认密钥,已废弃>}")
 private String jwtSecret;
 ```
 
@@ -145,7 +145,7 @@ if (pattern.matcher(fullPayload).find()) {
 **问题配置**:
 
 ```properties
-spring.mail.password=${MAIL_PASSWORD:wsukckbbexiccifh}
+spring.mail.password=${MAIL_PASSWORD:<环境变量注入>}
 ```
 
 **风险说明**:

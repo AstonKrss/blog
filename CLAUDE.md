@@ -45,7 +45,7 @@ docker compose up -d --build backend         # 只重建 backend
 docker compose logs -f backend               # 看 backend 日志
 docker compose down                          # 停服 (数据保留在 mysql_data 卷)
 docker compose down -v                       # ⚠️ 会删 MySQL 数据卷
-docker exec -it blog-mysql mysql -ubloguser -pAston123@@blog myblog
+docker exec -it blog-mysql mysql -ubloguser -p<环境变量注入> myblog
 ```
 
 ## 配置文件分布 (几个容易踩坑的)
@@ -158,7 +158,7 @@ Service 层负责 `authorId == userId` 校验 (防越权编辑/删除他人内�
 #### 4. JwtUtil (common/JwtUtil.java)
 
 - claims: `userId` (String UUID) + `role` (String) + subject=username
-- 默认密钥 `${jwt.secret:defaultSecretKeyForDevelopmentOnly123456}` — **生产必须设 `JWT_SECRET` 环境变量**,不然用了默认密钥就能伪造 token
+- 默认密钥 `${jwt.secret:<开发默认密钥,已废弃>}` — **生产必须设 `JWT_SECRET` 环境变量**,不然用了默认密钥就能伪造 token
 - 默认过期 `86400000` ms = 24h
 - 注意: Python 服务的 `utils/jwt_auth.py` 也用相同 `JWT_SECRET` 解码,但它做 `int(userId)`,**而 Java 的 userId 是 UUID 字符串** — 这是个跨服务不一致,Python 工具接口目前没真正接前端 JWT 流(详情见 Python 章节)
 
@@ -284,7 +284,7 @@ frontend/
 ```yaml
 SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/myblog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
 SPRING_DATASOURCE_USERNAME=root   # compose 用 bloguser
-SPRING_DATASOURCE_PASSWORD=root   # compose 用 Aston123@@blog
+SPRING_DATASOURCE_PASSWORD=root   # compose 用 <环境变量注入>
 ```
 
 ### Flyway 迁移目录
