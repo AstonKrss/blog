@@ -40,7 +40,9 @@ jobs:
         run: mvn clean package -DskipTests
 
       # ==================== 部署到阿里云 ====================
+      # 仅手动触发时部署；push 只做构建校验，避免服务器过期导致 CI 红叉
       - name: 部署到阿里云服务器
+        if: github.event_name == 'workflow_dispatch'
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.ALIYUN_HOST }}
